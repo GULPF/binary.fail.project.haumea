@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project_Haumea", "Haumea_Core\Haumea_Core.csproj", "{EDF80A96-8C62-4141-80EF-945D73849141}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_Linux|x86 = Debug_Linux|x86
+		Debug|x86 = Debug|x86
+		Release_Linux|x86 = Release_Linux|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Debug_Linux|x86.ActiveCfg = Debug_Linux|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Debug_Linux|x86.Build.0 = Debug_Linux|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Debug|x86.ActiveCfg = Debug|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Debug|x86.Build.0 = Debug|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Release_Linux|x86.ActiveCfg = Release_Linux|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Release_Linux|x86.Build.0 = Release_Linux|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Release|x86.ActiveCfg = Release|x86
+		{EDF80A96-8C62-4141-80EF-945D73849141}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
