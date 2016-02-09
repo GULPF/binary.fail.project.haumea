@@ -1,10 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{EDF80A96-8C62-4141-80EF-945D73849141}</ProjectGuid>
     <OutputType Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">WinExe</OutputType>
     <OutputType Condition=" '$(Configuration)' == 'Debug_Linux' OR '$(Configuration)' == 'Release_Linux'">Exe</OutputType>
@@ -58,9 +56,6 @@
   <PropertyGroup>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_Linux|x86'">
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -88,10 +83,12 @@
     <Compile Include="Rendering\Renderer.cs" />
     <Compile Include="Rendering\RenderInstruction.cs" />
     <Compile Include="Rendering\RenderState.cs" />
+    <Compile Include="Union.cs" />
+    <Compile Include="VectorExtensions.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
-      <HintPath >libs\WindowsGL\OpenTK.dll</HintPath>
+      <HintPath>libs\WindowsGL\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="MonoGame.Framework">
       <HintPath>libs\WindowsGL\MonoGame.Framework.dll</HintPath>
@@ -114,7 +111,7 @@
       <HintPath>libs\Linux\Triangulator.dll</HintPath>
     </Reference>
   </ItemGroup>
-    <ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -155,10 +152,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
-    <PostBuildEvent >XCOPY $(ProjectDir)Content\bin\WindowsGL $(TargetDir)Content /E /I /Y /D</PostBuildEvent>
+    <PostBuildEvent>XCOPY $(ProjectDir)Content\bin\WindowsGL $(TargetDir)Content /E /I /Y /D</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug_Linux' OR '$(Configuration)' == 'Release_Linux'">
-    <PostBuildEvent >mkdir -p $(TargetDir)/Content &amp;&amp; cp $(ProjectDir)Content/bin/Linux/* $(TargetDir)Content -r</PostBuildEvent>
+    <PostBuildEvent>mkdir -p $(TargetDir)Content &amp;&amp; cp $(ProjectDir)Content/bin/Linux/* $(TargetDir)Content -r</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-// This class makes multiple enumerable objects enumerable in on ememeration.
+// This class makes multiple enumerable objects enumerable in one enumeration.
 
 namespace Haumea_Core
 {
