@@ -35,7 +35,7 @@ namespace Haumea_Core.Rendering
 
             for (int n = 0; n < vectors.Length; n++)
             {
-                vertices[n].Position = V2toV3(vectors[n]);
+                vertices[n].Position = vectors[n].ToVector3();
                 vertices[n].Color = color;
             }
 
@@ -51,7 +51,7 @@ namespace Haumea_Core.Rendering
             // but I don't really care.
             for (int n = 0; n < points2d.Length; n++)
             {
-                polygon[n].Position = V2toV3(points2d[n]);
+                polygon[n].Position = points2d[n].ToVector3();
                 polygon[n].Color = color;
             }
 
@@ -74,7 +74,7 @@ namespace Haumea_Core.Rendering
         public static RenderInstruction Circle(Vector2 center2d, float rad, double rads,
             bool closeCircle, Color c)
         {
-            Vector3 center = V2toV3(center2d);
+            Vector3 center = center2d.ToVector3();
             // number of vertices used
             const int quality = 43;
             // number of triangles used, -1 because the center vertex 
@@ -127,9 +127,9 @@ namespace Haumea_Core.Rendering
         public static RenderInstruction Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
         {
             VertexPositionColor[] vertexTriangle = new VertexPositionColor[3];
-            vertexTriangle[0].Position = V2toV3(v1);
-            vertexTriangle[1].Position = V2toV3(v2);
-            vertexTriangle[2].Position = V2toV3(v3);
+            vertexTriangle[0].Position = v1.ToVector3();
+            vertexTriangle[1].Position = v2.ToVector3();
+            vertexTriangle[2].Position = v3.ToVector3();
             vertexTriangle[0].Color = vertexTriangle[1].Color = vertexTriangle[2].Color = color;
 
             int[] ind = { 0, 1, 2 };
@@ -140,8 +140,8 @@ namespace Haumea_Core.Rendering
         public static RenderInstruction Line(Vector2 start2d, Vector2 end2d, Color color)
         {
             VertexPositionColor[] line = new VertexPositionColor[2];
-            line[0].Position = V2toV3(start2d);
-            line[1].Position = V2toV3(end2d);
+            line[0].Position = start2d.ToVector3();
+            line[1].Position = end2d.ToVector3();
             line[0].Color = line[1].Color = color;
 
             int[] ind = { 0, 1 };
@@ -157,7 +157,7 @@ namespace Haumea_Core.Rendering
             // but I don't really care.
             for (int n = 0; n < points2d.Length; n++)
             {
-                polygon[n].Position = V2toV3(points2d[n]);
+                polygon[n].Position = points2d[n].ToVector3();
                 polygon[n].Color = c;
             }
 
@@ -179,7 +179,7 @@ namespace Haumea_Core.Rendering
         public static RenderInstruction Rectangle(
             Vector2 topLeft2d, Vector2 dims, Color c) 
         {
-            Vector3 topLeft     = V2toV3(topLeft2d);
+            Vector3 topLeft     = topLeft2d.ToVector3();
             Vector3 topRight    = new Vector3(topLeft.X + dims.X, topLeft.Y, 0);
             Vector3 bottomRight = new Vector3(topLeft.X, topLeft.Y + dims.Y, 0);
             Vector3 bottomLeft  = new Vector3(topLeft.X + dims.X, topLeft.Y + dims.Y, 0);
@@ -207,11 +207,6 @@ namespace Haumea_Core.Rendering
         }
 
         #endregion
-
-        private static Vector3 V2toV3 (Vector2 v2)
-        {
-            return new Vector3(v2.X, v2.Y, 0);
-        }
     }
 }
 

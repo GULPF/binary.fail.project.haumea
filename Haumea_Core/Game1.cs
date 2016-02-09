@@ -9,17 +9,14 @@ using Haumea_Core.Rendering;
 
 namespace Haumea_Core
 {
-
     public class Game1 : Game
     {
-
         private Vector2 _targetSize = new Vector2(600, 600);
         private SpriteFont _logFont;
         private SpriteBatch _spriteBatch;
         private Renderer _renderer;
 
         private List<RenderInstruction> _renderInstructions;
-
 
         private GraphicsDeviceManager _graphics;
 
@@ -136,21 +133,28 @@ namespace Haumea_Core
 
             device.Clear(Color.CornflowerBlue);
 
+            Camera camera = _renderer.RenderState.Camera;
+            MouseState mouse = Mouse.GetState();
+            Vector2 mousePos = new Vector2(mouse.X, mouse.Y);
+            Vector2 mouseWorld = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
+
+            var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
+            _renderInstructions.Add(pointer);
             _renderer.Render(_renderInstructions);
+            _renderer.Render(_renderInstructions);
+            _renderInstructions.RemoveAt(_renderInstructions.Count - 1);
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
 
-            Camera camera = _renderer.RenderState.Camera;
-            MouseState mouse = Mouse.GetState();
-            Vector2 mousePos = new Vector2(mouse.X, mouse.Y);
-
-            Log($"mouse:  x = {mousePos.X}\n" +
-                $"        y = {mousePos.Y}\n" +
-                $"offset: x = {camera.Offset.X}\n" +
-                $"        y = {camera.Offset.Y}\n" +
-                $"zoom:   {camera.Zoom}");
+            Log($"mouse(s): x = {mousePos.X}\n" +
+                $"          y = {mousePos.Y}\n" +
+                $"mouse(w): x = {mouseWorld.X}\n" +
+                $"          y = {mouseWorld.Y}\n" +
+                $"offset:   x = {camera.Offset.X}\n" +
+                $"          y = {camera.Offset.Y}\n" +
+                $"zoom:     {camera.Zoom}");
 
             _spriteBatch.End();
 
@@ -160,13 +164,16 @@ namespace Haumea_Core
 
         private void Log(string msg)
         {
-            Vector2 p0 = new Vector2(10, _targetSize.Y - 100);
+            Vector2 p0 = new Vector2(10, _targetSize.Y - _logFont.MeasureString(msg).Y - 10);
             _spriteBatch.DrawString(_logFont, msg, p0, Color.Black);
         }
 
         private Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
-            return v;
+            return new Vector2(
+                v.X / _targetSize.X * 2 - 1 + renderState.Camera.Offset.X,
+                (1 - v.Y / _targetSize.Y) * 2 - 1 + renderState.Camera.Offset.Y
+            );
         }
     }
 }

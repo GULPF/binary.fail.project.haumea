@@ -51,7 +51,7 @@ namespace Haumea_Core.Rendering
 
         private void UpdateProjection()
         {
-            Vector3 target = new Vector3(_offset.X, _offset.Y, 0);
+            Vector3 target = _offset.ToVector3();
 
             _view = Matrix.CreateLookAt(
                 new Vector3(_offset.X, _offset.Y, _zoom * base_z_distance),
