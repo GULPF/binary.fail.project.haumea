@@ -131,6 +131,9 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' == 'Debug_Linux' OR '$(Configuration)' == 'Release_Linux'">
     <None Include="Content\Content_linux.mgcb" />
+    <None Include="..\README.md">
+      <Link>README.md</Link>
+    </None>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <None Include="Content\Content_windows.mgcb" />
