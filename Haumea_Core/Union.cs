@@ -13,6 +13,11 @@ namespace Haumea_Core
             _parts = new List<IEnumerable<T>>();
         }
 
+        public Union(params IEnumerable<T>[] parts)
+        {
+            _parts = parts;
+        }
+
         public void Add(IEnumerable<T> part)
         {
             _parts.Add(part);
@@ -55,9 +60,10 @@ namespace Haumea_Core
                 bool done = !_partsEnum.MoveNext();
                 if (done) return false;
                 _elementEnum = _partsEnum.Current.GetEnumerator();
+                return _elementEnum.MoveNext();
             }
 
-            return _elementEnum.MoveNext();
+            return true;
         }
 
         public T Current {
@@ -88,6 +94,17 @@ namespace Haumea_Core
             get {
                 return Current;
             }
+        }
+    }
+
+    public static class UnionExtension
+    {
+        // Sadly, it is not possible to send a params list to another method.
+        // Can be worked around if it proves useful.
+        public static IEnumerable<T> Union<T>(this IEnumerable<T> enumer1, IEnumerable<T> enumer2)
+        {
+            return new Union<T>(enumer1, enumer2);
+
         }
     }
 }

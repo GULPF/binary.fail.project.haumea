@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Rendering;
 
-namespace Makemake
+namespace Haumea_Core
 {
     // This will be a central class in the game - it should handle all province functionality at a high level,
     // either directly or by delegating it to another class. 
@@ -48,13 +48,16 @@ namespace Makemake
             }
         }
             
-        public void Update(MouseState mouse)
+        public void Update(Vector2 mousePos)
         {
             for (int id = 0; id < _polys.Length; id++)
             {
-                if (_polys[id].isPointInside(mouse.Position))
+                if (_polys[id].isPointInside(mousePos))
                 {
                     _currentRenderBatch[id] = _allRenderInstructions[id][RenderState.Hover];
+                } else
+                {
+                    _currentRenderBatch[id] = _allRenderInstructions[id][RenderState.Idle];
                 }
             }
         }
@@ -87,7 +90,7 @@ namespace Makemake
                 _boundary = new AABB(max, min);
             }
 
-            public bool isPointInside(Point point)
+            public bool isPointInside(Vector2 point)
             {
                 if (!_boundary.isPointInside(point)) return false;
 
@@ -118,7 +121,7 @@ namespace Makemake
                 _min = min;
             }
 
-            public bool isPointInside(Point point)
+            public bool isPointInside(Vector2 point)
             {
                 return _min.X <= point.X && point.X <= _max.X
                     && _min.Y <= point.Y && point.Y <= _max.Y;
@@ -127,7 +130,7 @@ namespace Makemake
 
         public interface Hitable
         {
-            bool isPointInside(Point point);
+            bool isPointInside(Vector2 point);
         }
     }
 }

@@ -15,10 +15,10 @@ namespace Haumea_Core
         private SpriteFont _logFont;
         private SpriteBatch _spriteBatch;
         private Renderer _renderer;
-
         private List<RenderInstruction> _renderInstructions;
-
         private GraphicsDeviceManager _graphics;
+
+        private Provinces _provinces;
 
         public Game1()
         {
@@ -42,7 +42,6 @@ namespace Haumea_Core
             RenderState renderState = new RenderState(_targetSize);
             _renderer = new Renderer(_graphics.GraphicsDevice, renderState);
             base.Initialize();
-
         }
 
         /// <summary>
@@ -54,6 +53,19 @@ namespace Haumea_Core
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            _logFont = Content.Load<SpriteFont>("test/LogFont");
+
+            // Just to make the polygon initialization a bit prettier
+            Func<double, double, Vector2>   V = (double x, double y) => new Vector2((float)x,  (float)y);
+
+            var polys = new Provinces.Poly[]{
+                new Provinces.Poly(new Vector2[] { V(0, 0), V(0.5, 0.1) , V(0.3, -0.2) }),
+                new Provinces.Poly(new Vector2[] { V(-0.2, 0.3), V(0, 0), V(-0.3, 0.7) })
+            };
+
+            _provinces = new Provinces(polys);
+
+            /*
             _renderInstructions = new List<RenderInstruction>();
 
             // Order of the vectors matter
@@ -81,8 +93,7 @@ namespace Haumea_Core
                 polyPoints, Color.Coral));
 
             //device.DrawPolygon1pxBorder(polyPoints, Color.Black);
-
-            _logFont = Content.Load<SpriteFont>("test/LogFont");
+            */
         }
 
         /// <summary>
@@ -93,7 +104,8 @@ namespace Haumea_Core
         protected override void Update(GameTime gameTime)
         {
             // Read input.
-            MouseState mouse = Mouse.GetState();
+            MouseState    mouse    = Mouse.GetState();
+            Vector2       mousePos = ScreenToWorldCoordinates(mouse.Position.ToVector2(), _renderer.RenderState);
             KeyboardState keyboard = Keyboard.GetState();
 
             if (keyboard.IsKeyDown(Keys.Escape))
@@ -120,6 +132,8 @@ namespace Haumea_Core
             _renderer.RenderState.Camera.Move(move);
             _renderer.RenderState.Camera.ApplyZoom(zoom);
 
+            _provinces.Update(mousePos);
+
             base.Update(gameTime);
         }
 
@@ -138,11 +152,15 @@ namespace Haumea_Core
             Vector2 mousePos = mouse.Position.ToVector2();
             Vector2 mouseWorld = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
 
+            /*
             var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
             _renderInstructions.Add(pointer);
             _renderer.Render(_renderInstructions);
-            _renderer.Render(_renderInstructions);
             _renderInstructions.RemoveAt(_renderInstructions.Count - 1);
+            */
+            var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
+            RenderInstruction[] tailInstructions = {pointer};
+            _renderer.Render(_provinces.RenderInstructions.Union(tailInstructions));
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
