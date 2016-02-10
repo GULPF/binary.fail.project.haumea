@@ -177,16 +177,17 @@ namespace Haumea_Core
                 $"          y = {camera.Offset.Y}\n" +
                 $"window:   x = {screenDims.X}\n" +
                 $"          y = {screenDims.Y}\n" +
-                $"zoom:     {camera.Zoom}");
+                $"zoom:     {camera.Zoom}",
+                _renderer.RenderState.ScreenDim);
 
             _spriteBatch.End();
 
             base.Draw(gameTime);
         }
 
-        private void Log(string msg)
+        private void Log(string msg, Vector2 screenDim)
         {
-            Vector2 p0 = new Vector2(10, _targetSize.Y - _logFont.MeasureString(msg).Y - 10);
+            Vector2 p0 = new Vector2(10, screenDim.Y - _logFont.MeasureString(msg).Y - 10);
             _spriteBatch.DrawString(_logFont, msg, p0, Color.Black);
         }
 
