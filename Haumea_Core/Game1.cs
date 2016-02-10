@@ -39,7 +39,7 @@ namespace Haumea_Core
         {
             // Make mouse coordinates relative to game window instead of screen.
             Mouse.WindowHandle = Window.Handle;
-            RenderState renderState = new RenderState(_targetSize);
+            RenderState renderState = new RenderState(_graphics.GraphicsDevice.GetScreenDimensions());
             _renderer = new Renderer(_graphics.GraphicsDevice, renderState);
             base.Initialize();
         }
@@ -56,11 +56,12 @@ namespace Haumea_Core
             _logFont = Content.Load<SpriteFont>("test/LogFont");
 
             // Just to make the polygon initialization a bit prettier
-            Func<double, double, Vector2>   V = (double x, double y) => new Vector2((float)x,  (float)y);
+            Func<double, double, Vector2> V = (double x, double y) => new Vector2((float)x,  (float)y);
 
             var polys = new Provinces.Poly[]{
-                new Provinces.Poly(new Vector2[] { V(0, 0), V(0.5, 0.1) , V(0.3, -0.2) }),
-                new Provinces.Poly(new Vector2[] { V(-0.2, 0.3), V(0, 0), V(-0.3, 0.7) })
+                new Provinces.Poly(new Vector2[] { V( 0  ,  0  ), V( 0.5,  0.1)   , V( 0.3, -0.2) }),
+                new Provinces.Poly(new Vector2[] { V(-0.2,  0.3), V( 0  ,  0  )   , V(-0.3,  0.7) }),
+                new Provinces.Poly(new Vector2[] { V(-0.5, -0.5), V(-0.7, -0.3)   , V(-0.3,  -0.2), V(-0.1, -0.1) })
             };
 
             _provinces = new Provinces(polys);
@@ -104,9 +105,11 @@ namespace Haumea_Core
         protected override void Update(GameTime gameTime)
         {
             // Read input.
-            MouseState    mouse    = Mouse.GetState();
-            Vector2       mousePos = ScreenToWorldCoordinates(mouse.Position.ToVector2(), _renderer.RenderState);
-            KeyboardState keyboard = Keyboard.GetState();
+            MouseState    mouse     = Mouse.GetState();
+            Vector2       screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
+            _renderer.RenderState.UpdateAspectRatio(screenDim);
+            Vector2       mousePos  = ScreenToWorldCoordinates(mouse.Position.ToVector2(), _renderer.RenderState);
+            KeyboardState keyboard  = Keyboard.GetState();
 
             if (keyboard.IsKeyDown(Keys.Escape))
             {
@@ -120,10 +123,10 @@ namespace Haumea_Core
             const float ZoomSpeed = 1.1f;
 
             // TODO: `went_down` should be prioritized
-            if (keyboard.IsKeyDown(Keys.Left)) move.X -= PanSpeed;
+            if (keyboard.IsKeyDown(Keys.Left))  move.X -= PanSpeed;
             if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed;
-            if (keyboard.IsKeyDown(Keys.Up)) move.Y += PanSpeed;
-            if (keyboard.IsKeyDown(Keys.Down)) move.Y -= PanSpeed;
+            if (keyboard.IsKeyDown(Keys.Up))    move.Y += PanSpeed;
+            if (keyboard.IsKeyDown(Keys.Down))  move.Y -= PanSpeed;
 
             // temporary keys
             if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;
@@ -147,11 +150,11 @@ namespace Haumea_Core
 
             device.Clear(Color.CornflowerBlue);
 
-            Camera camera = _renderer.RenderState.Camera;
-            MouseState mouse = Mouse.GetState();
-            Vector2 mousePos = mouse.Position.ToVector2();
+            Camera camera      = _renderer.RenderState.Camera;
+            MouseState mouse   = Mouse.GetState();
+            Vector2 mousePos   = mouse.Position.ToVector2();
             Vector2 mouseWorld = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
-
+            Vector2 screenDims = _renderer.RenderState.ScreenDim;
             /*
             var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
             _renderInstructions.Add(pointer);
@@ -165,17 +168,18 @@ namespace Haumea_Core
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
-
+        
             Log($"mouse(s): x = {mousePos.X}\n" +
                 $"          y = {mousePos.Y}\n" +
                 $"mouse(w): x = {mouseWorld.X}\n" +
                 $"          y = {mouseWorld.Y}\n" +
                 $"offset:   x = {camera.Offset.X}\n" +
                 $"          y = {camera.Offset.Y}\n" +
+                $"window:   x = {screenDims.X}\n" +
+                $"          y = {screenDims.Y}\n" +
                 $"zoom:     {camera.Zoom}");
 
             _spriteBatch.End();
-
 
             base.Draw(gameTime);
         }
@@ -189,8 +193,8 @@ namespace Haumea_Core
         private Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
             return new Vector2(
-                v.X / _targetSize.X * 2 - 1 + renderState.Camera.Offset.X,
-                (1 - v.Y / _targetSize.Y) * 2 - 1 + renderState.Camera.Offset.Y
+                v.X / renderState.ScreenDim.X * 2 - 1 + renderState.Camera.Offset.X,
+                (1 - v.Y / renderState.ScreenDim.Y) * 2 - 1 + renderState.Camera.Offset.Y
             );
         }
     }

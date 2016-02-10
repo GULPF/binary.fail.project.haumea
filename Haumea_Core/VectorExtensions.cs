@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Haumea_Core
 {
@@ -17,6 +18,12 @@ namespace Haumea_Core
         public static Vector3 ToVector3(this Vector2 v2d)
         {
             return new Vector3(v2d.X, v2d.Y, 0);
+        }
+
+        public static Vector2 GetScreenDimensions(this GraphicsDevice device)
+        {
+            return new Vector2(device.PresentationParameters.BackBufferWidth,
+                device.PresentationParameters.BackBufferHeight);
         }
     }
 }
