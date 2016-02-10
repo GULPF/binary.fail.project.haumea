@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
-// This class makes multiple enumerable objects enumerable in one enumeration.
+// This class makes multiple enumerable objects enumerable in one pass.
+// Should probably implement IList<IEnumberable<T>>
 
 namespace Haumea_Core
 {
@@ -18,9 +19,19 @@ namespace Haumea_Core
             _parts = parts;
         }
 
+        public Union(IList<IEnumerable<T>> parts)
+        {
+            _parts = parts;
+        }
+
         public void Add(IEnumerable<T> part)
         {
             _parts.Add(part);
+        }
+
+        public void Insert(int index, IEnumerable<T> part)
+        {
+            _parts.Insert(index, part);
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -99,12 +110,11 @@ namespace Haumea_Core
 
     public static class UnionExtension
     {
-        // Sadly, it is not possible to send a params list to another method.
-        // Can be worked around if it proves useful.
-        public static IEnumerable<T> Union<T>(this IEnumerable<T> enumer1, IEnumerable<T> enumer2)
+        public static IEnumerable<T> Union<T>(this IEnumerable<T> enumer1, params IEnumerable<T>[] enumer2)
         {
-            return new Union<T>(enumer1, enumer2);
-
+            var union = new Union<T>(new List<IEnumerable<T>>(enumer2));
+            union.Insert(0, enumer1);
+            return union;
         }
     }
 }
