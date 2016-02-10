@@ -65,7 +65,7 @@ namespace Haumea_Core.Rendering
         /// <param name="position">Position.</param>
         public void SetObjectPosition(Vector2 position)
         {
-            
+            _world = Matrix.CreateTranslation(position.ToVector3());
         }
     }
 }

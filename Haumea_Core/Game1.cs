@@ -135,7 +135,7 @@ namespace Haumea_Core
 
             Camera camera = _renderer.RenderState.Camera;
             MouseState mouse = Mouse.GetState();
-            Vector2 mousePos = new Vector2(mouse.X, mouse.Y);
+            Vector2 mousePos = mouse.Position.ToVector2();
             Vector2 mouseWorld = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
 
             var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);

@@ -85,6 +85,7 @@
     <Compile Include="Rendering\RenderState.cs" />
     <Compile Include="Union.cs" />
     <Compile Include="VectorExtensions.cs" />
+    <Compile Include="Provinces.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
