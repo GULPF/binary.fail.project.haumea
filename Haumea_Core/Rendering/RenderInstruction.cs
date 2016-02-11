@@ -7,12 +7,35 @@ using Triangulator;
 
 namespace Haumea_Core.Rendering
 {
-    // Contains everything that needs to be known to render a primitive.
+    
+    /// <summary>
+    /// Contains everything that needs to be known to render a list of primitives (triangles or lines).
+    /// The class is immutable, and instances are preferably created with the static methods.
+    /// It is intended to be used with Renderer#Render(RenderInstruction),
+    /// which draws the instruction to the screen.
+    /// </summary>
     public struct RenderInstruction
     {
-        public readonly VertexPositionColor[] Vertices;
-        public readonly int[] Indices;
+        /// <summary>
+        /// Indicates what kind of primitives this RenderInstruction is representing.
+        /// Can be PrimitiveType.TriangleList or PrimitiveType.LineList.
+        /// </summary>
         public readonly PrimitiveType Type;
+
+        /// <summary>
+        /// A list of vertices (points) to be used to draw primitivs.
+        /// </summary>
+        public readonly VertexPositionColor[] Vertices;
+
+        /// <summary>
+        /// Each element in `Indices` is an index in `Vertices`.
+        /// If `Type == PrimitiveType.TriangleList`, each group of three indexes
+        /// (e.g Indices[0], Indices[1], Indices[2]) makes up a triangle (using the points from `Vertices`.
+        /// If `Type == PrimitiveType.LineLIst, it works the same but it uses groups of two indexes,
+        /// which represent the start and end point of a line.
+        /// </summary>
+        public readonly int[] Indices;
+
 
         public RenderInstruction(VertexPositionColor[] vertices, int[] indices, PrimitiveType type)
         {
@@ -22,8 +45,11 @@ namespace Haumea_Core.Rendering
         }
 
         #region Creator-methods
-
-        // Uses triangulation. Works for any polygon.
+        /// <summary>
+        /// Create a RenderInstruction representing a polygon. Uses triangulation via Triangulator.dll.
+        /// </summary>
+        /// <param name="points">The points of the polygon</param>
+        /// <param name="color">The color of the polygon</param>
         public static RenderInstruction Polygon(Vector2[] points, Color color)
         {
             int[] ind;
@@ -42,7 +68,12 @@ namespace Haumea_Core.Rendering
             return new RenderInstruction(vertices, ind, PrimitiveType.TriangleList);
         }
 
-        // Uses triangle-fan method. Might be faster for concave polygons. Probably not though.
+        /// <summary>
+        /// Create a RenderInstruction representing a concave polygon.
+        /// Does not work for convex polygons (duh). Uses triangle fan method.
+        /// </summary>
+        /// <param name="points2d">The points of the polygon.</param>
+        /// <param name="color">The color of the polygon</param>
         public static RenderInstruction ConcavePolygon(Vector2[] points2d, Color color)
         {
             VertexPositionColor[] polygon = new VertexPositionColor[points2d.Length];
@@ -71,6 +102,17 @@ namespace Haumea_Core.Rendering
             return new RenderInstruction(polygon, ind, PrimitiveType.TriangleList);
         }
 
+        /// <summary>
+        /// Creates a Rendernstruction representing a circle. Uses triangle fan method.
+        /// </summary>
+        /// <param name="center2d">The center of the circle</param>
+        /// <param name="rad">The radian of the circle</param>
+        /// <param name="rads">Number of radians to draw (if drawing a half circle for example)</param>
+        /// <param name="closeCircle">
+        /// If set to <c>true</c>, connect the circle.
+        /// Unless not drawing a full circle, set to true.
+        /// </param>
+        /// <param name="c">The color of the circle</param>
         public static RenderInstruction Circle(Vector2 center2d, float rad, double rads,
             bool closeCircle, Color c)
         {
@@ -137,6 +179,12 @@ namespace Haumea_Core.Rendering
             return new RenderInstruction(vertexTriangle, ind, PrimitiveType.TriangleList);
         }
 
+        /// <summary>
+        /// Creates a RenderInstruction representing a line.
+        /// </summary>
+        /// <param name="start2d">The starting point of the line</param>
+        /// <param name="end2d">The ending point of the line</param>
+        /// <param name="color">The color of the line</param>
         public static RenderInstruction Line(Vector2 start2d, Vector2 end2d, Color color)
         {
             VertexPositionColor[] line = new VertexPositionColor[2];

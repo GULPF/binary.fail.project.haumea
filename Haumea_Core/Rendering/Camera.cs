@@ -1,14 +1,17 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 
 namespace Haumea_Core.Rendering
 {
+    /// <summary>
+    /// Handles the View matrix.
+    /// </summary>
     public class Camera
     {
         private Vector2 _offset;
+        private Vector2 _screenDim;
         private float   _zoom;
         private Matrix  _view;
-
-        private const float base_z_distance = 2.4142f;
 
         public Matrix View
         {
@@ -25,8 +28,9 @@ namespace Haumea_Core.Rendering
             get { return _offset; }
         }
 
-        public Camera()
+        public Camera(Vector2 screenDim)
         {
+            _screenDim = screenDim;
             Reset();
         }
 
@@ -42,6 +46,12 @@ namespace Haumea_Core.Rendering
             UpdateProjection();
         }
 
+        public void UpdateScreenDim(Vector2 screenDim)
+        {
+            _screenDim = screenDim;
+            UpdateProjection();
+        }
+
         public void Reset()
         {
             _zoom   = 1;
@@ -51,10 +61,12 @@ namespace Haumea_Core.Rendering
 
         private void UpdateProjection()
         {
+            float baseZDistance = (float)(Math.Tan(MathHelper.ToRadians(45)) * _screenDim.Y / 2);
+
             Vector3 target = _offset.ToVector3();
 
             _view = Matrix.CreateLookAt(
-                new Vector3(_offset.X, _offset.Y, _zoom * base_z_distance),
+                new Vector3(_offset.X, _offset.Y, _zoom * baseZDistance),
                 target,
                 Vector3.UnitY);
         }
