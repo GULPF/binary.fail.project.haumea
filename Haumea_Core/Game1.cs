@@ -59,9 +59,9 @@ namespace Haumea_Core
             Func<double, double, Vector2> V = (double x, double y) => new Vector2((float)x,  (float)y);
 
             var polys = new Provinces.Poly[]{
-                new Provinces.Poly(new Vector2[] { V( 0  ,  0  ), V( 0.5,  0.1)   , V( 0.3, -0.2) }),
-                new Provinces.Poly(new Vector2[] { V(-0.2,  0.3), V( 0  ,  0  )   , V(-0.3,  0.7) }),
-                new Provinces.Poly(new Vector2[] { V(-0.5, -0.5), V(-0.7, -0.3)   , V(-0.3,  -0.2), V(-0.1, -0.1) })
+                new Provinces.Poly(new Vector2[] { V( 0  ,  0  ), V( 200,  40)     , V( 120, -80) }),
+                new Provinces.Poly(new Vector2[] { V(-80,  120)  , V( 0  ,  0  )   , V(-120,  280) }),
+                new Provinces.Poly(new Vector2[] { V(-200, -200), V(-280, -120)   , V(-120,  -80), V(-40, -40) })
             };
 
             _provinces = new Provinces(polys);
@@ -110,6 +110,7 @@ namespace Haumea_Core
             _renderer.RenderState.UpdateAspectRatio(screenDim);
             Vector2       mousePos  = ScreenToWorldCoordinates(mouse.Position.ToVector2(), _renderer.RenderState);
             KeyboardState keyboard  = Keyboard.GetState();
+            float currentZoom       = _renderer.RenderState.Camera.Zoom;
 
             if (keyboard.IsKeyDown(Keys.Escape))
             {
@@ -119,14 +120,14 @@ namespace Haumea_Core
             Vector2 move = new Vector2();
             float zoom = 1;
 
-            const float PanSpeed = 0.02f;
+            const float PanSpeed = 0.015f;
             const float ZoomSpeed = 1.1f;
 
             // TODO: `went_down` should be prioritized
-            if (keyboard.IsKeyDown(Keys.Left))  move.X -= PanSpeed;
-            if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed;
-            if (keyboard.IsKeyDown(Keys.Up))    move.Y += PanSpeed;
-            if (keyboard.IsKeyDown(Keys.Down))  move.Y -= PanSpeed;
+            if (keyboard.IsKeyDown(Keys.Left))  move.X -= PanSpeed * screenDim.X * currentZoom;
+            if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
+            if (keyboard.IsKeyDown(Keys.Up))    move.Y += PanSpeed * screenDim.Y * currentZoom;
+            if (keyboard.IsKeyDown(Keys.Down))  move.Y -= PanSpeed * screenDim.Y * currentZoom;
 
             // temporary keys
             if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;

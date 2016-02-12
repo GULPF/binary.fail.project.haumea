@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Haumea_Core.Rendering
 {
+    /// <summary>
+    /// Contains code for drawing RenderInstructions to screen.
+    /// </summary>
     public class Renderer
     {
         private readonly BasicEffect    _effect;
@@ -19,6 +22,7 @@ namespace Haumea_Core.Rendering
             _effect = new BasicEffect(_device);
         }
 
+        // It might be better to just make it an extension method to GraphicsDevice or something.
         public void Render(IEnumerable<RenderInstruction> instructions)
         {
             _effect.VertexColorEnabled = true;
