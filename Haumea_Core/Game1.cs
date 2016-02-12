@@ -124,6 +124,7 @@ namespace Haumea_Core
             const float ZoomSpeed = 1.1f;
 
             // TODO: `went_down` should be prioritized
+            // TODO: The scaling of the pad speed is shit.
             if (keyboard.IsKeyDown(Keys.Left))  move.X -= PanSpeed * screenDim.X * currentZoom;
             if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
             if (keyboard.IsKeyDown(Keys.Up))    move.Y += PanSpeed * screenDim.Y * currentZoom;
@@ -155,15 +156,16 @@ namespace Haumea_Core
             MouseState mouse   = Mouse.GetState();
             Vector2 mousePos   = mouse.Position.ToVector2();
             Vector2 mouseWorld = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
-            Vector2 screenDims = _renderer.RenderState.ScreenDim;
+            Vector2 screenDim  = _renderer.RenderState.ScreenDim;
             /*
             var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
             _renderInstructions.Add(pointer);
             _renderer.Render(_renderInstructions);
             _renderInstructions.RemoveAt(_renderInstructions.Count - 1);
             */
-            var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
-            RenderInstruction[] tailInstructions = {pointer};
+            float pointerSize = screenDim.X / 60 * camera.Zoom;
+            var pointer = RenderInstruction.Rectangle(mouseWorld, pointerSize * Vector2.One, Color.Black);
+            RenderInstruction[] tailInstructions = { pointer };
             _renderer.Render(_provinces.RenderInstructions.Union(tailInstructions));
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
@@ -176,10 +178,10 @@ namespace Haumea_Core
                 $"          y = {mouseWorld.Y}\n" +
                 $"offset:   x = {camera.Offset.X}\n" +
                 $"          y = {camera.Offset.Y}\n" +
-                $"window:   x = {screenDims.X}\n" +
-                $"          y = {screenDims.Y}\n" +
+                $"window:   x = {screenDim.X}\n" +
+                $"          y = {screenDim.Y}\n" +
                 $"zoom:     {camera.Zoom}",
-                _renderer.RenderState.ScreenDim);
+                screenDim);
 
             _spriteBatch.End();
 
@@ -194,10 +196,8 @@ namespace Haumea_Core
 
         private Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
-            return new Vector2(
-                v.X / renderState.ScreenDim.X * 2 - 1 + renderState.Camera.Offset.X,
-                (1 - v.Y / renderState.ScreenDim.Y) * 2 - 1 + renderState.Camera.Offset.Y
-            );
+            Vector2 halfWidth = renderState.ScreenDim / 2;
+            return renderState.Camera.Offset + new Vector2(v.X - halfWidth.X, halfWidth.Y - v.Y);
         }
     }
 }
