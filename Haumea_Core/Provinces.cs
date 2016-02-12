@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Rendering;
 
@@ -14,9 +13,15 @@ namespace Haumea_Core
 
     public class Provinces
     {
+        private readonly static Random _random = new Random();
+
+        // TODO: make private
+        // Maps tag => id, id => tag
+        public readonly BiDictionary<int, string> _provinceTagIdMapping;
+
         // Rendering related - maybe move to a delegate if it gets hairy.
-        private RenderInstruction[] _currentRenderBatch;
-        private enum RenderState {Hover, Idle};
+        private enum RenderState { Hover, Idle };
+        private readonly RenderInstruction[] _currentRenderBatch;
         private readonly Dictionary<int, Dictionary<RenderState, RenderInstruction>> _allRenderInstructions;
 
         public RenderInstruction[] RenderInstructions {
@@ -25,23 +30,33 @@ namespace Haumea_Core
 
         // Hit detection.
         private readonly Poly[] _polys;
+        // TODO: make private
+        public int _mouseOver;
 
-        public Provinces(Poly[] polys)
+        public Provinces(RawProvince[] provinces)
         {
-            _polys = polys;
-            _currentRenderBatch    = new RenderInstruction[_polys.Length];
+            _polys                 = new Poly[provinces.Length];
+            _currentRenderBatch    = new RenderInstruction[provinces.Length];
             _allRenderInstructions = new Dictionary<int, Dictionary<RenderState, RenderInstruction>>();
+            _mouseOver             = -1;
+
+            _provinceTagIdMapping = new BiDictionary<int, string>();
 
             // Initialize the render states - all provinces start in `Idle`.
             for (int id = 0; id < _polys.Length; id++) {
+                _provinceTagIdMapping.Add(id, provinces[id].Tag);
+
+                _polys[id] = provinces[id].Poly;
                 var renderInstructions = new Dictionary<RenderState, RenderInstruction>();
+
+                Color color = provinces[id].Color;
 
                 // This means that the polygons are triangulated at run time, which is not optimal.
                 // It shouldn't *really* matter though.
                 renderInstructions[RenderState.Idle] = RenderInstruction.
-                    Polygon(_polys[id].Points, Color.Black);
+                    Polygon(_polys[id].Points, color);
                 renderInstructions[RenderState.Hover] = RenderInstruction.
-                    Polygon(_polys[id].Points, Color.Red);
+                    Polygon(_polys[id].Points, color.Darken());
 
                 _allRenderInstructions[id] = renderInstructions; 
                 _currentRenderBatch[id]    = _allRenderInstructions[id][RenderState.Idle];
@@ -52,13 +67,25 @@ namespace Haumea_Core
         {
             for (int id = 0; id < _polys.Length; id++)
             {
-                if (_polys[id].isPointInside(mousePos))
-                {
+                if (_polys[id].isPointInside(mousePos)) {
+                    // If this is not a new mouse over, don't bother.
+                    if (id == _mouseOver) return;
+
                     _currentRenderBatch[id] = _allRenderInstructions[id][RenderState.Hover];
-                } else
-                {
-                    _currentRenderBatch[id] = _allRenderInstructions[id][RenderState.Idle];
+                    if (_mouseOver > -1) {
+                        _currentRenderBatch[_mouseOver] = _allRenderInstructions[_mouseOver][RenderState.Idle];    
+                    }
+                    _mouseOver = id;
+
+                    // Provinces can't overlap so we exit immediately when we find a hit.
+                    return;
                 }
+            }
+
+            // Not hit - clear mouse over.
+            if (_mouseOver > -1) {
+                _currentRenderBatch[_mouseOver] = _allRenderInstructions[_mouseOver][RenderState.Idle];    
+                _mouseOver = -1;
             }
         }
 
@@ -66,6 +93,8 @@ namespace Haumea_Core
         {
             renderer.Render(_currentRenderBatch);
         }
+
+        #region geometric
 
         // TODO: These do not belong in here.
 
@@ -77,7 +106,7 @@ namespace Haumea_Core
             public Poly (Vector2[] points) {
                 Points  = points;
 
-                Vector2 max = new Vector2(0, 0), min = new Vector2(0, 0);
+                Vector2 max = Vector2.Zero, min = Vector2.Zero;
 
                 foreach (Vector2 vector in Points)
                 {
@@ -131,6 +160,24 @@ namespace Haumea_Core
         public interface Hitable
         {
             bool isPointInside(Vector2 point);
+        }
+
+        #endregion
+
+        // Not intended to be used for anyting else other than temporarily holding parsed data. 
+        public struct RawProvince
+        {
+            public Poly Poly;
+            public string Tag, RealmTag;
+            public Color Color;
+
+            public RawProvince(Poly poly, String tag, String realmTag, Color color)
+            {
+                Poly = poly;
+                Tag = tag;
+                RealmTag = realmTag;
+                Color = color;
+            }
         }
     }
 }

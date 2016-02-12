@@ -84,8 +84,10 @@
     <Compile Include="Rendering\RenderInstruction.cs" />
     <Compile Include="Rendering\RenderState.cs" />
     <Compile Include="Union.cs" />
-    <Compile Include="VectorExtensions.cs" />
     <Compile Include="Provinces.cs" />
+    <Compile Include="Realms.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="BiDictionary.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
@@ -134,6 +136,7 @@
     <None Include="..\README.md">
       <Link>README.md</Link>
     </None>
+    <None Include="world.yaml" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <None Include="Content\Content_windows.mgcb" />

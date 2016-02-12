@@ -1,0 +1,16 @@
+﻿{
+	start_date: <date> 
+
+,	provinces: [
+		{
+			poly: [<xys>]
+		,	color, tag, realm_tag, name
+		}
+	]
+
+,	realms: [
+		{
+			color, tag, name, government_type
+		}
+	]
+}

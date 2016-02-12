@@ -66,7 +66,7 @@ namespace Haumea_Core.Rendering
             Vector3 target = _offset.ToVector3();
 
             _view = Matrix.CreateLookAt(
-                new Vector3(_offset.X, _offset.Y, _zoom * baseZDistance),
+                _offset.ToVector3(_zoom * baseZDistance),
                 target,
                 Vector3.UnitY);
         }

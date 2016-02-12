@@ -24,9 +24,9 @@ namespace Haumea_Core
         {
             Content.RootDirectory = "Content";
             _graphics = new GraphicsDeviceManager(this);
-            _graphics.IsFullScreen = false;
-            _graphics.PreferredBackBufferHeight = (int)_targetSize.Y;
-            _graphics.PreferredBackBufferWidth = (int)_targetSize.X;
+            _graphics.IsFullScreen = true;
+            //_graphics.PreferredBackBufferHeight = (int)_targetSize.Y;
+            //_graphics.PreferredBackBufferWidth = (int)_targetSize.X;
         }
 
         /// <summary>
@@ -56,15 +56,33 @@ namespace Haumea_Core
             _logFont = Content.Load<SpriteFont>("test/LogFont");
 
             // Just to make the polygon initialization a bit prettier
-            Func<double, double, Vector2> V = (double x, double y) => new Vector2((float)x,  (float)y);
+            Func<double, double, Vector2> V = (double x, double y) => new Vector2(20 * (float)x,  20 * (float)y);
 
             var polys = new Provinces.Poly[]{
-                new Provinces.Poly(new Vector2[] { V( 0  ,  0  ), V( 200,  40)     , V( 120, -80) }),
-                new Provinces.Poly(new Vector2[] { V(-80,  120)  , V( 0  ,  0  )   , V(-120,  280) }),
-                new Provinces.Poly(new Vector2[] { V(-200, -200), V(-280, -120)   , V(-120,  -80), V(-40, -40) })
+                new Provinces.Poly(new Vector2[] { 
+                    V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
+                    V(7, 3), V(9, 4), V(12, 3), V(12, 1), V(9, 0), V(8, -1), V(8, -2),
+                    V(6, -3), V(5, -2), V(3, -2), V(1, -1)
+                    //V(6, -3), V(3, -2), V(1, -1)
+                }),
+                new Provinces.Poly(new Vector2[] {
+                    V(0, 0), V(1, -1), V(3, -2), V(5, -2), V(6, -3), V(5, -4), V(5, -5), V(4, -6),
+                    V(2, -6), V(0, -5), V(-2, -3), V(-2, -2), V(-3, -1), V(-2, 0)
+                }),
+                new Provinces.Poly(new Vector2[] {
+                    V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
+                    V(3, 4), V(2, 4), V(0, 5), V(0, 6), V(-2, 6), V(-3, 5),
+                    V(-5, 5), V(-7, 3), V(-7, 1), V(-8, 0), V(-8, -1), V(-7, -2), V(-4, -3),
+                    V(0, -5), V(-2, -3), V(-2, -2), V(-3, -1), V(-2, 0)
+                })
             };
 
-            _provinces = new Provinces(polys);
+            var provinces = new Provinces.RawProvince[3];
+            provinces[0] = new Provinces.RawProvince(polys[0], "P1", "R1", Color.Red);
+            provinces[1] = new Provinces.RawProvince(polys[1], "P2", "R2", Color.DarkGoldenrod);
+            provinces[2] = new Provinces.RawProvince(polys[2], "P3", "R2", Color.Brown);
+
+            _provinces = new Provinces(provinces);
 
             /*
             _renderInstructions = new List<RenderInstruction>();
@@ -163,7 +181,7 @@ namespace Haumea_Core
             _renderer.Render(_renderInstructions);
             _renderInstructions.RemoveAt(_renderInstructions.Count - 1);
             */
-            float pointerSize = screenDim.X / 60 * camera.Zoom;
+            float pointerSize = screenDim.X / 160 * camera.Zoom;
             var pointer = RenderInstruction.Rectangle(mouseWorld, pointerSize * Vector2.One, Color.Black);
             RenderInstruction[] tailInstructions = { pointer };
             _renderer.Render(_provinces.RenderInstructions.Union(tailInstructions));
@@ -172,6 +190,10 @@ namespace Haumea_Core
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
         
+            string selectedTag = _provinces._mouseOver > -1
+                ? _provinces._provinceTagIdMapping[_provinces._mouseOver]
+                : "<n/a>";
+
             Log($"mouse(s): x = {mousePos.X}\n" +
                 $"          y = {mousePos.Y}\n" +
                 $"mouse(w): x = {mouseWorld.X}\n" +
@@ -180,7 +202,9 @@ namespace Haumea_Core
                 $"          y = {camera.Offset.Y}\n" +
                 $"window:   x = {screenDim.X}\n" +
                 $"          y = {screenDim.Y}\n" +
-                $"zoom:     {camera.Zoom}",
+                $"zoom:     {camera.Zoom}\n" +
+                $"province: {selectedTag}" + 
+                "",
                 screenDim);
 
             _spriteBatch.End();
@@ -194,7 +218,9 @@ namespace Haumea_Core
             _spriteBatch.DrawString(_logFont, msg, p0, Color.Black);
         }
 
-        private Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
+        // This only works because one screen pixel = one length unit. This only holds when zoom = 1 though,
+        // so it currently fails in all other cases.
+        private static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
             Vector2 halfWidth = renderState.ScreenDim / 2;
             return renderState.Camera.Offset + new Vector2(v.X - halfWidth.X, halfWidth.Y - v.Y);
