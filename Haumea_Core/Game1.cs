@@ -17,6 +17,8 @@ namespace Haumea_Core
         private Renderer _renderer;
         private List<RenderInstruction> _renderInstructions;
         private GraphicsDeviceManager _graphics;
+        private Vector2 _mousePos,_mouseWorldPos;
+        private Texture2D _mouseCursorTexture;
 
         private Provinces _provinces;
 
@@ -54,6 +56,7 @@ namespace Haumea_Core
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             _logFont = Content.Load<SpriteFont>("test/LogFont");
+            _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
             // Just to make the polygon initialization a bit prettier
             Func<double, double, Vector2> V = (double x, double y) => new Vector2(20 * (float)x,  20 * (float)y);
@@ -126,36 +129,43 @@ namespace Haumea_Core
             MouseState    mouse     = Mouse.GetState();
             Vector2       screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
             _renderer.RenderState.UpdateAspectRatio(screenDim);
-            Vector2       mousePos  = ScreenToWorldCoordinates(mouse.Position.ToVector2(), _renderer.RenderState);
-            KeyboardState keyboard  = Keyboard.GetState();
-            float currentZoom       = _renderer.RenderState.Camera.Zoom;
-
-            if (keyboard.IsKeyDown(Keys.Escape))
+            if (base.IsActive)
             {
-                Exit();
+                if (GraphicsDevice.Viewport.Bounds.Contains(mouse.Position.X, mouse.Position.Y))
+                {
+                    _mousePos = mouse.Position.ToVector2();
+                    _mouseWorldPos = ScreenToWorldCoordinates(_mousePos, _renderer.RenderState);
+                }
+                KeyboardState keyboard = Keyboard.GetState();
+                float currentZoom = _renderer.RenderState.Camera.Zoom;
+
+                if (keyboard.IsKeyDown(Keys.Escape))
+                {
+                    Exit();
+                }
+
+                Vector2 move = new Vector2();
+                float zoom = 1;
+
+                const float PanSpeed = 0.015f;
+                const float ZoomSpeed = 1.1f;
+
+                // TODO: `went_down` should be prioritized
+                // TODO: The scaling of the pad speed is shit.
+                if (keyboard.IsKeyDown(Keys.Left)) move.X -= PanSpeed * screenDim.X * currentZoom;
+                if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
+                if (keyboard.IsKeyDown(Keys.Up)) move.Y += PanSpeed * screenDim.Y * currentZoom;
+                if (keyboard.IsKeyDown(Keys.Down)) move.Y -= PanSpeed * screenDim.Y * currentZoom;
+
+                // temporary keys
+                if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;
+                if (keyboard.IsKeyDown(Keys.M)) zoom /= ZoomSpeed;
+
+                _renderer.RenderState.Camera.Move(move);
+                _renderer.RenderState.Camera.ApplyZoom(zoom);
+
+                _provinces.Update(_mouseWorldPos);
             }
-
-            Vector2 move = new Vector2();
-            float zoom = 1;
-
-            const float PanSpeed = 0.015f;
-            const float ZoomSpeed = 1.1f;
-
-            // TODO: `went_down` should be prioritized
-            // TODO: The scaling of the pad speed is shit.
-            if (keyboard.IsKeyDown(Keys.Left))  move.X -= PanSpeed * screenDim.X * currentZoom;
-            if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
-            if (keyboard.IsKeyDown(Keys.Up))    move.Y += PanSpeed * screenDim.Y * currentZoom;
-            if (keyboard.IsKeyDown(Keys.Down))  move.Y -= PanSpeed * screenDim.Y * currentZoom;
-
-            // temporary keys
-            if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;
-            if (keyboard.IsKeyDown(Keys.M)) zoom /= ZoomSpeed;
-
-            _renderer.RenderState.Camera.Move(move);
-            _renderer.RenderState.Camera.ApplyZoom(zoom);
-
-            _provinces.Update(mousePos);
 
             base.Update(gameTime);
         }
@@ -172,8 +182,8 @@ namespace Haumea_Core
 
             Camera camera      = _renderer.RenderState.Camera;
             MouseState mouse   = Mouse.GetState();
-            Vector2 mousePos   = mouse.Position.ToVector2();
-            Vector2 mouseWorld = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
+            //Vector2 mousePos   = mouse.Position.ToVector2();
+            //Vector2 mouseWorld = ScreenToWorldCoordinates(_mousePos, _renderer.RenderState);
             Vector2 screenDim  = _renderer.RenderState.ScreenDim;
             /*
             var pointer = RenderInstruction.Rectangle(mouseWorld, 0.01f * Vector2.One, Color.Black);
@@ -182,22 +192,24 @@ namespace Haumea_Core
             _renderInstructions.RemoveAt(_renderInstructions.Count - 1);
             */
             float pointerSize = screenDim.X / 160 * camera.Zoom;
-            var pointer = RenderInstruction.Rectangle(mouseWorld, pointerSize * Vector2.One, Color.Black);
+            var pointer = RenderInstruction.Rectangle(_mouseWorldPos, pointerSize * Vector2.One, Color.Black);
             RenderInstruction[] tailInstructions = { pointer };
-            _renderer.Render(_provinces.RenderInstructions.Union(tailInstructions));
+            _renderer.Render(_provinces.RenderInstructions.Union(tailInstructions)); // .Union(tailInstructions)
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
-        
+
+            _spriteBatch.Draw(_mouseCursorTexture, _mousePos, Color.White);
+
             string selectedTag = _provinces._mouseOver > -1
                 ? _provinces._provinceTagIdMapping[_provinces._mouseOver]
                 : "<n/a>";
 
-            Log($"mouse(s): x = {mousePos.X}\n" +
-                $"          y = {mousePos.Y}\n" +
-                $"mouse(w): x = {mouseWorld.X}\n" +
-                $"          y = {mouseWorld.Y}\n" +
+            Log($"mouse(s): x = {_mousePos.X}\n" +
+                $"          y = {_mousePos.Y}\n" +
+                $"mouse(w): x = {_mouseWorldPos.X}\n" +
+                $"          y = {_mouseWorldPos.Y}\n" +
                 $"offset:   x = {camera.Offset.X}\n" +
                 $"          y = {camera.Offset.Y}\n" +
                 $"window:   x = {screenDim.X}\n" +
