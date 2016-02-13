@@ -81,9 +81,9 @@ namespace Haumea_Core
             };
 
             var provinces = new Provinces.RawProvince[3];
-            provinces[0] = new Provinces.RawProvince(polys[0], "P1", "R1", Color.Red);
-            provinces[1] = new Provinces.RawProvince(polys[1], "P2", "R2", Color.DarkGoldenrod);
-            provinces[2] = new Provinces.RawProvince(polys[2], "P3", "R2", Color.Brown);
+            provinces[0] = new Provinces.RawProvince(polys[0], "P1", "DAN", Color.Red);
+            provinces[1] = new Provinces.RawProvince(polys[1], "P2", "TEU", Color.DarkGoldenrod);
+            provinces[2] = new Provinces.RawProvince(polys[2], "P3", "TEU", Color.Brown);
 
             _provinces = new Provinces(provinces);
 
@@ -139,30 +139,30 @@ namespace Haumea_Core
                 KeyboardState keyboard = Keyboard.GetState();
                 float currentZoom = _renderer.RenderState.Camera.Zoom;
 
-                if (keyboard.IsKeyDown(Keys.Escape))
-                {
-                    Exit();
-                }
+            if (keyboard.IsKeyDown(Keys.Escape))
+            {
+                Exit();
+            }
 
-                Vector2 move = new Vector2();
-                float zoom = 1;
+            Vector2 move = new Vector2();
+            float zoom = 1;
 
-                const float PanSpeed = 0.015f;
-                const float ZoomSpeed = 1.1f;
+            const float PanSpeed = 0.015f;
+            const float ZoomSpeed = 1.1f;
 
-                // TODO: `went_down` should be prioritized
-                // TODO: The scaling of the pad speed is shit.
+            // TODO: `went_down` should be prioritized
+            // TODO: The scaling of the pad speed is shit.
                 if (keyboard.IsKeyDown(Keys.Left)) move.X -= PanSpeed * screenDim.X * currentZoom;
-                if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
+            if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
                 if (keyboard.IsKeyDown(Keys.Up)) move.Y += PanSpeed * screenDim.Y * currentZoom;
                 if (keyboard.IsKeyDown(Keys.Down)) move.Y -= PanSpeed * screenDim.Y * currentZoom;
 
-                // temporary keys
-                if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;
-                if (keyboard.IsKeyDown(Keys.M)) zoom /= ZoomSpeed;
+            // temporary keys
+            if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;
+            if (keyboard.IsKeyDown(Keys.M)) zoom /= ZoomSpeed;
 
-                _renderer.RenderState.Camera.Move(move);
-                _renderer.RenderState.Camera.ApplyZoom(zoom);
+            _renderer.RenderState.Camera.Move(move);
+            _renderer.RenderState.Camera.ApplyZoom(zoom);
 
                 _provinces.Update(_mouseWorldPos);
             }
@@ -199,11 +199,13 @@ namespace Haumea_Core
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
+        
+            string selectedTag = _provinces.MouseOver > -1
+                ? _provinces.ProvinceTagIdMapping[_provinces.MouseOver]
+                : "<n/a>";
 
-            _spriteBatch.Draw(_mouseCursorTexture, _mousePos, Color.White);
-
-            string selectedTag = _provinces._mouseOver > -1
-                ? _provinces._provinceTagIdMapping[_provinces._mouseOver]
+            string selectedRealm = _provinces.MouseOver > -1
+                ? _provinces.Realms.GetOwnerTag(_provinces.MouseOver)
                 : "<n/a>";
 
             Log($"mouse(s): x = {_mousePos.X}\n" +
@@ -215,7 +217,8 @@ namespace Haumea_Core
                 $"window:   x = {screenDim.X}\n" +
                 $"          y = {screenDim.Y}\n" +
                 $"zoom:     {camera.Zoom}\n" +
-                $"province: {selectedTag}" + 
+                $"province: {selectedTag}\n" + 
+                $"realm:    {selectedRealm}" +
                 "",
                 screenDim);
 

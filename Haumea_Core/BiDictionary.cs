@@ -4,12 +4,12 @@ using System.Collections.Generic;
 namespace Haumea_Core
 {
     /// <summary>
-    /// Bi directional dictionary.
+    /// Bidirectional dictionary.
     /// </summary>
     public class BiDictionary<T1, T2>
     {
-        private Dictionary<T1, T2> _forward;
-        private Dictionary<T2, T1> _backward;
+        private readonly Dictionary<T1, T2> _forward;
+        private readonly Dictionary<T2, T1> _backward;
 
         public BiDictionary()
         {
@@ -37,6 +37,21 @@ namespace Haumea_Core
         public void Remove(T2 t2, T1 t1)
         {
             Remove(t1, t2);
+        }
+
+        public bool Contains(T1 t1)
+        {
+            return _forward.ContainsKey(t1);
+        }
+
+        public bool Contains(T2 t2)
+        {
+            return _backward.ContainsKey(t2);
+        }
+
+        public int Count
+        {
+            get { return _forward.Count; }
         }
 
         public T1 this [T2 key]

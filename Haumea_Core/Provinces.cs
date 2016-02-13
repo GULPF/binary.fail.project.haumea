@@ -13,25 +13,47 @@ namespace Haumea_Core
 
     public class Provinces
     {
-        private readonly static Random _random = new Random();
-
-        // TODO: make private
-        // Maps tag => id, id => tag
-        public readonly BiDictionary<int, string> _provinceTagIdMapping;
+        private readonly BiDictionary<int, string> _provinceTagIdMapping;
 
         // Rendering related - maybe move to a delegate if it gets hairy.
         private enum RenderState { Hover, Idle };
         private readonly RenderInstruction[] _currentRenderBatch;
         private readonly Dictionary<int, Dictionary<RenderState, RenderInstruction>> _allRenderInstructions;
 
+        // Hit detection.
+        private readonly Poly[] _polys;
+        private int _mouseOver;
+
+        // Delegators
+        private Realms _realms;
+
+        public Realms Realms {
+            get { return _realms; }
+        }
+
+        /// <summary>
+        /// Bidirectional dictionary mapping tag => id and id => tag.
+        /// </summary>
+        public BiDictionary<int, string> ProvinceTagIdMapping
+        {
+            get { return _provinceTagIdMapping; }
+        }
+
+        /// <summary>
+        /// Indicate which province the mouse is over.
+        /// If -1, no province exists under the mouse.
+        /// </summary>
+        public int MouseOver
+        {
+            get { return _mouseOver; }
+        }
+
+        /// <summary>
+        /// A list of all active render instructions.
+        /// </summary>
         public RenderInstruction[] RenderInstructions {
             get { return _currentRenderBatch; }
         }
-
-        // Hit detection.
-        private readonly Poly[] _polys;
-        // TODO: make private
-        public int _mouseOver;
 
         public Provinces(RawProvince[] provinces)
         {
@@ -41,10 +63,17 @@ namespace Haumea_Core
             _mouseOver             = -1;
 
             _provinceTagIdMapping = new BiDictionary<int, string>();
+            _realms = new Realms();
 
-            // Initialize the render states - all provinces start in `Idle`.
+
             for (int id = 0; id < _polys.Length; id++) {
+                
                 _provinceTagIdMapping.Add(id, provinces[id].Tag);
+                _realms.AssignOwnership(id, provinces[id].RealmTag);
+
+                //
+                // Initialize the render states - all provinces start in `Idle`.
+                //
 
                 _polys[id] = provinces[id].Poly;
                 var renderInstructions = new Dictionary<RenderState, RenderInstruction>();
