@@ -78,9 +78,9 @@ namespace Haumea_Core
             };
 
             var provinces = new Provinces.RawProvince[3];
-            provinces[0] = new Provinces.RawProvince(polys[0], "P1", "R1", Color.Red);
-            provinces[1] = new Provinces.RawProvince(polys[1], "P2", "R2", Color.DarkGoldenrod);
-            provinces[2] = new Provinces.RawProvince(polys[2], "P3", "R2", Color.Brown);
+            provinces[0] = new Provinces.RawProvince(polys[0], "P1", "DAN", Color.Red);
+            provinces[1] = new Provinces.RawProvince(polys[1], "P2", "TEU", Color.DarkGoldenrod);
+            provinces[2] = new Provinces.RawProvince(polys[2], "P3", "TEU", Color.Brown);
 
             _provinces = new Provinces(provinces);
 
@@ -190,8 +190,12 @@ namespace Haumea_Core
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
         
-            string selectedTag = _provinces._mouseOver > -1
-                ? _provinces._provinceTagIdMapping[_provinces._mouseOver]
+            string selectedTag = _provinces.MouseOver > -1
+                ? _provinces.ProvinceTagIdMapping[_provinces.MouseOver]
+                : "<n/a>";
+
+            string selectedRealm = _provinces.MouseOver > -1
+                ? _provinces.Realms.GetOwnerTag(_provinces.MouseOver)
                 : "<n/a>";
 
             Log($"mouse(s): x = {mousePos.X}\n" +
@@ -203,7 +207,8 @@ namespace Haumea_Core
                 $"window:   x = {screenDim.X}\n" +
                 $"          y = {screenDim.Y}\n" +
                 $"zoom:     {camera.Zoom}\n" +
-                $"province: {selectedTag}" + 
+                $"province: {selectedTag}\n" + 
+                $"realm:    {selectedRealm}" +
                 "",
                 screenDim);
 
