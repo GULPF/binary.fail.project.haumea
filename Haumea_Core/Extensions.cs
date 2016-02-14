@@ -56,4 +56,3 @@ namespace Haumea_Core
         }
     }
 }
-

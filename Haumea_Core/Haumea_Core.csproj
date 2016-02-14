@@ -136,7 +136,6 @@
     <None Include="..\README.md">
       <Link>README.md</Link>
     </None>
-    <None Include="world.yaml" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <None Include="Content\Content_windows.mgcb" />

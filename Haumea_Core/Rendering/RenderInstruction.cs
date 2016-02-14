@@ -257,4 +257,3 @@ namespace Haumea_Core.Rendering
         #endregion
     }
 }
-

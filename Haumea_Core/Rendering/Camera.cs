@@ -72,4 +72,3 @@ namespace Haumea_Core.Rendering
         }
     }
 }
-

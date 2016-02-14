@@ -199,7 +199,10 @@ namespace Haumea_Core
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
             _spriteBatch.Begin();
-        
+
+
+            _spriteBatch.Draw(_mouseCursorTexture, _mousePos, Color.White);
+
             string selectedTag = _provinces.MouseOver > -1
                 ? _provinces.ProvinceTagIdMapping[_provinces.MouseOver]
                 : "<n/a>";
@@ -242,4 +245,3 @@ namespace Haumea_Core
         }
     }
 }
-
