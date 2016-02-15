@@ -88,6 +88,9 @@
     <Compile Include="Realms.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="BiDictionary.cs" />
+    <Compile Include="Geometric\Poly.cs" />
+    <Compile Include="Geometric\AABB.cs" />
+    <Compile Include="Geometric\IHitable.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
@@ -170,4 +173,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Geometric\" />
+  </ItemGroup>
 </Project>

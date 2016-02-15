@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 using Haumea_Core.Rendering;
+using Haumea_Core.Geometric;
 
 namespace Haumea_Core
 {
@@ -96,7 +97,7 @@ namespace Haumea_Core
         {
             for (int id = 0; id < _polys.Length; id++)
             {
-                if (_polys[id].isPointInside(mousePos)) {
+                if (_polys[id].IsPointInside(mousePos)) {
                     // If this is not a new mouse over, don't bother.
                     if (id == _mouseOver) return;
 
@@ -122,76 +123,6 @@ namespace Haumea_Core
         {
             renderer.Render(_currentRenderBatch);
         }
-
-        #region geometric
-
-        // TODO: These do not belong in here.
-
-        public class Poly : Hitable
-        {
-            public readonly Vector2[] Points;
-            private readonly AABB _boundary;
-
-            public Poly (Vector2[] points) {
-                Points  = points;
-
-                Vector2 max = Vector2.Zero, min = Vector2.Zero;
-
-                foreach (Vector2 vector in Points)
-                {
-                    max.X = MathHelper.Max(max.X, vector.X);
-                    max.Y = MathHelper.Max(max.Y, vector.Y);
-                    min.X = MathHelper.Min(min.X, vector.X);
-                    min.Y = MathHelper.Min(min.Y, vector.Y);
-                }
-
-                _boundary = new AABB(max, min);
-            }
-
-            public bool isPointInside(Vector2 point)
-            {
-                if (!_boundary.isPointInside(point)) return false;
-
-                // http://stackoverflow.com/questions/217578/
-
-                int i, j;
-                bool c = false;
-                for (i = 0, j = Points.Length - 1; i < Points.Length; j = i++) {
-                    if ( ((Points[i].Y > point.Y) != (Points[j].Y > point.Y)) &&
-                        (point.X < 
-                            (Points[j].X - Points[i].X) * (point.Y - Points[i].Y) / (Points[j].Y - Points[i].Y) + Points[i].X) )
-                    {
-                        c = !c;
-                    }
-                }
-
-                return c;
-            }
-        }
-
-        public class AABB : Hitable
-        {
-            private readonly Vector2 _max, _min;
-
-            public AABB(Vector2 max, Vector2 min)
-            {
-                _max = max;
-                _min = min;
-            }
-
-            public bool isPointInside(Vector2 point)
-            {
-                return _min.X <= point.X && point.X <= _max.X
-                    && _min.Y <= point.Y && point.Y <= _max.Y;
-            }
-        }
-
-        public interface Hitable
-        {
-            bool isPointInside(Vector2 point);
-        }
-
-        #endregion
 
         // Not intended to be used for anyting else other than temporarily holding parsed data. 
         public struct RawProvince
