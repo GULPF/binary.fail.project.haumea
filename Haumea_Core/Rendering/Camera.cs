@@ -61,7 +61,7 @@ namespace Haumea_Core.Rendering
 
         private void UpdateProjection()
         {
-            float baseZDistance = (float)((_screenDim.Y / 2) / Math.Tan(MathHelper.ToRadians(45 / 2)));
+            float baseZDistance = (float)((_screenDim.Y / 2f) / Math.Tan(MathHelper.ToRadians(45 / 2f)));
 
             Vector3 target = _offset.ToVector3();
 
