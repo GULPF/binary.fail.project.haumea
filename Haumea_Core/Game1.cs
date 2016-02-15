@@ -239,7 +239,7 @@ namespace Haumea_Core
             
         private static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
-            Vector2 halfWidth = renderState.ScreenDim / 2;
+            Vector2 halfWidth = renderState.ScreenDim *0.5f;
             return renderState.Camera.Offset + renderState.Camera.Zoom * new Vector2(v.X  - halfWidth.X, halfWidth.Y - v.Y);
         }
     }
