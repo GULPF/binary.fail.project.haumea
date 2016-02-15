@@ -235,13 +235,11 @@ namespace Haumea_Core
             Vector2 p0 = new Vector2(10, screenDim.Y - _logFont.MeasureString(msg).Y - 10);
             _spriteBatch.DrawString(_logFont, msg, p0, Color.Black);
         }
-
-        // This only works because one screen pixel = one length unit. This only holds when zoom = 1 though,
-        // so it currently fails in all other cases.
+            
         private static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
             Vector2 halfWidth = renderState.ScreenDim / 2;
-            return renderState.Camera.Offset + new Vector2(v.X - halfWidth.X, halfWidth.Y - v.Y);
+            return renderState.Camera.Offset + renderState.Camera.Zoom * new Vector2(v.X  - halfWidth.X, halfWidth.Y - v.Y);
         }
     }
 }
