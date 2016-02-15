@@ -16,7 +16,7 @@
 #begin test/LogFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
-/processorParam:TextureFormat=Compressed
+/processorParam:TextureFormat=NoChange
 /build:test/LogFont.spritefont
 
 #begin test/cursor.png
@@ -29,3 +29,4 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:TextureFormat=Color
 /build:test/cursor.png
+
