@@ -93,6 +93,8 @@
     <Compile Include="Geometric\Poly.cs" />
     <Compile Include="Geometric\AABB.cs" />
     <Compile Include="Geometric\IHitable.cs" />
+    <Compile Include="Geometric\FindPolygonLabel.cs" />
+    <Compile Include="SortedList.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
