@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 
+using Haumea_Core.Collections;
+
 // http://mapcontext.com/autocarto/proceedings/auto-carto-8/pdf/an-algorithm-for-locating-candidate-labeling-boxes-within-a-polygon.pdf
 namespace Haumea_Core.Geometric
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Haumea_Core
+namespace Haumea_Core.Collections
 {
     /// <summary>
     /// Bidirectional dictionary.

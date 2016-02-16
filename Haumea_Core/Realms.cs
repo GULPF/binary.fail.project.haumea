@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Haumea_Core.Collections;
 
 namespace Haumea_Core
 {

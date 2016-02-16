@@ -85,16 +85,16 @@
     <Compile Include="Rendering\Renderer.cs" />
     <Compile Include="Rendering\RenderInstruction.cs" />
     <Compile Include="Rendering\RenderState.cs" />
-    <Compile Include="Union.cs" />
     <Compile Include="Provinces.cs" />
     <Compile Include="Realms.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="BiDictionary.cs" />
     <Compile Include="Geometric\Poly.cs" />
     <Compile Include="Geometric\AABB.cs" />
     <Compile Include="Geometric\IHitable.cs" />
     <Compile Include="Geometric\FindPolygonLabel.cs" />
-    <Compile Include="SortedList.cs" />
+    <Compile Include="Collections\BiDictionary.cs" />
+    <Compile Include="Collections\SortedList.cs" />
+    <Compile Include="Collections\Union.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
@@ -178,4 +178,7 @@
   </Target>
   -->
   <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Collections\" />
+  </ItemGroup>
 </Project>

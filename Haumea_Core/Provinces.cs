@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 
 using Haumea_Core.Rendering;
 using Haumea_Core.Geometric;
+using Haumea_Core.Collections;
 
 namespace Haumea_Core
 {

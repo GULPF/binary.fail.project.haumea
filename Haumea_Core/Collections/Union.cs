@@ -3,7 +3,7 @@
 // This class makes multiple enumerable objects enumerable in one pass.
 // Should probably implement IList<IEnumberable<T>>
 
-namespace Haumea_Core
+namespace Haumea_Core.Collections
 {
     public class Union<T> : IEnumerable<T>
     {            
