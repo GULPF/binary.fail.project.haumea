@@ -94,7 +94,6 @@
     <Compile Include="Geometric\FindPolygonLabel.cs" />
     <Compile Include="Collections\BiDictionary.cs" />
     <Compile Include="Collections\SortedList.cs" />
-    <Compile Include="Collections\Union.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">

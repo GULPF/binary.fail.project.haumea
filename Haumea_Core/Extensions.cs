@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Haumea_Core
 {
-    public static class VectorExtensions
+    public static class Extensions
     {
 
         //
@@ -53,6 +55,23 @@ namespace Haumea_Core
         {
             return new Vector2(device.PresentationParameters.BackBufferWidth,
                 device.PresentationParameters.BackBufferHeight);
+        }
+
+        // Creates a single IEnumerable<T> from several others.
+        public static IEnumerable<T> Union<T>(this IEnumerable<T> enumer1, params IEnumerable<T>[] enumer2)
+        {
+            foreach (T t in enumer1)
+            {
+                yield return t;
+            }
+
+            foreach (IEnumerable<T> enumerx in enumer2)
+            {
+                foreach (T t in enumerx)
+                {
+                    yield return t;
+                }
+            }
         }
     }
 }
