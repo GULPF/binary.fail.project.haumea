@@ -13,7 +13,7 @@ namespace Haumea_Core.Rendering
         private readonly BasicEffect    _effect;
         private readonly GraphicsDevice _device;
 
-        //public readonly RenderState RenderState;
+        public readonly RenderState RenderState;
 
         public Renderer(GraphicsDevice device, RenderState renderState)
         {
