@@ -15,63 +15,47 @@ namespace Haumea_Core
 
     public class Provinces
     {
-        private readonly BiDictionary<int, string> _provinceTagIdMapping;
-
-        // Rendering related - maybe move to a delegate if it gets hairy.
         private enum RenderState { Hover, Idle };
-        private readonly RenderInstruction[] _currentRenderBatch;
         private readonly Dictionary<int, Dictionary<RenderState, RenderInstruction>> _allRenderInstructions;
-
-        // Hit detection.
         private readonly Poly[] _polys;
         private int _mouseOver;
-
-        // Delegators
-        private Realms _realms;
-
-        public Realms Realms {
-            get { return _realms; }
-        }
 
         /// <summary>
         /// Bidirectional dictionary mapping tag => id and id => tag.
         /// </summary>
-        public BiDictionary<int, string> ProvinceTagIdMapping
-        {
-            get { return _provinceTagIdMapping; }
-        }
+        public BiDictionary<int, string> ProvinceTagIdMapping { get; }
 
         /// <summary>
         /// Indicate which province the mouse is over.
         /// If -1, no province exists under the mouse.
         /// </summary>
-        public int MouseOver
-        {
+        public int MouseOver {
             get { return _mouseOver; }
         }
 
         /// <summary>
         /// A list of all active render instructions.
         /// </summary>
-        public RenderInstruction[] RenderInstructions {
-            get { return _currentRenderBatch; }
-        }
+        public RenderInstruction[] RenderInstructions { get; }
+
+        // Delegators
+        public Realms Realms { get; }
 
         public Provinces(RawProvince[] provinces)
         {
             _polys                 = new Poly[provinces.Length];
-            _currentRenderBatch    = new RenderInstruction[provinces.Length];
+            RenderInstructions     = new RenderInstruction[provinces.Length];
             _allRenderInstructions = new Dictionary<int, Dictionary<RenderState, RenderInstruction>>();
             _mouseOver             = -1;
 
-            _provinceTagIdMapping = new BiDictionary<int, string>();
-            _realms = new Realms();
+            ProvinceTagIdMapping = new BiDictionary<int, string>();
+            Realms = new Realms();
 
 
             for (int id = 0; id < _polys.Length; id++) {
                 
-                _provinceTagIdMapping.Add(id, provinces[id].Tag);
-                _realms.AssignOwnership(id, provinces[id].RealmTag);
+                ProvinceTagIdMapping.Add(id, provinces[id].Tag);
+                Realms.AssignOwnership(id, provinces[id].RealmTag);
 
                 //
                 // Initialize the render states - all provinces start in `Idle`.
@@ -90,7 +74,7 @@ namespace Haumea_Core
                     Polygon(_polys[id].Points, color.Darken());
 
                 _allRenderInstructions[id] = renderInstructions; 
-                _currentRenderBatch[id]    = _allRenderInstructions[id][RenderState.Idle];
+                RenderInstructions[id]    = _allRenderInstructions[id][RenderState.Idle];
             }
         }
             
@@ -102,9 +86,9 @@ namespace Haumea_Core
                     // If this is not a new mouse over, don't bother.
                     if (id == _mouseOver) return;
 
-                    _currentRenderBatch[id] = _allRenderInstructions[id][RenderState.Hover];
+                    RenderInstructions[id] = _allRenderInstructions[id][RenderState.Hover];
                     if (_mouseOver > -1) {
-                        _currentRenderBatch[_mouseOver] = _allRenderInstructions[_mouseOver][RenderState.Idle];    
+                        RenderInstructions[_mouseOver] = _allRenderInstructions[_mouseOver][RenderState.Idle];    
                     }
                     _mouseOver = id;
 
@@ -115,14 +99,14 @@ namespace Haumea_Core
 
             // Not hit - clear mouse over.
             if (_mouseOver > -1) {
-                _currentRenderBatch[_mouseOver] = _allRenderInstructions[_mouseOver][RenderState.Idle];    
+                RenderInstructions[_mouseOver] = _allRenderInstructions[_mouseOver][RenderState.Idle];    
                 _mouseOver = -1;
             }
         }
 
         public void Draw(Renderer renderer, GameTime gameTime)
         {
-            renderer.Render(_currentRenderBatch);
+            renderer.Render(RenderInstructions);
         }
 
         // Not intended to be used for anyting else other than temporarily holding parsed data. 

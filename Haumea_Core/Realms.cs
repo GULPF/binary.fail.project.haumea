@@ -9,23 +9,19 @@ namespace Haumea_Core
     {
         // Maps province => realm
         private IDictionary<int, string> _ownerships;
-        private BiDictionary<int, string> _realmTagIdMapping;
 
         /// <summary>
         /// Bidirectional dictionary that maps tag => id and id => tag for realms.
         /// </summary>
-        public BiDictionary<int, string> RealmTagIdMapping
-        {
-            get { return RealmTagIdMapping; }
-        }
+        public BiDictionary<int, string> RealmTagIdMapping { get; }
             
         public Realms()
         {
             _ownerships = new Dictionary<int, string>();
-            _realmTagIdMapping = new BiDictionary<int, string>();
-            _realmTagIdMapping.Add(0, "TEU");
-            _realmTagIdMapping.Add(1, "DAN");
-            _realmTagIdMapping.Add(2, "NOR");
+            RealmTagIdMapping = new BiDictionary<int, string>();
+            RealmTagIdMapping.Add(0, "TEU");
+            RealmTagIdMapping.Add(1, "DAN");
+            RealmTagIdMapping.Add(2, "NOR");
         }
 
         public void AssignOwnership(int province, string realmTag)

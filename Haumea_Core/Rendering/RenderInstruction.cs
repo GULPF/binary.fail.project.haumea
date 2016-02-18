@@ -20,12 +20,12 @@ namespace Haumea_Core.Rendering
         /// Indicates what kind of primitives this RenderInstruction is representing.
         /// Can be PrimitiveType.TriangleList or PrimitiveType.LineList.
         /// </summary>
-        public readonly PrimitiveType Type;
+        public PrimitiveType Type { get; }
 
         /// <summary>
         /// A list of vertices (points) to be used to draw primitivs.
         /// </summary>
-        public readonly VertexPositionColor[] Vertices;
+        public VertexPositionColor[] Vertices { get; }
 
         /// <summary>
         /// Each element in `Indices` is an index in `Vertices`.
@@ -34,7 +34,7 @@ namespace Haumea_Core.Rendering
         /// If `Type == PrimitiveType.LineLIst, it works the same but it uses groups of two indexes,
         /// which represent the start and end point of a line.
         /// </summary>
-        public readonly int[] Indices;
+        public int[] Indices { get; }
 
 
         public RenderInstruction(VertexPositionColor[] vertices, int[] indices, PrimitiveType type)

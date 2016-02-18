@@ -8,25 +8,11 @@ namespace Haumea_Core.Rendering
     /// </summary>
     public class Camera
     {
-        private Vector2 _offset;
         private Vector2 _screenDim;
-        private float   _zoom;
-        private Matrix  _view;
 
-        public Matrix View
-        {
-            get { return _view; }
-        }
-
-        public float Zoom
-        {
-            get { return _zoom; } 
-        }
-
-        public Vector2 Offset
-        {
-            get { return _offset; }
-        }
+        public Matrix View    { get; private set; }
+        public float Zoom     { get; private set; }
+        public Vector2 Offset { get; private set; }
 
         public Camera(Vector2 screenDim)
         {
@@ -36,13 +22,13 @@ namespace Haumea_Core.Rendering
 
         public void Move(Vector2 offset)
         {
-            _offset += offset;
+            Offset += offset;
             UpdateProjection();
         }
 
         public void ApplyZoom(float zoom)
         {
-            _zoom *= zoom;
+            Zoom *= zoom;
             UpdateProjection();
         }
 
@@ -54,8 +40,8 @@ namespace Haumea_Core.Rendering
 
         public void Reset()
         {
-            _zoom   = 1;
-            _offset = Vector2.Zero;
+            Zoom   = 1;
+            Offset = Vector2.Zero;
             UpdateProjection();
         }
 
@@ -63,10 +49,10 @@ namespace Haumea_Core.Rendering
         {
             float baseZDistance = (float)((_screenDim.Y / 2f) / Math.Tan(MathHelper.ToRadians(45 / 2f)));
 
-            Vector3 target = _offset.ToVector3();
+            Vector3 target = Offset.ToVector3();
 
-            _view = Matrix.CreateLookAt(
-                _offset.ToVector3(_zoom * baseZDistance),
+            View = Matrix.CreateLookAt(
+                Offset.ToVector3(Zoom * baseZDistance),
                 target,
                 Vector3.UnitY);
         }

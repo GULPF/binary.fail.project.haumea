@@ -8,32 +8,15 @@ namespace Haumea_Core.Rendering
     /// </summary>
     public class RenderState
     {
-        private Matrix _world, _projection;
+        public Matrix World      { get; private set; }
+        public Matrix Projection { get; private set; }
+        public Vector2 ScreenDim { get; private set; }
+        public float AspectRatio { get; private set; }
 
-        private Vector2 _screenDim;
-        private float _aspectRatio;
-
-        public Matrix World
-        {
-            get { return _world; }
-        }
-
-        public Matrix View
-        {
-            get { return Camera.View; }
-        }
-
-        public Matrix Projection
-        {
-            get { return _projection; }
-        }
-
-        public Vector2 ScreenDim {
-            get { return _screenDim; }
-        }
-
-        public float AspectRatio {
-            get { return _aspectRatio; }
+        public Matrix View { 
+            get {
+                return Camera.View;
+            }
         }
 
         /// <summary>
@@ -45,7 +28,7 @@ namespace Haumea_Core.Rendering
         {
             Camera = new Camera(screenDim);
             UpdateAspectRatio(screenDim);
-            _world = Matrix.CreateTranslation(Vector3.Zero);
+            World = Matrix.CreateTranslation(Vector3.Zero);
         }
 
         /// <summary>
@@ -57,10 +40,10 @@ namespace Haumea_Core.Rendering
         {
             Camera.UpdateScreenDim(screenDim);
 
-            _screenDim = screenDim;
-            _aspectRatio = _screenDim.X / _screenDim.Y;
-            _projection = Matrix.CreatePerspectiveFieldOfView(
-                MathHelper.ToRadians(45), _aspectRatio,
+            ScreenDim = screenDim;
+            AspectRatio = ScreenDim.X / ScreenDim.Y;
+            Projection = Matrix.CreatePerspectiveFieldOfView(
+                MathHelper.ToRadians(45), AspectRatio,
                 // These two are the maximum and minimum distance from the camera objects can be.
                 // If an object is further away than the maximum or closer than the minimum, it's not rendered.
                 0.1f, 10000f);
@@ -73,7 +56,7 @@ namespace Haumea_Core.Rendering
         /// <param name="position">Position of the object (in the world)</param>
         public void SetObjectPosition(Vector2 position)
         {
-            _world = Matrix.CreateTranslation(position.ToVector3());
+            World = Matrix.CreateTranslation(position.ToVector3());
         }
     }
 }
