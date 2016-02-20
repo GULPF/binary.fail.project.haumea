@@ -224,13 +224,12 @@ namespace Haumea_Core.Rendering
             return new RenderInstruction(polygon, ind, PrimitiveType.LineList);
         }
 
-        public static RenderInstruction Rectangle(
-            Vector2 topLeft2d, Vector2 dims, Color c) 
+        public static RenderInstruction Rectangle(Vector2 topLeft2d, Vector2 dims, Color c) 
         {
             Vector3 topLeft     = topLeft2d.ToVector3();
             Vector3 topRight    = new Vector3(topLeft.X + dims.X, topLeft.Y, 0);
-            Vector3 bottomRight = new Vector3(topLeft.X, topLeft.Y + dims.Y, 0);
-            Vector3 bottomLeft  = new Vector3(topLeft.X + dims.X, topLeft.Y + dims.Y, 0);
+            Vector3 bottomRight = new Vector3(topLeft.X, topLeft.Y - dims.Y, 0);
+            Vector3 bottomLeft  = new Vector3(topLeft.X + dims.X, topLeft.Y - dims.Y, 0);
 
             VertexPositionColor[] vertexRectangle = new VertexPositionColor[4];
 
@@ -242,11 +241,11 @@ namespace Haumea_Core.Rendering
             // Do __not__ touch the order of these.
             int[] ind = new int[6];
             ind[0] = 0;
-            ind[1] = 2;
-            ind[2] = 1;
+            ind[1] = 1;
+            ind[2] = 2;
             ind[3] = 3;
-            ind[4] = 1;
-            ind[5] = 2;
+            ind[4] = 2;
+            ind[5] = 1;
 
             vertexRectangle[0].Color = vertexRectangle[1].Color =
                 vertexRectangle[2].Color = vertexRectangle[3].Color = c;

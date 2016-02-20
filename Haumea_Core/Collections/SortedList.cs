@@ -5,11 +5,19 @@ namespace Haumea_Core.Collections
 {
     class SortedList<T> : IList<T>
     {
-        private List<T> list = new List<T>();
+        private readonly List<T> _list = new List<T>();
+        private readonly IComparer<T> _comp;
+
+        public SortedList(): this(Comparer<T>.Default) {}
+
+        public SortedList(IComparer<T> comp)
+        {
+            _comp = comp;
+        }
 
         public int IndexOf(T item)
         {
-            var index = list.BinarySearch(item);
+            var index = _list.BinarySearch(item, _comp);
             return index < 0 ? -1 : index;
         }
 
@@ -20,45 +28,45 @@ namespace Haumea_Core.Collections
 
         public void RemoveAt(int index)
         {
-            list.RemoveAt(index);
+            _list.RemoveAt(index);
         }
 
         public T this[int index]
         {
             get
             {
-                return list[index];
+                return _list[index];
             }
             set
             {
-                list.RemoveAt(index);
+                _list.RemoveAt(index);
                 this.Add(value);
             }
         }
 
         public void Add(T item)
         {
-            list.Insert(~list.BinarySearch(item), item);
+            _list.Insert(~_list.BinarySearch(item, _comp), item);
         }
 
         public void Clear()
         {
-            list.Clear();
+            _list.Clear();
         }
 
         public bool Contains(T item)
         {
-            return list.BinarySearch(item) >= 0;
+            return _list.BinarySearch(item, _comp) >= 0;
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            list.CopyTo(array, arrayIndex);
+            _list.CopyTo(array, arrayIndex);
         }
 
         public int Count
         {
-            get { return list.Count; }
+            get { return _list.Count; }
         }
 
         public bool IsReadOnly
@@ -68,20 +76,20 @@ namespace Haumea_Core.Collections
 
         public bool Remove(T item)
         {
-            var index = list.BinarySearch(item);
+            var index = _list.BinarySearch(item, _comp);
             if (index < 0) return false;
-            list.RemoveAt(index);
+            _list.RemoveAt(index);
             return true;
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return list.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return list.GetEnumerator();
+            return _list.GetEnumerator();
         }
     }
 }

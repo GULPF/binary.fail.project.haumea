@@ -8,8 +8,9 @@ namespace Haumea_Core.Geometric
 
     public class Poly : IHitable
     {
-        public readonly Vector2[] Points;
         private readonly AABB _boundary;
+
+        public Vector2[] Points { get; }
 
         public Poly (Vector2[] points) {
             Points  = points;

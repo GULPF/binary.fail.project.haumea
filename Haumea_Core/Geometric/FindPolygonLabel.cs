@@ -40,24 +40,38 @@ namespace Haumea_Core.Geometric
         private struct VerticalSegment : IComparable<VerticalSegment>
         {
             public readonly int StripIndex;
-            public readonly float X;
+            public readonly float X, YMax, YMin;
 
-            public VerticalSegment(float x, int stripIndex)
+            public VerticalSegment(float x, int stripIndex, float yMax, float yMin)
             {
                 X = x;
                 StripIndex = stripIndex;
+                YMax = yMax;
+                YMin = yMin;
             }
 
             public int CompareTo(VerticalSegment other)
             {
                 return X > other.X ? -1 : 1;
             }
-
         }
 
+
+        private struct Box
+        {
+            public int Top, Left, Right, Bottom;
+
+            public Box(int top, int left, int right, int bottom)
+            {
+                Top = top;
+                Left = left;
+                Right = right;
+                Bottom = bottom;
+            }
+        }
         private static IList<VerticalSegment> GetVerticalSegments(this Poly poly)
         {
-            var segments = new SortedList<VerticalSegment>();
+            var segments = new SortedList<VerticalSegment>(new InvertCompare<VerticalSegment>());
 
             IList<Strip> strips      = poly.GetStrips();
             IList<LineEkv> ekvations = poly.GetLineEkvations();
@@ -80,7 +94,7 @@ namespace Haumea_Core.Geometric
                             x = (x1 + x2) / 2f;
                         }
 
-                        segments.Add(new VerticalSegment(x, strip.Index));
+                        segments.Add(new VerticalSegment(x, strip.Index, strip.YMax, strip.YMin));
                     }
                 }
             }
@@ -104,7 +118,7 @@ namespace Haumea_Core.Geometric
 
         private static IList<Strip> GetStrips(this Poly poly)
         {
-            var yList = new SortedSet<float>();
+            var yList = new SortedSet<float>(new InvertCompare<float>());
 
             foreach (Vector2 v in poly.Points)
             {
@@ -120,7 +134,7 @@ namespace Haumea_Core.Geometric
             while (enumerator.MoveNext())
             {
                 float curr = enumerator.Current;
-                strips.Add(new Strip(curr, prev, index));
+                strips.Add(new Strip(prev, curr, index));
                 index++;
                 prev = curr;
             }
@@ -153,8 +167,75 @@ namespace Haumea_Core.Geometric
         public static IList<AABB> LabelBoxCondidates(this Poly poly)
         {
             var segments = poly.GetVerticalSegments();    
+            var strips   = poly.GetStrips(); // TODO: don't run this twice
 
-            return null;
+            Box[] w = new Box[strips.Count + 2];
+            IList<Box> result = new List<Box>();
+
+            int i = 0;  // vertical segment index
+            int s;      // strip index
+            int t, b;   // top & bottom array index constraints
+            int nb = 0; // no idea
+
+            foreach (VerticalSegment seg in segments)
+            {
+                Console.WriteLine("X: " + seg.X +  " strip: " + seg.StripIndex);
+
+                i = i + 1;
+                s = seg.StripIndex; 
+                b = s + 1;
+                while (w[b].Left > 0) b = w[b].Bottom + 1;
+                b = b - 1;
+                t = s - 1;
+                while (w[t].Left > 0) t = w[t].Top - 1;
+                t = t + 1;
+
+                if (w[s].Left == 0)
+                {
+                    w[s].Left = i;
+                    w[s].Top = t;
+                    w[s].Bottom = b;
+                }
+                else
+                {
+                    for (int m = t; m <= b; m = m + 1)
+                    {
+                        if (w[m].Bottom <= s && s <= w[m].Top)
+                        {
+                            nb = nb + 1;
+                            result.Add(new Box(w[m].Top, w[m].Left, i, w[m].Bottom));
+                            if (s > m)  w[m].Top    = s + 1;
+                            if (s == m) w[m].Left   = 0;
+                            if (s < m)  w[m].Bottom = s - 1; 
+                        }
+                    }
+                }
+            }
+
+            IList<AABB> candidates = new List<AABB>();
+
+            foreach (Box box in result)
+            {
+                var min = new Vector2(segments[box.Left - 1].X, strips[box.Top - 1].YMin);
+                var max = new Vector2(segments[box.Right - 1].X, strips[box.Bottom - 1].YMax);
+                AABB aabb = new AABB(max, min);
+                candidates.Add(aabb);
+                Console.WriteLine("left: " + box.Left + " right: " + box.Right + " top: " + box.Top + " bottom: " + box.Bottom);
+                Console.WriteLine(strips[box.Top - 1].YMin + " " + strips[box.Bottom - 1].YMax);
+                //Console.WriteLine(aabb.Max + " " + aabb.Min);
+            }
+
+            return candidates;
+        }
+    }
+
+    public class InvertCompare<T> : IComparer<T> where T : IComparable<T> {
+        public int Compare(T x, T y)
+        {
+            int comp = x.CompareTo(y);
+            if (comp < 0) return 1;
+            if (comp > 0) return -1;
+            return 0;
         }
     }
 }
