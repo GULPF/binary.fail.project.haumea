@@ -8,8 +8,7 @@ namespace Haumea_Core.Geometric
 
     public class Poly : IHitable
     {
-        private readonly AABB _boundary;
-
+        public AABB Boundary { get; }
         public Vector2[] Points { get; }
 
         public Poly (Vector2[] points) {
@@ -25,12 +24,12 @@ namespace Haumea_Core.Geometric
                 min.Y = MathHelper.Min(min.Y, vector.Y);
             }
 
-            _boundary = new AABB(max, min);
+            Boundary = new AABB(max, min);
         }
 
         public bool IsPointInside(Vector2 point)
         {
-            if (!_boundary.IsPointInside(point)) return false;
+            if (!Boundary.IsPointInside(point)) return false;
 
             // http://stackoverflow.com/questions/217578/
 

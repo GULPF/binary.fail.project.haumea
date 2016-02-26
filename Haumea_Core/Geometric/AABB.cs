@@ -5,8 +5,12 @@ namespace Haumea_Core.Geometric {
     public class AABB : IHitable
     {
         public Vector2 Max { get; }
-
         public Vector2 Min { get; }
+        public Vector2 Dim {
+            get {
+                return (Max - Min).Abs();
+            }
+        }
 
         public AABB(Vector2 max, Vector2 min)
         {

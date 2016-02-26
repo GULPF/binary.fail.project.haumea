@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,6 +26,11 @@ namespace Haumea_Core
         public static Vector3 ToVector3(this Vector2 v2d, float z = 0)
         {
             return new Vector3(v2d.X, v2d.Y, z);
+        }
+
+        public static Vector2 Abs(this Vector2 v2)
+        {
+            return new Vector2(Math.Abs(v2.X), Math.Abs(v2.Y));
         }
 
         //

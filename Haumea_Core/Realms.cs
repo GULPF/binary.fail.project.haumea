@@ -8,7 +8,7 @@ namespace Haumea_Core
     public class Realms
     {
         // Maps province => realm
-        private IDictionary<int, string> _ownerships;
+        private readonly IDictionary<int, string> _ownerships;
 
         /// <summary>
         /// Bidirectional dictionary that maps tag => id and id => tag for realms.
