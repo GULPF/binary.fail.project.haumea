@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Triangulator;
 
+using Haumea_Core.Geometric;
+
 namespace Haumea_Core.Rendering
 {
     
@@ -100,6 +102,17 @@ namespace Haumea_Core.Rendering
             }
 
             return new RenderInstruction(polygon, ind, PrimitiveType.TriangleList);
+        }
+
+        /// <summary>
+        /// Creates a Rendernstruction representing a circle. Uses triangle fan method.
+        /// </summary>
+        /// <param name="center2d">The center of the circle</param>
+        /// <param name="rad">The radian of the circle</param>
+        /// <param name="c">The color of the circle</param>
+        public static RenderInstruction Circle(Vector2 center2d, float rad, Color c)
+        {
+            return Circle(center2d, rad, Math.PI * 2, true, c);
         }
 
         /// <summary>
@@ -222,6 +235,11 @@ namespace Haumea_Core.Rendering
             ind[ind.Length - 1] = 0;
 
             return new RenderInstruction(polygon, ind, PrimitiveType.LineList);
+        }
+
+        public static RenderInstruction AABB(AABB aabb, Color c)
+        {
+            return Rectangle(aabb.Max, aabb.Dim, c);
         }
 
         public static RenderInstruction Rectangle(Vector2 topLeft2d, Vector2 dims, Color c) 

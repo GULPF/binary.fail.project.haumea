@@ -215,7 +215,13 @@ namespace Haumea_Core.Geometric
                 i = i + 1;
                 s = seg.StripIndex; 
                 b = s + 1;
-                while (w[b].Left > 0) b = w[b].Bottom + 1;
+
+                while (w[b].Left > 0) {
+                    // I don't know how or why this is happening, but nonetheless.
+                    if (w[b].Bottom == b - 1) break;
+                    b = w[b].Bottom + 1;
+                }
+
                 b = b - 1;
                 t = s - 1;
                 while (w[t].Left > 0) t = w[t].Top - 1;
@@ -230,11 +236,11 @@ namespace Haumea_Core.Geometric
                 }
                 else
                 {
+                    
                     for (int m = t; m <= b; m = m + 1)
                     {
                         if (w[m].Bottom >= s && s >= w[m].Top)
                         {
-                            Console.WriteLine("Found!");
                             boxes.Add(new Box(w[m].Top, w[m].Left, i, w[m].Bottom));
 
                             if (s > m)  w[m].Top    = s + 1;
@@ -259,7 +265,7 @@ namespace Haumea_Core.Geometric
                 var max = new Vector2(segments[box.Left - 1].X, strips[box.Top - 1].YMax);
                 aabbs.Add(new AABB(max, min));
             }
-            Console.WriteLine(aabbs.Count);
+
             return aabbs;
         }
     }

@@ -24,7 +24,7 @@ namespace Haumea_Core
         private IList<RenderInstruction> _boxes;
         private IList<AABB> _provinceLabelBoundaries;
 
-        public static RenderInstruction[] DebugInstructions { get; set; }
+        public static IList<RenderInstruction> DebugInstructions { get; set; }
 
         public Game1()
         {
@@ -45,7 +45,7 @@ namespace Haumea_Core
             Mouse.WindowHandle = Window.Handle;
             RenderState renderState = new RenderState(_graphics.GraphicsDevice.GetScreenDimensions());
             _renderer = new Renderer(_graphics.GraphicsDevice, renderState);
-            DebugInstructions = new RenderInstruction[0];
+            DebugInstructions = new List<RenderInstruction>();
             base.Initialize();
         }
 
@@ -88,31 +88,31 @@ namespace Haumea_Core
             provinces[0] = new Provinces.RawProvince(polys[0], "P1", "DAN", Color.Red);
             provinces[1] = new Provinces.RawProvince(polys[1], "P2", "TEU", Color.DarkGoldenrod);
             provinces[2] = new Provinces.RawProvince(polys[2], "P3", "TEU", Color.Brown); 
-            //provinces[3] = new Provinces.RawProvince(polys[1].RotateLeft90(), "P4", "TEU", Color.Chocolate); 
 
             _provinces = new Provinces(provinces);
             _provinceLabelBoundaries = new List<AABB>();
 
-            //foreach (Poly poly in polys)
+            foreach (Poly poly in polys)
             {
-                Poly poly = polys[1];
                 IList<AABB> boxes  = poly.LabelBoxCondidates();
-                IList<AABB> rBoxes = poly.RotateLeft90().LabelBoxCondidates();
+                IList<AABB> rBoxes = new List<AABB>();
 
                 // Here be dragons.
-                foreach (AABB box in rBoxes)
+                foreach (AABB box in poly.RotateLeft90().LabelBoxCondidates())
                 {
                     Vector2 rmin = box.Min.RotateRight90();
                     Vector2 rmax = box.Max.RotateRight90();
                     Vector2 min  = rmin - (rmin - rmax).Abs() * Vector2.UnitX;
                     Vector2 max  = rmax - (rmin - rmax).Abs() * Vector2.UnitX;
 
-                    boxes.Add(new AABB(max, min));
+                    rBoxes.Add(new AABB(max, min));
                 }
 
                 _boxes = new List<RenderInstruction>();
                 float dmax = 0;
-                AABB choosen = new AABB(Vector2.Zero, Vector2.Zero);
+                AABB choosen  = new AABB(Vector2.Zero, Vector2.Zero);
+                float rdmax = 0;
+                AABB rChoosen = new AABB(Vector2.Zero, Vector2.Zero);
 
                 foreach (AABB box in boxes)
                 {
@@ -123,7 +123,32 @@ namespace Haumea_Core
                         choosen = box;
                     }
                 }
-                    
+
+                foreach (AABB box in rBoxes)
+                {
+                    Vector2 dim = (box.Max - box.Min).Abs();
+                    if (dim.X * dim.Y > rdmax)
+                    {
+                        rdmax = dim.X * dim.Y;
+                        rChoosen = box;
+                    }
+                }
+
+                Vector2 centroid = poly.CalculateCentroid();
+
+                if (rChoosen.Area > choosen.Area)
+                {
+                    // Even if we found a bigger box on the rotated polygon, 
+                    // we only switch if it's closer to the centroid.
+                    // The reason is that the rotated boxes are more often than not a bit messed up.
+                    if (Vector2.DistanceSquared(rChoosen.Center, centroid)
+                        < Vector2.DistanceSquared(choosen.Center, centroid))
+                    {
+                        Console.WriteLine("xwitched");
+                        choosen = rChoosen;    
+                    }
+                }
+
                 _provinceLabelBoundaries.Add(choosen);
                 _boxes.Add(RenderInstruction.Rectangle(choosen.Max, choosen.Dim, RndColor()));
             }
@@ -211,6 +236,7 @@ namespace Haumea_Core
 
             // Currently, this is really messy. Min/Max should __not__
             // have to switch places. Something is clearly wrong somewhere.
+            int index = 0;
             foreach (AABB box in _provinceLabelBoundaries)
             {
                 AABB transBox = new AABB(WorldToScreenCoordinates(box.Min,_renderer.RenderState),
@@ -220,12 +246,11 @@ namespace Haumea_Core
                 texture.SetData<Color>(new Color[] { Color.White });
                 Rectangle rect = transBox.ToRectangle();
 
-                string text = _provinces.ProvinceTagIdMapping[1];
+                string text = _provinces.ProvinceTagIdMapping[index++];
                 Vector2 dim = _logFont.MeasureString(text);
                 Vector2 p0  = new Vector2((int)(rect.Left + (rect.Width - dim.X) / 2),
                     (int)(rect.Top + (rect.Height - dim.Y) / 2));
 
-                Console.WriteLine(p0);
                 _spriteBatch.DrawString(_labelFont, text, p0, Color.Black);
             }
 

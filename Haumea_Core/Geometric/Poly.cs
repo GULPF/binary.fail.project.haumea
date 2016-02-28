@@ -107,6 +107,24 @@ namespace Haumea_Core.Geometric
 
             return new Poly(newPoints.ToArray());
         }
+
+        // http://stackoverflow.com/questions/5271583/
+        public Vector2 CalculateCentroid()
+        {
+            float sum = 0.0f;
+            Vector2 vsum = Vector2.Zero;
+
+            for (int i = 0; i < Points.Length; i++){
+                Vector2 v1 = Points[i];
+                Vector2 v2 = Points[(i + 1) % Points.Length];
+                float cross = v1.X * v2.Y - v1.Y * v2.X;
+                sum += cross;
+                vsum = new Vector2(((v1.X + v2.X) * cross) + vsum.X, ((v1.Y + v2.Y) * cross) + vsum.Y);
+            }
+
+            float z = 1.0f / (3.0f * sum);
+            return new Vector2(vsum.X * z, vsum.Y * z);
+        }
     }
 }
 
