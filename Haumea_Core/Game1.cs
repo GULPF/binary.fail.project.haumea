@@ -63,14 +63,13 @@ namespace Haumea_Core
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
             // Just to make the polygon initialization a bit prettier
-            Func<double, double, Vector2> V = (double x, double y) => new Vector2(20 * (float)x,  20 * (float)y);
+            Func<double, double, Vector2> V = (x, y) => new Vector2(20 * (float)x,  20 * (float)y);
 
             var polys = new Poly[]{
                 new Poly(new Vector2[] { 
                     V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
                     V(7, 3), V(9, 4), V(12, 3), V(12, 1), V(9, 0), V(8, -1), V(8, -2),
                     V(6, -3), V(5, -2), V(3, -2), V(1, -1)
-                    //V(6, -3), V(3, -2), V(1, -1)
                 }),
                 new Poly(new Vector2[] {
                     V(0, 0), V(1, -1), V(3, -2), V(5, -2), V(6, -3), V(5, -4), V(5, -5), V(4, -6),
@@ -91,64 +90,11 @@ namespace Haumea_Core
 
             _provinces = new Provinces(provinces);
             _provinceLabelBoundaries = new List<AABB>();
+            _boxes = new List<RenderInstruction>();
 
             foreach (Poly poly in polys)
             {
-                IList<AABB> boxes  = poly.LabelBoxCondidates();
-                IList<AABB> rBoxes = new List<AABB>();
-
-                // Here be dragons.
-                foreach (AABB box in poly.RotateLeft90().LabelBoxCondidates())
-                {
-                    Vector2 rmin = box.Min.RotateRight90();
-                    Vector2 rmax = box.Max.RotateRight90();
-                    Vector2 min  = rmin - (rmin - rmax).Abs() * Vector2.UnitX;
-                    Vector2 max  = rmax - (rmin - rmax).Abs() * Vector2.UnitX;
-
-                    rBoxes.Add(new AABB(max, min));
-                }
-
-                _boxes = new List<RenderInstruction>();
-                float dmax = 0;
-                AABB choosen  = new AABB(Vector2.Zero, Vector2.Zero);
-                float rdmax = 0;
-                AABB rChoosen = new AABB(Vector2.Zero, Vector2.Zero);
-
-                foreach (AABB box in boxes)
-                {
-                    Vector2 dim = (box.Max - box.Min).Abs();
-                    if (dim.X * dim.Y > dmax)
-                    {
-                        dmax = dim.X * dim.Y;
-                        choosen = box;
-                    }
-                }
-
-                foreach (AABB box in rBoxes)
-                {
-                    Vector2 dim = (box.Max - box.Min).Abs();
-                    if (dim.X * dim.Y > rdmax)
-                    {
-                        rdmax = dim.X * dim.Y;
-                        rChoosen = box;
-                    }
-                }
-
-                Vector2 centroid = poly.CalculateCentroid();
-
-                if (rChoosen.Area > choosen.Area)
-                {
-                    // Even if we found a bigger box on the rotated polygon, 
-                    // we only switch if it's closer to the centroid.
-                    // The reason is that the rotated boxes are more often than not a bit messed up.
-                    if (Vector2.DistanceSquared(rChoosen.Center, centroid)
-                        < Vector2.DistanceSquared(choosen.Center, centroid))
-                    {
-                        Console.WriteLine("xwitched");
-                        choosen = rChoosen;    
-                    }
-                }
-
+                AABB choosen = poly.FindBestLabelBox();
                 _provinceLabelBoundaries.Add(choosen);
                 _boxes.Add(RenderInstruction.Rectangle(choosen.Max, choosen.Dim, RndColor()));
             }

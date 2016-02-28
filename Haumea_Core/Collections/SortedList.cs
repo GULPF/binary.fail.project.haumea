@@ -23,7 +23,7 @@ namespace Haumea_Core.Collections
 
         public void Insert(int index, T item)
         {
-            throw new NotImplementedException("Cannot insert at index; must preserve order.");
+            throw new NotSupportedException("Cannot insert at index; must preserve order.");
         }
 
         public void RemoveAt(int index)

@@ -194,6 +194,10 @@ namespace Haumea_Core.Geometric
             Game1.DebugInstructions = lines;
         }
 
+        /// <summary>
+        /// Finds a list of label box candidates.
+        /// </summary>
+        /// <returns>The label condidates.</returns>
         public static IList<AABB> LabelBoxCondidates(this Poly poly)
         {
             var segments = poly.GetVerticalSegments();    
@@ -254,6 +258,76 @@ namespace Haumea_Core.Geometric
             return BoxesToAABB(boxes, segments, strips);
         }
     
+        /// <summary>
+        /// Find the best label box among the candidates.
+        /// <para> </para><para> </para>
+        /// Basicly, this method runs <c>LabelBoxCandidates</c> twice.
+        /// Once with the normal polygon, and once with a rotated polygon (90 deg).
+        /// The reason is that the algorithm is pretty shitty and this helps a bit.
+        /// <para> </para><para> </para>
+        /// Because the label boxes from the rotated can be a bit weird,
+        /// it is only choosen if it's bigger __and__ it's closer to the polygon centroid.
+        /// </summary>
+        /// <returns>The best label box (hopefully).</
+        public static AABB FindBestLabelBox(this Poly poly)
+        {
+            IList<AABB> boxes  = poly.LabelBoxCondidates();
+            IList<AABB> rBoxes = new List<AABB>();
+
+            // Here be dragons.
+            foreach (AABB box in poly.RotateLeft90().LabelBoxCondidates())
+            {
+                Vector2 rmin = box.Min.RotateRight90();
+                Vector2 rmax = box.Max.RotateRight90();
+                Vector2 min  = rmin - (rmin - rmax).Abs() * Vector2.UnitX;
+                Vector2 max  = rmax - (rmin - rmax).Abs() * Vector2.UnitX;
+
+                rBoxes.Add(new AABB(max, min));
+            }
+
+
+            float dmax = 0;
+            AABB choosen  = new AABB(Vector2.Zero, Vector2.Zero);
+            float rdmax = 0;
+            AABB rChoosen = new AABB(Vector2.Zero, Vector2.Zero);
+
+            foreach (AABB box in boxes)
+            {
+                Vector2 dim = (box.Max - box.Min).Abs();
+                if (dim.X * dim.Y > dmax)
+                {
+                    dmax = dim.X * dim.Y;
+                    choosen = box;
+                }
+            }
+
+            foreach (AABB box in rBoxes)
+            {
+                Vector2 dim = (box.Max - box.Min).Abs();
+                if (dim.X * dim.Y > rdmax)
+                {
+                    rdmax = dim.X * dim.Y;
+                    rChoosen = box;
+                }
+            }
+
+            Vector2 centroid = poly.CalculateCentroid();
+
+            if (rChoosen.Area > choosen.Area)
+            {
+                // Even if we find a bigger box on the rotated polygon, 
+                // we only switch if it's closer to the centroid.
+                // The reason is that the rotated boxes are more often than not a bit messed up.
+                if (Vector2.DistanceSquared(rChoosen.Center, centroid)
+                    < Vector2.DistanceSquared(choosen.Center, centroid))
+                {
+                    choosen = rChoosen;    
+                }
+            }
+
+            return choosen;
+        }
+
         private static IList<AABB> BoxesToAABB (
             IList<Box> boxes, IList<VerticalSegment> segments, IList<Strip> strips)
         {
@@ -268,15 +342,13 @@ namespace Haumea_Core.Geometric
 
             return aabbs;
         }
-    }
-        
-    public class InvertCompare<T> : IComparer<T> where T : IComparable<T> {
-        public int Compare(T x, T y)
-        {
-            int comp = x.CompareTo(y);
-            if (comp < 0) return 1;
-            if (comp > 0) return -1;
-            return 0;
+    
+        // Reverses the sorting order.
+        private class InvertCompare<T> : IComparer<T> where T : IComparable<T> {
+            public int Compare(T x, T y)
+            {
+                return -x.CompareTo(y);
+            }
         }
     }
 }
