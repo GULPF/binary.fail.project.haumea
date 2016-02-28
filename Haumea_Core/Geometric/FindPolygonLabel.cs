@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 using Haumea_Core.Collections;
+using Haumea_Core.Rendering;
 
 // http://mapcontext.com/autocarto/proceedings/auto-carto-8/pdf/an-algorithm-for-locating-candidate-labeling-boxes-within-a-polygon.pdf
 namespace Haumea_Core.Geometric
@@ -56,7 +57,6 @@ namespace Haumea_Core.Geometric
             }
         }
 
-
         private struct Box
         {
             public int Top, Left, Right, Bottom;
@@ -69,6 +69,7 @@ namespace Haumea_Core.Geometric
                 Bottom = bottom;
             }
         }
+
         private static IList<VerticalSegment> GetVerticalSegments(this Poly poly)
         {
             var segments = new SortedList<VerticalSegment>(new InvertCompare<VerticalSegment>());
@@ -164,23 +165,53 @@ namespace Haumea_Core.Geometric
             return ekvations;
         }
     
+        private static void DrawDebug(this Poly poly, IList<Strip> strips, IList<VerticalSegment> segments)
+        {
+            int i = 0;
+            RenderInstruction[] lines = new RenderInstruction[segments.Count + strips.Count + 1];
+            Vector2 start, end;
+            float xMin = poly.Boundary.Min.X;
+            float xMax = poly.Boundary.Max.X;
+
+            foreach (VerticalSegment seg in segments)
+            {
+                start = new Vector2(seg.X, strips[seg.StripIndex - 1].YMin);
+                end   = new Vector2(seg.X, strips[seg.StripIndex - 1].YMax);
+                lines[i++] = RenderInstruction.Line(start, end, Color.Black);
+            }
+
+            foreach (Strip strip in strips)
+            {
+                start = new Vector2(xMin, strip.YMax);
+                end   = new Vector2(xMax, strip.YMax);
+                lines[i++] = RenderInstruction.Line(start, end, Color.Black);
+            }
+
+            start = new Vector2(xMin, strips[strips.Count - 1].YMin);
+            end   = new Vector2(xMax, strips[strips.Count - 1].YMin);
+            lines[i] = RenderInstruction.Line(start, end, Color.Black);
+
+            Game1.DebugInstructions = lines;
+        }
+
         public static IList<AABB> LabelBoxCondidates(this Poly poly)
         {
             var segments = poly.GetVerticalSegments();    
             var strips   = poly.GetStrips(); // TODO: don't run this twice
 
+            #if DEBUG
+            //poly.DrawDebug(strips, segments);
+            #endif 
+
             Box[] w = new Box[strips.Count + 2];
-            IList<Box> result = new List<Box>();
+            IList<Box> boxes = new List<Box>();
 
             int i = 0;  // vertical segment index
             int s;      // strip index
             int t, b;   // top & bottom array index constraints
-            int nb = 0; // no idea
 
             foreach (VerticalSegment seg in segments)
             {
-                Console.WriteLine("X: " + seg.X +  " strip: " + seg.StripIndex);
-
                 i = i + 1;
                 s = seg.StripIndex; 
                 b = s + 1;
@@ -195,15 +226,17 @@ namespace Haumea_Core.Geometric
                     w[s].Left = i;
                     w[s].Top = t;
                     w[s].Bottom = b;
+                    w[s].Right = 0;
                 }
                 else
                 {
                     for (int m = t; m <= b; m = m + 1)
                     {
-                        if (w[m].Bottom <= s && s <= w[m].Top)
+                        if (w[m].Bottom >= s && s >= w[m].Top)
                         {
-                            nb = nb + 1;
-                            result.Add(new Box(w[m].Top, w[m].Left, i, w[m].Bottom));
+                            Console.WriteLine("Found!");
+                            boxes.Add(new Box(w[m].Top, w[m].Left, i, w[m].Bottom));
+
                             if (s > m)  w[m].Top    = s + 1;
                             if (s == m) w[m].Left   = 0;
                             if (s < m)  w[m].Bottom = s - 1; 
@@ -212,23 +245,25 @@ namespace Haumea_Core.Geometric
                 }
             }
 
-            IList<AABB> candidates = new List<AABB>();
-
-            foreach (Box box in result)
+            return BoxesToAABB(boxes, segments, strips);
+        }
+    
+        private static IList<AABB> BoxesToAABB (
+            IList<Box> boxes, IList<VerticalSegment> segments, IList<Strip> strips)
+        {
+            IList<AABB> aabbs = new List<AABB>();
+           
+            foreach (Box box in boxes)
             {
-                var min = new Vector2(segments[box.Left - 1].X, strips[box.Top - 1].YMin);
-                var max = new Vector2(segments[box.Right - 1].X, strips[box.Bottom - 1].YMax);
-                AABB aabb = new AABB(max, min);
-                candidates.Add(aabb);
-                Console.WriteLine("left: " + box.Left + " right: " + box.Right + " top: " + box.Top + " bottom: " + box.Bottom);
-                Console.WriteLine(strips[box.Top - 1].YMin + " " + strips[box.Bottom - 1].YMax);
-                //Console.WriteLine(aabb.Max + " " + aabb.Min);
+                var min = new Vector2(segments[box.Right - 1].X, strips[box.Bottom - 1].YMin);
+                var max = new Vector2(segments[box.Left - 1].X, strips[box.Top - 1].YMax);
+                aabbs.Add(new AABB(max, min));
             }
-
-            return candidates;
+            Console.WriteLine(aabbs.Count);
+            return aabbs;
         }
     }
-
+        
     public class InvertCompare<T> : IComparer<T> where T : IComparable<T> {
         public int Compare(T x, T y)
         {

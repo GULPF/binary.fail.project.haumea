@@ -47,6 +47,19 @@ namespace Haumea_Core.Geometric
             return c;
         }
 
+        public Poly RotateLeft90()
+        {
+            Vector2[] points = new Vector2[Points.Length];
+            int index = 0;
+
+            foreach (Vector2 v in Points)
+            {
+                points[index++] = v.RotateLeft90();
+            }
+
+            return new Poly(points);
+        }
+
         // For simplicity, we assume that the polygons are not overlapping.
         // This is not exactly fast (O(n²)). There should be a faster way to do this.
         // The poblem is that the order of vertices in the new poly matters.

@@ -33,6 +33,14 @@ namespace Haumea_Core
             return new Vector2(Math.Abs(v2.X), Math.Abs(v2.Y));
         }
 
+        public static Vector2 RotateLeft90(this Vector2 v) {
+            return new Vector2(-v.Y, v.X);
+        }
+
+        public static Vector2 RotateRight90(this Vector2 v) {
+            return new Vector2(v.Y, -v.X);
+        }
+
         //
         // Color
         //

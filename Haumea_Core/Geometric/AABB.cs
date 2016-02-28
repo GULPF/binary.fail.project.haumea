@@ -23,5 +23,15 @@ namespace Haumea_Core.Geometric {
             return Min.X <= point.X && point.X <= Max.X
                 && Min.Y <= point.Y && point.Y <= Max.Y;
         }
+
+        public Rectangle ToRectangle()
+        {
+            return new Rectangle((int)Min.X, (int)Min.Y, (int)Math.Abs(Max.X - Min.X), (int)Math.Abs(Max.Y - Min.Y));
+        }
+
+        public override String ToString()
+        {
+            return "Max: " + Max + " Min: " + Min;
+        }
     }
 }
