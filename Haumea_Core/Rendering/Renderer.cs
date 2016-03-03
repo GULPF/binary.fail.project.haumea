@@ -11,26 +11,31 @@ namespace Haumea_Core.Rendering
     public class Renderer
     {
         private readonly BasicEffect    _effect;
-        private readonly GraphicsDevice _device;
+        public  GraphicsDevice Device { get; }
+
+        public BasicEffect Effect {
+            get {
+                _effect.VertexColorEnabled = true;
+                _effect.World      = RenderState.World;
+                _effect.View       = RenderState.View;
+                _effect.Projection = RenderState.Projection;
+                return _effect;
+            }
+        }
 
         public readonly RenderState RenderState;
 
         public Renderer(GraphicsDevice device, RenderState renderState)
         {
             RenderState  = renderState;
-            _device = device;
-            _effect = new BasicEffect(_device);
+            Device = device;
+            _effect = new BasicEffect(Device);
         }
 
         // It might be better to just make it an extension method to GraphicsDevice or something.
         public void Render(IEnumerable<RenderInstruction> instructions)
         {
-            _effect.VertexColorEnabled = true;
-            _effect.World      = RenderState.World;
-            _effect.View       = RenderState.View;
-            _effect.Projection = RenderState.Projection;
-
-            foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes) {
+            foreach (EffectPass effectPass in Effect.CurrentTechnique.Passes) {
                 effectPass.Apply();
                 foreach (RenderInstruction renderInstruction in instructions) {
                     int nPrimitives;
@@ -43,10 +48,10 @@ namespace Haumea_Core.Rendering
                         nPrimitives = renderInstruction.Indices.Length / 2;
                         break;
                     default:
-                        throw new NotImplementedException();
+                        throw new NotSupportedException();
                     }
 
-                    _device.DrawUserIndexedPrimitives(
+                    Device.DrawUserIndexedPrimitives(
                         renderInstruction.Type,
                         renderInstruction.Vertices, 
                         0,

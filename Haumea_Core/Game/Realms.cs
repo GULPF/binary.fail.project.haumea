@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Haumea_Core.Collections;
 
-namespace Haumea_Core
+namespace Haumea_Core.Game
 {
     public class Realms
     {

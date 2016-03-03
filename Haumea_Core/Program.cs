@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Haumea_Core.Game;
 
 namespace Haumea_Core
 {

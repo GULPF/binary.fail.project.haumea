@@ -46,7 +46,10 @@ namespace Haumea_Core.Collections
 
         public void Add(T item)
         {
-            _list.Insert(~_list.BinarySearch(item, _comp), item);
+            int index = _list.BinarySearch(item, _comp);
+            if (index == 0) _list.Insert(index, item);
+            else            _list.Insert(~index, item);
+            //_list.Insert(~_list.BinarySearch(item, _comp), item);
         }
 
         public void Clear()

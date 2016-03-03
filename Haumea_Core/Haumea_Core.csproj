@@ -76,7 +76,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Game1.cs" />
     <Compile Include="Network\Client.cs" />
     <Compile Include="Network\Server.cs" />
     <Compile Include="Program.cs" />
@@ -85,8 +84,6 @@
     <Compile Include="Rendering\Renderer.cs" />
     <Compile Include="Rendering\RenderInstruction.cs" />
     <Compile Include="Rendering\RenderState.cs" />
-    <Compile Include="Provinces.cs" />
-    <Compile Include="Realms.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Geometric\Poly.cs" />
     <Compile Include="Geometric\AABB.cs" />
@@ -94,6 +91,14 @@
     <Compile Include="Geometric\FindPolygonLabel.cs" />
     <Compile Include="Collections\BiDictionary.cs" />
     <Compile Include="Collections\SortedList.cs" />
+    <Compile Include="Collections\NodeGraph.cs" />
+    <Compile Include="Game\Game1.cs" />
+    <Compile Include="Game\Provinces.cs" />
+    <Compile Include="Game\Provinces-Create.cs" />
+    <Compile Include="Game\Realms.cs" />
+    <Compile Include="Game\Units.cs" />
+    <Compile Include="Debug.cs" />
+    <Compile Include="Game\ProvincesView.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
@@ -179,5 +184,6 @@
   <ItemGroup />
   <ItemGroup>
     <Folder Include="Collections\" />
+    <Folder Include="Game\" />
   </ItemGroup>
 </Project>

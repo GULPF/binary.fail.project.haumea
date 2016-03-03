@@ -191,7 +191,7 @@ namespace Haumea_Core.Geometric
             end   = new Vector2(xMax, strips[strips.Count - 1].YMin);
             lines[i] = RenderInstruction.Line(start, end, Color.Black);
 
-            Game1.DebugInstructions = lines;
+            Debug.DebugInstructions = lines;
         }
 
         /// <summary>

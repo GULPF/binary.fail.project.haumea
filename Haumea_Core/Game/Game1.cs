@@ -8,9 +8,11 @@ using Microsoft.Xna.Framework.Input;
 using Haumea_Core.Rendering;
 using Haumea_Core.Geometric;
 
-namespace Haumea_Core
+using Haumea_Core.Collections;
+
+namespace Haumea_Core.Game
 {
-    public class Game1 : Game
+    public class Game1 : Microsoft.Xna.Framework.Game
     {
         private SpriteFont _logFont, _labelFont;
         private SpriteBatch _spriteBatch;
@@ -20,11 +22,10 @@ namespace Haumea_Core
         private Texture2D _mouseCursorTexture;
 
         private Provinces _provinces;
+        private ProvincesView _provincesView;
 
         private IList<RenderInstruction> _boxes;
         private IList<AABB> _provinceLabelBoundaries;
-
-        public static IList<RenderInstruction> DebugInstructions { get; set; }
 
         public Game1()
         {
@@ -45,7 +46,37 @@ namespace Haumea_Core
             Mouse.WindowHandle = Window.Handle;
             RenderState renderState = new RenderState(_graphics.GraphicsDevice.GetScreenDimensions());
             _renderer = new Renderer(_graphics.GraphicsDevice, renderState);
-            DebugInstructions = new List<RenderInstruction>();
+
+            /*
+            IDictionary<int, Connector<int>[]> data = new Dictionary<int, Connector<int>[]>();
+
+            data.Add(0, new Connector<int>[] {
+                new Connector<int>(0, 1, 5),
+                new Connector<int>(0, 2, 3),
+                new Connector<int>(0, 3, 1) });
+            
+            data.Add(1, new Connector<int>[] {});
+
+            data.Add(2, new Connector<int>[] {
+                new Connector<int>(2, 1, 1),
+                new Connector<int>(2, 4, 1)
+            });
+
+            data.Add(3, new Connector<int>[] {
+                new Connector<int>(3, 4, 2)
+            });
+
+            data.Add(4, new Connector<int>[] {});
+
+            NodeGraph<int> graph = new NodeGraph<int>(data);
+
+            foreach (int i in graph.Dijkstra(0, 4))
+            {
+                Console.WriteLine(i);
+            }
+            */
+
+
             base.Initialize();
         }
 
@@ -59,37 +90,13 @@ namespace Haumea_Core
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             _logFont = Content.Load<SpriteFont>("test/LogFont");
-            _labelFont = Content.Load<SpriteFont>("test/LabelFont");
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
-            // Just to make the polygon initialization a bit prettier
-            Func<double, double, Vector2> V = (x, y) => new Vector2(20 * (float)x,  20 * (float)y);
+            var rawProvinces = Provinces.CreateRaw();
+            _provinces = new Provinces(rawProvinces);
+            _provincesView = new ProvincesView(Content, rawProvinces, _provinces);
 
-            var polys = new Poly[]{
-                new Poly(new Vector2[] { 
-                    V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
-                    V(7, 3), V(9, 4), V(12, 3), V(12, 1), V(9, 0), V(8, -1), V(8, -2),
-                    V(6, -3), V(5, -2), V(3, -2), V(1, -1)
-                }),
-                new Poly(new Vector2[] {
-                    V(0, 0), V(1, -1), V(3, -2), V(5, -2), V(6, -3), V(5, -4), V(5, -5), V(4, -6),
-                    V(2, -6), V(0, -5), V(-2, -3), V(-2, -2), V(-3, -1), V(-2, 0)
-                }),
-                new Poly(new Vector2[] {
-                    V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
-                    V(3, 4), V(2, 4), V(0, 5), V(0, 6), V(-2, 6), V(-3, 5),
-                    V(-5, 5), V(-7, 3), V(-7, 1), V(-8, 0), V(-8, -1), V(-7, -2), V(-4, -3),
-                    V(0, -5), V(-2, -3), V(-2, -2), V(-3, -1), V(-2, 0)
-                })
-            };
-
-            var provinces = new Provinces.RawProvince[3];
-            provinces[0] = new Provinces.RawProvince(polys[0], "P1", "DAN", Color.Red);
-            provinces[1] = new Provinces.RawProvince(polys[1], "P2", "TEU", Color.DarkGoldenrod);
-            provinces[2] = new Provinces.RawProvince(polys[2], "P3", "TEU", Color.Brown); 
-
-            _provinces = new Provinces(provinces);
-            _provinceLabelBoundaries = new List<AABB>();
+            /*_provinceLabelBoundaries = new List<AABB>();
             _boxes = new List<RenderInstruction>();
 
             foreach (Poly poly in polys)
@@ -97,7 +104,9 @@ namespace Haumea_Core
                 AABB choosen = poly.FindBestLabelBox();
                 _provinceLabelBoundaries.Add(choosen);
                 _boxes.Add(RenderInstruction.Rectangle(choosen.Max, choosen.Dim, RndColor()));
-            }
+            }*/
+
+
         }
 
         /// <summary>
@@ -111,7 +120,7 @@ namespace Haumea_Core
             MouseState    mouse     = Mouse.GetState();
             Vector2       screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
             _renderer.RenderState.UpdateAspectRatio(screenDim);
-            if (base.IsActive)
+            if (IsActive)
             {
                 if (GraphicsDevice.Viewport.Bounds.Contains(mouse.Position.X, mouse.Position.Y))
                 {
@@ -166,9 +175,11 @@ namespace Haumea_Core
             MouseState mouse   = Mouse.GetState();
             Vector2 screenDim  = _renderer.RenderState.ScreenDim;
 
-            _renderer.Render(_provinces.RenderInstructions.Union(DebugInstructions ));
+            _renderer.Render(_provincesView.RenderInstructions.Union(Debug.DebugInstructions));
 
             _spriteBatch.Begin();
+
+            _provincesView.Draw(_spriteBatch, _renderer);
 
             _spriteBatch.Draw(_mouseCursorTexture, _mousePos, Color.White);
 
@@ -179,26 +190,6 @@ namespace Haumea_Core
             string selectedRealm = _provinces.MouseOver > -1
                 ? _provinces.Realms.GetOwnerTag(_provinces.MouseOver)
                 : "<n/a>";
-
-            // Currently, this is really messy. Min/Max should __not__
-            // have to switch places. Something is clearly wrong somewhere.
-            int index = 0;
-            foreach (AABB box in _provinceLabelBoundaries)
-            {
-                AABB transBox = new AABB(WorldToScreenCoordinates(box.Min,_renderer.RenderState),
-                    WorldToScreenCoordinates(box.Max, _renderer.RenderState));
-
-                Texture2D texture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
-                texture.SetData<Color>(new Color[] { Color.White });
-                Rectangle rect = transBox.ToRectangle();
-
-                string text = _provinces.ProvinceTagIdMapping[index++];
-                Vector2 dim = _logFont.MeasureString(text);
-                Vector2 p0  = new Vector2((int)(rect.Left + (rect.Width - dim.X) / 2),
-                    (int)(rect.Top + (rect.Height - dim.Y) / 2));
-
-                _spriteBatch.DrawString(_labelFont, text, p0, Color.Black);
-            }
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
@@ -227,13 +218,13 @@ namespace Haumea_Core
             _spriteBatch.DrawString(_logFont, msg, p0, Color.Black);
         }
             
-        private static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
+        public static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
             Vector2 halfWidth = renderState.ScreenDim * 0.5f;
             return renderState.Camera.Offset + renderState.Camera.Zoom * new Vector2(v.X  - halfWidth.X, halfWidth.Y - v.Y);
         }
 
-        private static Vector2 WorldToScreenCoordinates(Vector2 v, RenderState renderState)
+        public static Vector2 WorldToScreenCoordinates(Vector2 v, RenderState renderState)
         {
             Vector2 halfWidth = renderState.ScreenDim * 0.5f;
             v = v - renderState.Camera.Offset;
@@ -241,7 +232,7 @@ namespace Haumea_Core
             return new Vector2(v.X + halfWidth.X,  halfWidth.Y - v.Y);
         }
 
-        private static Random rnd = new Random();
+        private static readonly Random rnd = new Random();
 
         public static Color RndColor()
         {
