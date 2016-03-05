@@ -15,28 +15,37 @@ namespace Haumea_Core.Game
         // Maps province => position to render unit sprite
         public IDictionary<int, Vector2> RenderPosition { get; }
 
-        // Graph over how the provinces are connected,
-        // with a distance value assigned to every connection.
-        public NodeGraph<int> MapGraph { get; }
+        private Provinces _provinces;
+        private WorldDate _worldDate;
+        private Haumea _game;
 
-        //public event UnitsArrived
-
-        public Units(NodeGraph<int> mapGraph)
+        public Units(Provinces provinces, Haumea game)
         {
             StationedUnits = new Dictionary<int, int>();
-            MapGraph = mapGraph;
+            _provinces = provinces;
+            _game = game;
+            _worldDate = _worldDate;
         }
 
         public bool MoveUnits(int from, int to, int amount)
         {
-            GraphPath<int> path = MapGraph.Dijkstra(from, to);
+            if (StationedUnits[from] < amount) return false;
+
+            GraphPath<int> path = _provinces.MapGraph.Dijkstra(from, to);
 
             // If no path exists.
             if (path == null) return false;
 
-            // TODO: some kind of event?
-
+            _game.AddEvent(path.Cost, delegate {
+                Console.WriteLine("Units have reached destination");
+            });
+                
             return true;
+        }
+
+        public void AddUnits(int units, int province)
+        {
+            StationedUnits[province] = units;
         }
     }
 }

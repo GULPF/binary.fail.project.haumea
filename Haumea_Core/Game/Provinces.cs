@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Geometric;
 using Haumea_Core.Collections;
@@ -17,6 +17,8 @@ namespace Haumea_Core.Game
     {
         private readonly Poly[] _polys;
         private readonly AABB[] _labelBoxes;
+
+        private readonly Haumea _game;
 
         /// <summary>
         /// Bidirectional dictionary mapping tag => id and id => tag.
@@ -34,36 +36,67 @@ namespace Haumea_Core.Game
         /// </summary>
         public int LastMouseOver { get; private set; }
 
-        // Delegators
+        public int Selected { get; private set; }
+
+        /// <summary>
+        //  Graph over how the provinces are connected,
+        //  with a distance value assigned to every connection.
+        /// </summary>
+        public NodeGraph<int> MapGraph { get; }
+
+        /// <summary>
+        /// Handles the realms: keeps track of which realm each province belongs to.
+        /// </summary>
         public Realms Realms { get; }
 
-        public Provinces(RawProvince[] provinces)
+        /// <summary>
+        /// Handles the armies: keeps track of how many units are stationed in each province,
+        /// and should handle movement etcetera.
+        /// </summary>
+        public Units Units { get; }
+
+        public Provinces(RawProvince[] rawProvinces, NodeGraph<int> mapGraph, Haumea game)
         {
-            _polys                 = new Poly[provinces.Length];
-            MouseOver             = -1;
-            LastMouseOver         = -1;
+            _polys = new Poly[rawProvinces.Length];
+            _game  = game;
+
+            MouseOver     = -1;
+            LastMouseOver = -1;
+            Selected      = -1;
 
             ProvinceTagIdMapping = new BiDictionary<int, string>();
+            MapGraph = mapGraph;
             Realms = new Realms();
+            Units = new Units(this, _game);
 
             for (int id = 0; id < _polys.Length; id++) {
-                
-                ProvinceTagIdMapping.Add(id, provinces[id].Tag);
-                Realms.AssignOwnership(id, provinces[id].RealmTag);
-                _polys[id] = provinces[id].Poly;
+                ProvinceTagIdMapping.Add(id, rawProvinces[id].Tag);
+                Realms.AssignOwnership(id, rawProvinces[id].RealmTag);
+                _polys[id] = rawProvinces[id].Poly;
+                Units.AddUnits(rawProvinces[id].Units, id);
             }
         }
             
-        public void Update(Vector2 mousePos)
+        public void Update(MouseState mouse)
         {
+            Vector2 position = mouse.Position.ToVector2();
+            bool doSelect = mouse.LeftButton == ButtonState.Pressed;
+
             for (int id = 0; id < _polys.Length; id++)
             {
-                if (_polys[id].IsPointInside(mousePos)) {
-                    // If this is not a new mouse over, don't bother.
-                    if (id == MouseOver) return;
+                if (_polys[id].IsPointInside(position)) {
+                    // Only handle new selections.
+                    if (id != Selected && doSelect)
+                    {
+                        Selected = id;   
+                    }
 
-                    LastMouseOver = MouseOver;
-                    MouseOver = id;
+                    // If this is not a new mouse over, don't bother.
+                    if (id != MouseOver)
+                    {
+                        LastMouseOver = MouseOver;
+                        MouseOver = id;    
+                    }
 
                     // Provinces can't overlap so we exit immediately when we find a hit.
                     return;
@@ -86,13 +119,13 @@ namespace Haumea_Core.Game
             public Color Color { get; }
             public int Units { get; }
 
-            public RawProvince(Poly poly, String tag, String realmTag, Color color)
+            public RawProvince(Poly poly, String tag, String realmTag, Color color, int units)
             {
                 Poly = poly;
                 Tag = tag;
                 RealmTag = realmTag;
                 Color = color;
-                Units = 0;
+                Units = units;
             }
         }
     }

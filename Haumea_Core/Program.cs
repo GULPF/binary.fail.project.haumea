@@ -10,7 +10,7 @@ namespace Haumea_Core
     {
         internal static void RunGame()
         {
-            using (var game = new Game1())
+            using (var game = new Haumea())
                 game.Run();
         }
 

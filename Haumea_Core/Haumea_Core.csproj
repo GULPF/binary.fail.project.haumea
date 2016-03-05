@@ -92,13 +92,15 @@
     <Compile Include="Collections\BiDictionary.cs" />
     <Compile Include="Collections\SortedList.cs" />
     <Compile Include="Collections\NodeGraph.cs" />
-    <Compile Include="Game\Game1.cs" />
     <Compile Include="Game\Provinces.cs" />
     <Compile Include="Game\Provinces-Create.cs" />
     <Compile Include="Game\Realms.cs" />
     <Compile Include="Game\Units.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Game\ProvincesView.cs" />
+    <Compile Include="Game\Haumea.cs" />
+    <Compile Include="Game\WorldDate.cs" />
+    <Compile Include="HKeyboard.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">

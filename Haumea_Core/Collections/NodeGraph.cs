@@ -7,11 +7,31 @@ namespace Haumea_Core.Collections
     // distances are hardcoded as ints.
     public class NodeGraph<N>
     {
-        public IDictionary<N, Connector<N>[]> Nodes { get; }
+        public IDictionary<N, IList<Connector<N>>> Nodes { get; }
 
-        public NodeGraph(IDictionary<N, Connector<N>[]> nodes)
+        public NodeGraph(IDictionary<N, IList<Connector<N>>> nodes)
         {
             Nodes = nodes;
+        }
+
+        // This constructor can be used if no lonely node islands exists.
+        public NodeGraph(IEnumerable<Connector<N>> connectors, bool twoway)
+        {
+            Nodes = new Dictionary<N, IList<Connector<N>>>();
+            IList<Connector<N>> nodeConnectors;
+
+            foreach (Connector<N> connector in connectors)
+            {
+                if (Nodes.TryGetValue(connector.From, out nodeConnectors))
+                {
+                    nodeConnectors.Add(connector);
+                }
+
+                if (twoway && Nodes.TryGetValue(connector.To, out nodeConnectors))
+                {
+                    nodeConnectors.Add(connector.Invert());
+                }
+            }
         }
 
         // Breadth-first search.
@@ -46,7 +66,9 @@ namespace Haumea_Core.Collections
             IDictionary<N, int> accumulatedCosts = new Dictionary<N, int>(Nodes.Count);
             IDictionary<N, N>   previusInPath    = new Dictionary<N, N>(Nodes.Count);
             ISet<N> done = new HashSet<N>();
-            SortedList<Pair> priorityQueue = new SortedList<Pair>();
+            // TODO: If it's worth it, switch to a PriorityQueue.
+            // .... https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp/
+            IList<Pair> priorityQueue = new SortedList<Pair>();
 
             accumulatedCosts.Add(from, 0);
             priorityQueue.Add(new Pair(from, 0));
@@ -120,9 +142,14 @@ namespace Haumea_Core.Collections
             From = from;
             To = to;
         }
+
+        public Connector<N> Invert()
+        {
+            return new Connector<N>(To, From, Cost);
+        }
     }
 
-    public class GraphPath<N>
+    public class GraphPath<N> : IEnumerable<N>
     {
         public int Cost       { get; }
         public IList<N> Nodes { get; }
@@ -131,6 +158,16 @@ namespace Haumea_Core.Collections
         {
             Nodes = nodes;
             Cost = cost;
+        }
+
+        public IEnumerator<N> GetEnumerator()
+        {
+            return Nodes.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

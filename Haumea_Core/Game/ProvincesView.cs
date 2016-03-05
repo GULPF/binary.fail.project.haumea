@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-
 using Haumea_Core.Geometric;
 using Haumea_Core.Rendering;
 
@@ -85,19 +84,22 @@ namespace Haumea_Core.Game
             int index = 0;
             foreach (AABB box in _labelBoxes)
             {
-                AABB transBox = new AABB(Game1.WorldToScreenCoordinates(box.Min, renderer.RenderState),
-                    Game1.WorldToScreenCoordinates(box.Max, renderer.RenderState));
+                AABB screenBox = new AABB(Haumea.WorldToScreenCoordinates(box.Min, renderer.RenderState),
+                    Haumea.WorldToScreenCoordinates(box.Max, renderer.RenderState));
 
                 Texture2D texture = new Texture2D(renderer.Device, 1, 1);
                 texture.SetData<Color>(new Color[] { Color.White });
-                Rectangle rect = transBox.ToRectangle();
+                Rectangle rect = screenBox.ToRectangle();
 
-                string text = _provinces.ProvinceTagIdMapping[index++];
+                string text =  _provinces.Units.StationedUnits[index].ToString();
                 Vector2 dim = _labelFont.MeasureString(text);
                 Vector2 p0  = new Vector2((int)(rect.Left + (rect.Width - dim.X) / 2.0),
                     (int)(rect.Top + (rect.Height - dim.Y) / 2.0));
 
-                spriteBatch.DrawString(_labelFont, text, p0, Color.Black);
+                Color c = _provinces.MouseOver == index ? Color.AntiqueWhite : Color.Black;
+                spriteBatch.DrawString(_labelFont, text, p0, c);
+
+                index++;
             }
         }
     }

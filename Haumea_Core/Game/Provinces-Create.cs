@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 
 using Haumea_Core.Geometric;
+using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
@@ -33,11 +35,24 @@ namespace Haumea_Core.Game
             };
 
             var rawProvinces = new Provinces.RawProvince[3];
-            rawProvinces[0] = new Provinces.RawProvince(polys[0], "P1", "DAN", Color.Red);
-            rawProvinces[1] = new Provinces.RawProvince(polys[1], "P2", "TEU", Color.DarkGoldenrod);
-            rawProvinces[2] = new Provinces.RawProvince(polys[2], "P3", "TEU", Color.Brown); 
+            rawProvinces[0] = new Provinces.RawProvince(polys[0], "P1", "DAN", Color.Red, 1);
+            rawProvinces[1] = new Provinces.RawProvince(polys[1], "P2", "TEU", Color.DarkGoldenrod, 2);
+            rawProvinces[2] = new Provinces.RawProvince(polys[2], "P3", "TEU", Color.Brown, 0); 
 
             return rawProvinces;
+        }
+
+        public static NodeGraph<int> CreateMapGraph()
+        {
+            IList<Connector<int>> data = new List<Connector<int>>{
+                new Connector<int>(0, 1, 2),
+                new Connector<int>(0, 2, 1),
+                new Connector<int>(2, 1, 3)
+            };
+
+            NodeGraph<int> graph = new NodeGraph<int>(data, true);
+
+            return graph;
         }
     }
 }
