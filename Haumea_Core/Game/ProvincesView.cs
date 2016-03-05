@@ -92,6 +92,12 @@ namespace Haumea_Core.Game
                 Rectangle rect = screenBox.ToRectangle();
 
                 string text =  _provinces.Units.StationedUnits[index].ToString();
+
+                if (_provinces.Selected == index)
+                {
+                    text = "<" + text + ">";
+                }
+
                 Vector2 dim = _labelFont.MeasureString(text);
                 Vector2 p0  = new Vector2((int)(rect.Left + (rect.Width - dim.X) / 2.0),
                     (int)(rect.Top + (rect.Height - dim.Y) / 2.0));

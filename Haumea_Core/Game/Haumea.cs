@@ -18,8 +18,8 @@ namespace Haumea_Core.Game
         private GraphicsDeviceManager _graphics;
 
         private SpriteFont _logFont;
-        private MouseState _mouse, _worldMouse;
         private Texture2D _mouseCursorTexture;
+        private InputState _input;
 
         private Provinces _provinces;
         private ProvincesView _provincesView;
@@ -92,9 +92,6 @@ namespace Haumea_Core.Game
             _provincesView = new ProvincesView(Content, rawProvinces, _provinces);
 
             _worldDate = new WorldDate(Content, new DateTime(1452, 6, 23));
-            _worldDate.AddEvent(0, 30, delegate() {
-                Console.WriteLine("*TRIGGERED*");  
-            });
         }
 
         /// <summary>
@@ -105,27 +102,21 @@ namespace Haumea_Core.Game
         protected override void Update(GameTime gameTime)
         {
             // Read input.
-            _mouse = Mouse.GetState();
-            Vector2       screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
+            _input = Input.GetState((v) => ScreenToWorldCoordinates(v, _renderer.RenderState));
+            Vector2 screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
             _renderer.RenderState.UpdateAspectRatio(screenDim);
 
             _tickTime = gameTime.ElapsedGameTime.TotalMilliseconds;
 
             if (IsActive)
             {
-                if (GraphicsDevice.Viewport.Bounds.Contains(_mouse.Position.X, _mouse.Position.Y))
-                {
-                    Vector2 mousePos = _mouse.Position.ToVector2();
-                    Vector2 mouseWorldPos = ScreenToWorldCoordinates(mousePos, _renderer.RenderState);
+                //if (GraphicsDevice.Viewport.Bounds.Contains(_mouse.Position.X, _mouse.Position.Y))
+                //{
+                //}
 
-                    _worldMouse = new MouseState((int)mouseWorldPos.X, (int)mouseWorldPos.Y,
-                        _mouse.ScrollWheelValue, _mouse.LeftButton, _mouse.LeftButton, _mouse.RightButton,
-                        _mouse.XButton1, _mouse.XButton2);
-                }
-                HKeyboardState keyboard = HKeyboard.GetState();
                 float currentZoom = _renderer.RenderState.Camera.Zoom;
 
-                if (keyboard.IsKeyDown(Keys.Escape))
+                if (_input.IsActive(Keys.LeftControl) && _input.IsActive(Keys.Q))
                 {
                     Exit();
                 }
@@ -138,25 +129,25 @@ namespace Haumea_Core.Game
 
                 // TODO: `went_down` should be prioritized
                 // TODO: The scaling of the pad speed is shit.
-                if (keyboard.IsKeyDown(Keys.Left))  move.X -= PanSpeed * screenDim.X * currentZoom;
-                if (keyboard.IsKeyDown(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
-                if (keyboard.IsKeyDown(Keys.Up))    move.Y += PanSpeed * screenDim.Y * currentZoom;
-                if (keyboard.IsKeyDown(Keys.Down))  move.Y -= PanSpeed * screenDim.Y * currentZoom;
+                if (_input.IsActive(Keys.Left))  move.X -= PanSpeed * screenDim.X * currentZoom;
+                if (_input.IsActive(Keys.Right)) move.X += PanSpeed * screenDim.X * currentZoom;
+                if (_input.IsActive(Keys.Up))    move.Y += PanSpeed * screenDim.Y * currentZoom;
+                if (_input.IsActive(Keys.Down))  move.Y -= PanSpeed * screenDim.Y * currentZoom;
 
                 // temporary keys
-                if (keyboard.IsKeyDown(Keys.N)) zoom *= ZoomSpeed;
-                if (keyboard.IsKeyDown(Keys.M)) zoom /= ZoomSpeed;
+                if (_input.IsActive(Keys.N)) zoom *= ZoomSpeed;
+                if (_input.IsActive(Keys.M)) zoom /= ZoomSpeed;
 
                 _renderer.RenderState.Camera.Move(move);
                 _renderer.RenderState.Camera.ApplyZoom(zoom);
 
-                if (keyboard.WentDown(Keys.Space))
+                if (_input.WentActive(Keys.Space))
                 {
                     _worldDate.Frozen = !_worldDate.Frozen;
                 }
 
-                _provinces.Update(_worldMouse);
                 _worldDate.Update(gameTime, _gameSpeed);
+                _provinces.Update(_input);
             }
 
             base.Update(gameTime);
@@ -178,7 +169,7 @@ namespace Haumea_Core.Game
 
             _provincesView.Draw(_spriteBatch, _renderer);
 
-            _spriteBatch.Draw(_mouseCursorTexture, _mouse.Position.ToVector2(), Color.White);
+            _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse, Color.White);
 
             DrawDebugText();
 
@@ -194,7 +185,6 @@ namespace Haumea_Core.Game
         private void DrawDebugText()
         {
             Camera camera      = _renderer.RenderState.Camera;
-            MouseState mouse   = Mouse.GetState();
             Vector2 screenDim  = _renderer.RenderState.ScreenDim;
     
             string units = "<n/a>";
@@ -214,10 +204,8 @@ namespace Haumea_Core.Game
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.
             // Handling of new-line characters is built in, but not tab characters.
-            Log($"mouse(s): x = {_mouse.Position.X}\n" +
-                $"          y = {_mouse.Position.Y}\n" +
-                $"mouse(w): x = {_worldMouse.Position.X}\n" +
-                $"          y = {_worldMouse.Position.Y}\n" +
+            Log($"mouse:    x = {_input.Mouse.X}\n" +
+                $"          y = {_input.Mouse.Y}\n" +
                 $"offset:   x = {camera.Offset.X}\n" +
                 $"          y = {camera.Offset.Y}\n" +
                 $"window:   x = {screenDim.X}\n" +

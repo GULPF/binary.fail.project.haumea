@@ -100,8 +100,8 @@
     <Compile Include="Game\ProvincesView.cs" />
     <Compile Include="Game\Haumea.cs" />
     <Compile Include="Game\WorldDate.cs" />
-    <Compile Include="HKeyboard.cs" />
     <Compile Include="Game\IView.cs" />
+    <Compile Include="Input.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">

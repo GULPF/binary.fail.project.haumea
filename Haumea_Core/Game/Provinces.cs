@@ -20,6 +20,8 @@ namespace Haumea_Core.Game
 
         private readonly Haumea _game;
 
+        #region properties
+
         /// <summary>
         /// Bidirectional dictionary mapping tag => id and id => tag.
         /// </summary>
@@ -36,7 +38,14 @@ namespace Haumea_Core.Game
         /// </summary>
         public int LastMouseOver { get; private set; }
 
+        /// <summary>
+        /// Indicate which province is selected. If -1, not province is selected.
+        /// </summary>
         public int Selected { get; private set; }
+
+        /// <summary>
+        /// Holds the value which <code>MouseOver</code> changed from.
+        /// </summary>
         public int LastSelected { get; private set; }
 
         /// <summary>
@@ -51,10 +60,17 @@ namespace Haumea_Core.Game
         public Realms Realms { get; }
 
         /// <summary>
+        /// Indicate which realm ID belongs to the player.
+        /// </summary>
+        public int PlayerID { get; }
+
+        /// <summary>
         /// Handles the armies: keeps track of how many units are stationed in each province,
         /// and should handle movement etcetera.
         /// </summary>
         public Units Units { get; }
+
+        #endregion
 
         public Provinces(RawProvince[] rawProvinces, NodeGraph<int> mapGraph, Haumea game)
         {
@@ -79,10 +95,23 @@ namespace Haumea_Core.Game
             }
         }
             
-        public void Update(MouseState mouse)
+        public void Update(InputState input)
         {
-            Vector2 position = mouse.Position.ToVector2();
-            bool doSelect = mouse.LeftButton == ButtonState.Pressed;
+            UpdateSelection(input);
+            Units.Update();
+        }
+
+        public void UpdateSelection(InputState input)
+        {
+            Vector2 position = input.Mouse;
+
+            bool doDeselect  = input.WentActive(Keys.Escape);
+            bool doSelect    = input.WentActive(Buttons.LeftButton) && !doDeselect;
+
+            if (doDeselect)
+            {
+                ClearSelection();
+            }
 
             for (int id = 0; id < _polys.Length; id++)
             {
@@ -111,14 +140,12 @@ namespace Haumea_Core.Game
                 LastMouseOver = MouseOver;
                 MouseOver = -1;
             }
-
-            Units.Update();
         }
 
         public void ClearSelection()
         {
+            Selected = -1;
             LastSelected = -1;
-            Selected     = -1;
         }
 
         // Not intended to be used for anyting else other than temporarily holding parsed data. 
