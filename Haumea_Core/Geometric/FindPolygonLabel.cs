@@ -191,7 +191,7 @@ namespace Haumea_Core.Geometric
             end   = new Vector2(xMax, strips[strips.Count - 1].YMin);
             lines[i] = RenderInstruction.Line(start, end, Color.Black);
 
-            Debug.DebugInstructions = lines;
+            Debug.AddInstructions(lines);
         }
 
         /// <summary>
@@ -200,11 +200,16 @@ namespace Haumea_Core.Geometric
         /// <returns>The label condidates.</returns>
         public static IList<AABB> LabelBoxCondidates(this Poly poly)
         {
+            return poly.LabelBoxCondidates(false);
+        }
+
+        private static IList<AABB> LabelBoxCondidates(this Poly poly, bool suppressDebug)
+        {
             var segments = poly.GetVerticalSegments();    
             var strips   = poly.GetStrips(); // TODO: don't run this twice
 
-            #if DEBUG
-            //poly.DrawDebug(strips, segments);
+            #if DEBUG_LABEL_BOXES
+            if (!suppressDebug) poly.DrawDebug(strips, segments);
             #endif 
 
             Box[] w = new Box[strips.Count + 2];
@@ -271,11 +276,11 @@ namespace Haumea_Core.Geometric
         /// <returns>The best label box (hopefully).</
         public static AABB FindBestLabelBox(this Poly poly)
         {
-            IList<AABB> boxes  = poly.LabelBoxCondidates();
+            IList<AABB> boxes  = poly.LabelBoxCondidates(false);
             IList<AABB> rBoxes = new List<AABB>();
 
             // Here be dragons.
-            foreach (AABB box in poly.RotateLeft90().LabelBoxCondidates())
+            foreach (AABB box in poly.RotateLeft90().LabelBoxCondidates(true))
             {
                 Vector2 rmin = box.Min.RotateRight90();
                 Vector2 rmax = box.Max.RotateRight90();
