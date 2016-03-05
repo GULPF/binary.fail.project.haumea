@@ -22,14 +22,21 @@ namespace Haumea_Core.Collections
 
             foreach (Connector<N> connector in connectors)
             {
-                if (Nodes.TryGetValue(connector.From, out nodeConnectors))
+                if (!Nodes.ContainsKey(connector.From))
                 {
-                    nodeConnectors.Add(connector);
+                    Nodes.Add(connector.From, new List<Connector<N>>());   
                 }
 
-                if (twoway && Nodes.TryGetValue(connector.To, out nodeConnectors))
+                Nodes[connector.From].Add(connector);
+
+                if (twoway)
                 {
-                    nodeConnectors.Add(connector.Invert());
+                    if (!Nodes.ContainsKey(connector.To))
+                    {
+                        Nodes.Add(connector.To, new List<Connector<N>>());       
+                    }
+
+                    Nodes[connector.To].Add(connector.Invert());
                 }
             }
         }

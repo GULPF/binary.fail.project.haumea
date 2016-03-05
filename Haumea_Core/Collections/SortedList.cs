@@ -39,17 +39,15 @@ namespace Haumea_Core.Collections
             }
             set
             {
-                _list.RemoveAt(index);
-                this.Add(value);
+                throw new NotSupportedException("Cannot insert at index; must preserve order.");
             }
         }
 
         public void Add(T item)
         {
             int index = _list.BinarySearch(item, _comp);
-            if (index == 0) _list.Insert(index, item);
+            if (index > -1) _list.Insert(index, item);
             else            _list.Insert(~index, item);
-            //_list.Insert(~_list.BinarySearch(item, _comp), item);
         }
 
         public void Clear()
