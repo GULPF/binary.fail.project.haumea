@@ -5,7 +5,7 @@ namespace Haumea_Core.Collections
 {
     // Because it is a major pain to do arethmics with generics in C#,
     // distances are hardcoded as ints.
-    public class NodeGraph<N>
+    public class NodeGraph<N> where N : IEquatable<N>
     {
         public IDictionary<N, IList<Connector<N>>> Nodes { get; }
 
@@ -67,6 +67,19 @@ namespace Haumea_Core.Collections
             return false;
         }
 
+        public int NeighborDistance(N from, N to)
+        {
+            foreach (Connector<N> conn in Nodes[from])
+            {
+                if (conn.To.Equals(to))
+                {
+                    return conn.Cost;
+                }
+            }
+
+            return -1;
+        }
+
         // Find shortest path between from and to.
         public GraphPath<N> Dijkstra(N from, N to)
         {
@@ -93,7 +106,7 @@ namespace Haumea_Core.Collections
                     while (!node.Equals(from))
                     {
                         node = previusInPath[node];
-                        path.Add(node);
+                        path.Insert(0, node);
                     }
 
                     return new GraphPath<N>(path, pair.Cost);
@@ -160,6 +173,10 @@ namespace Haumea_Core.Collections
     {
         public int Cost       { get; }
         public IList<N> Nodes { get; }
+
+        public int NJumps {
+            get { return Nodes.Count; }
+        }
 
         public GraphPath(IList<N> nodes, int cost)
         {

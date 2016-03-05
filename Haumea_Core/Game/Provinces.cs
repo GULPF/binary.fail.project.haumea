@@ -37,6 +37,7 @@ namespace Haumea_Core.Game
         public int LastMouseOver { get; private set; }
 
         public int Selected { get; private set; }
+        public int LastSelected { get; private set; }
 
         /// <summary>
         //  Graph over how the provinces are connected,
@@ -63,6 +64,7 @@ namespace Haumea_Core.Game
             MouseOver     = -1;
             LastMouseOver = -1;
             Selected      = -1;
+            LastSelected  = -1;
 
             ProvinceTagIdMapping = new BiDictionary<int, string>();
             MapGraph = mapGraph;
@@ -88,6 +90,7 @@ namespace Haumea_Core.Game
                     // Only handle new selections.
                     if (id != Selected && doSelect)
                     {
+                        LastSelected = Selected;
                         Selected = id;   
                     }
 
@@ -108,6 +111,14 @@ namespace Haumea_Core.Game
                 LastMouseOver = MouseOver;
                 MouseOver = -1;
             }
+
+            Units.Update();
+        }
+
+        public void ClearSelection()
+        {
+            LastSelected = -1;
+            Selected     = -1;
         }
 
         // Not intended to be used for anyting else other than temporarily holding parsed data. 
