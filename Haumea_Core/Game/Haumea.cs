@@ -172,7 +172,7 @@ namespace Haumea_Core.Game
 
             device.Clear(Color.CornflowerBlue);
 
-            _renderer.Render(_provincesView.RenderInstructions.Union(Debug.DebugInstructions));
+            _renderer.Render(_provincesView.RenderInstructions.Union(Debug.DebugInstructions.Values.Join()));
 
             _spriteBatch.Begin();
 
@@ -182,7 +182,7 @@ namespace Haumea_Core.Game
 
             DrawDebugText();
 
-            _worldDate.Draw(_spriteBatch);
+            _worldDate.Draw(_spriteBatch, _renderer);
 
             _spriteBatch.End();
 

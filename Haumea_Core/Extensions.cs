@@ -71,6 +71,8 @@ namespace Haumea_Core
                 device.PresentationParameters.BackBufferHeight);
         }
 
+        // These two are a bit silly...
+
         // Creates a single IEnumerable<T> from several others.
         public static IEnumerable<T> Union<T>(this IEnumerable<T> enumer1, params IEnumerable<T>[] enumer2)
         {
@@ -82,6 +84,17 @@ namespace Haumea_Core
             foreach (IEnumerable<T> enumerx in enumer2)
             {
                 foreach (T t in enumerx)
+                {
+                    yield return t;
+                }
+            }
+        }
+
+        public static IEnumerable<T> Join<T>(this IEnumerable<IEnumerable<T>> enumers)
+        {
+            foreach (IEnumerable<T> enumer in enumers)
+            {
+                foreach(T t in enumer)
                 {
                     yield return t;
                 }

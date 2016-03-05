@@ -6,15 +6,16 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 using Haumea_Core.Collections;
+using Haumea_Core.Rendering;
 
 namespace Haumea_Core
 {
     /// <summary>
-    /// Fills two purposes (SRP?):
+    /// Fills two purposes (SRP? split it when/if the events gets more sophisticated):
     /// - Keeps track of the current date
     /// - Triggers events based on date
     /// </summary>
-    public class WorldDate
+    public class WorldDate : IView
     {
         private static Vector2 Pos = new Vector2(10, 10);
 
@@ -62,7 +63,7 @@ namespace Haumea_Core
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
             spriteBatch.DrawString(_dateFont, ToString(), Pos, Color.Black);
         }

@@ -10,7 +10,7 @@ using Haumea_Core.Rendering;
 
 namespace Haumea_Core.Game
 {
-    public class ProvincesView
+    public class ProvincesView : IView
     {
         private readonly Provinces _provinces;
 
@@ -81,14 +81,14 @@ namespace Haumea_Core.Game
 
             // Currently, this is really messy. Min/Max should __not__
             // have to switch places. Something is clearly wrong somewhere.
-            int index = 0;
-            foreach (AABB box in _labelBoxes)
+            for (int index = 0; index < _labelBoxes.Length; index++)
             {
+                AABB box = _labelBoxes[index];
                 AABB screenBox = new AABB(Haumea.WorldToScreenCoordinates(box.Min, renderer.RenderState),
                     Haumea.WorldToScreenCoordinates(box.Max, renderer.RenderState));
 
-                Texture2D texture = new Texture2D(renderer.Device, 1, 1);
-                texture.SetData<Color>(new Color[] { Color.White });
+                //Texture2D texture = new Texture2D(renderer.Device, 1, 1);
+                //texture.SetData<Color>(new Color[] { Color.White });
                 Rectangle rect = screenBox.ToRectangle();
 
                 string text =  _provinces.Units.StationedUnits[index].ToString();
@@ -98,8 +98,6 @@ namespace Haumea_Core.Game
 
                 Color c = _provinces.MouseOver == index ? Color.AntiqueWhite : Color.Black;
                 spriteBatch.DrawString(_labelFont, text, p0, c);
-
-                index++;
             }
         }
     }

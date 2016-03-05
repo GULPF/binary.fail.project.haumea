@@ -1,10 +1,14 @@
 ﻿using System;
 
+using Microsoft.Xna.Framework.Graphics;
+
+using Haumea_Core.Rendering;
+
 namespace Haumea_Core
 {
     public interface IView
     {
-        public void 
+        void Draw(SpriteBatch spriteBatch, Renderer renderer); 
     }
 }
 
