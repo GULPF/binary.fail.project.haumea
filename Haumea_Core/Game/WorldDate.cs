@@ -24,6 +24,11 @@ namespace Haumea_Core
         // with hours and such in the DateTime class.
         private double _dayFrac;
         private SpriteFont _dateFont;
+        private static readonly IList<string> MonthNames = new List<string>{
+            "January", "February", "March", "April",
+            "May", "June", "July", "August", "September",
+            "October", "November", "December"
+        };
 
         // TODO: Switch to priorityqueue?
         private IList<DateEvent> _listeners;
@@ -70,7 +75,8 @@ namespace Haumea_Core
 
         public override String ToString()
         {
-            return (_date.Day + " - ").PadLeft(5, '0') + (_date.Month + " - ").PadLeft(5, '0') + _date.Year;
+            return (MonthNames[_date.Month - 1] + " ") + (_date.Day + " ") +
+                ", " + _date.Year;
         }
 
         public void AddEvent(DateTime trigger, Action handler)

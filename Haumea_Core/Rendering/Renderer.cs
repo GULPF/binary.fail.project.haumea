@@ -10,7 +10,7 @@ namespace Haumea_Core.Rendering
     /// </summary>
     public class Renderer
     {
-        private readonly BasicEffect    _effect;
+        private readonly BasicEffect _effect;
         public  GraphicsDevice Device { get; }
 
         public BasicEffect Effect {

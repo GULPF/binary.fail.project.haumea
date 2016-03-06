@@ -41,7 +41,7 @@ namespace Haumea_Core.Game
 
         public bool MoveUnits(int from, int to, int amount)
         {
-            if (StationedUnits[from] < amount) return false;
+            if (StationedUnits[from] < amount || amount == 0) return false;
 
             GraphPath<int> path = _provinces.MapGraph.Dijkstra(from, to);
             if (path == null) return false;
