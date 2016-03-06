@@ -12,51 +12,6 @@ namespace Haumea_Core.Game
 {
     public partial class Provinces
     {
-        // Create the world.
-        public static RawProvince[] CreateRawProvinces()
-        {
-            // Just to make the polygon initialization a bit prettier
-            Func<double, double, Vector2> V = (x, y) => new Vector2(20 * (float)x,  20 * (float)y);
-
-            Poly[] polys = {
-                new Poly(new Vector2[] { 
-                    V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
-                    V(7, 3), V(9, 4), V(12, 3), V(12, 1), V(9, 0), V(8, -1), V(8, -2),
-                    V(6, -3), V(5, -2), V(3, -2), V(1, -1)
-                }),
-                new Poly(new Vector2[] {
-                    V(0, 0), V(1, -1), V(3, -2), V(5, -2), V(6, -3), V(5, -4), V(5, -5), V(4, -6),
-                    V(2, -6), V(0, -5), V(-2, -3), V(-2, -2), V(-3, -1), V(-2, 0)
-                }),
-                new Poly(new Vector2[] {
-                    V(0, 0), V(1, 2), V(2, 2), V(3, 1), V(4, 1), V(5, 3),
-                    V(3, 4), V(2, 4), V(0, 5), V(0, 6), V(-2, 6), V(-3, 5),
-                    V(-5, 5), V(-7, 3), V(-7, 1), V(-8, 0), V(-8, -1), V(-7, -2), V(-4, -3),
-                    V(0, -5), V(-2, -3), V(-2, -2), V(-3, -1), V(-2, 0)
-                }),
-                new Poly(new Vector2[] {
-                    V(-15, -15), V(-10, -12), V(-16, -5)
-                })
-            };
-
-            Provinces.RawProvince[] rawProvinces = {
-                new Provinces.RawProvince(polys[0], "P1", Color.Red, 1),
-                new Provinces.RawProvince(polys[1], "P2", Color.DarkGoldenrod, 2),
-                new Provinces.RawProvince(polys[2], "P3", Color.Brown, 0),
-                new Provinces.RawProvince(polys[3], "P4", Color.BurlyWood, 1)}; 
-
-            return rawProvinces;
-        }
-
-        public static RawRealm[] CreateRawRealms()
-        {
-            return new RawRealm[] {
-                new Provinces.RawRealm(new List<int> { 0, 1 }, "DAN"),
-                new Provinces.RawRealm(new List<int> { 2 }   , "TEU"),
-                new Provinces.RawRealm(new List<int> { 3 }   , "GOT")
-            };
-        }
-
         public static NodeGraph<int> CreateMapGraph()
         {
             IList<Connector<int>> data = new List<Connector<int>>{
@@ -71,102 +26,168 @@ namespace Haumea_Core.Game
             return graph;
         }
     
-        private static Regex vectorRgx = new Regex(@" *\( *(\d) *, *(\d) *\) *");
+        private static Regex vectorRgx = new Regex(@" *\( *(-?\d+) *, *(-?\d+) *\) *");
 
-        private static string[] ReadLines(StreamReader stream, int count)
+        // It would be nice to make this work without needing a mutable field.
+        // The problem is that the mode changes inside a iterator, so it's not trivial to
+        // communicate the change to the caller.
+        private static Modes _currentMode;
+
+        private static IList<string> ReadLines(StreamReader stream, int count)
         {
-            string[] lines = new string[2];
-            for (int i = 0; i < count; i++) {
-                lines[i] = stream.ReadLine();
-                if (lines[i] == null) throw new ParseException();
+            IList<string> lines = new List<string>();
+            Modes startMode = _currentMode;
+
+            while (lines.Count < count)
+            {
+                string line = stream.ReadLine().Trim();
+                _currentMode = GetMode(line);
+                if (_currentMode != startMode) return null;
+                if (line != "") lines.Add(line);
             }
             return lines;
         }
 
-        private static Modes GetMode(string line, Modes current)
+        private static Modes GetMode(string line)
         {
             switch (line)
             {
             case "[provinces]": return Modes.Province;
             case "[realms]":    return Modes.Realm;
-            default:            return current;
+            case "[mapgraph]":  return Modes.MapGraph;
+            default:            return _currentMode;
             }
         }
 
-        private static RawProvince ParseProvince(StreamReader stream, int expectedId)
+        private static Color ColorFromHex(string hexString)
         {
-            string[] lines = ReadLines(stream, 2);
+            if (hexString.StartsWith("#")) hexString = hexString.Substring(1);
+            uint hex = Convert.ToUInt32(hexString, 16);
+            Color color = Color.White;
 
-            string[] tokens = lines[0].Substring(1).Split(' ');
-            int id = int.Parse(tokens[0]);
-            string tag = tokens[1];
-
-            List<Vector2> vectors = new List<Vector2>();
-
-            foreach (string vectortoken in lines[1].Split('-'))
+            if (hexString.Length != 6) 
             {
-                Match match = vectorRgx.Match(vectortoken);
-                vectors.Add(new Vector2(
-                    int.Parse(match.Captures[0].Value),
-                    int.Parse(match.Captures[1].Value)));
+                throw new InvalidOperationException("Invalid hex representation of an RGB color value.");
             }
 
-            if (id != expectedId) throw new ParseException();
+            color.R = (byte)(hex >> 16);
+            color.G = (byte)(hex >> 8);
+            color.B = (byte)(hex);
 
-            return new RawProvince(new Poly(vectors.ToArray()), tag, Color.Black, 0);
+            return color;
         }
 
-        private static RawRealm ParseRealm(StreamReader stream, int expectedId)
+        private static IEnumerable<RawProvince> ParseProvinces(StreamReader stream)
         {
-            string[] lines = ReadLines(stream, 2);
-            string[] tokens = lines[0].Substring(1).Split(' ');
-
-            int id = int.Parse(tokens[0]);
-            string tag = tokens[1];
-
-            IList<int> provinceIds = new List<int>();
-
-            foreach (string provincetoken in lines[1].Split(','))
+            while (!stream.EndOfStream)
             {
-                provinceIds.Add(int.Parse(provincetoken.Trim()));
+                IList<string> lines = ReadLines(stream, 2);
+                if (lines == null) yield break;
+
+                string[] tokens = lines[0].Split(' ');
+                string tag = tokens[0];
+                Color color = ColorFromHex(tokens[1]);
+                int units = int.Parse(tokens[2]);
+
+                List<Vector2> vectors = new List<Vector2>();
+
+                foreach (string vectortoken in lines[1].Split('%'))
+                {
+                    Match match = vectorRgx.Match(vectortoken);
+                    vectors.Add(new Vector2(
+                        20 * int.Parse(match.Groups[1].Value),
+                        20 * int.Parse(match.Groups[2].Value)));
+                    Console.WriteLine(vectors[vectors.Count - 1]);
+                }
+
+                yield return new RawProvince(new Poly(vectors.ToArray()), tag, color, units);     
             }
+        }
 
-            if (id != expectedId) throw new ParseException();
+        private static IEnumerable<RawRealm> ParseRealms(StreamReader stream)
+        {
+            while (!stream.EndOfStream)
+            {
+                IList<string> lines = ReadLines(stream, 2);
+                if (lines == null) yield break;
 
-            return new RawRealm(provinceIds, tag);
+                string[] tokens = lines[0].Split(' ');
+                string tag = tokens[0];
+
+                IList<string> provinceTags = new List<string>();
+
+                foreach (string provincetoken in lines[1].Split(','))
+                {
+                    provinceTags.Add(provincetoken.Trim());
+                }
+
+                yield return new RawRealm(provinceTags, tag);   
+            }
+        }
+
+        private static IEnumerable<RawConnector> ParseConnectors(StreamReader stream)
+        {
+            while (!stream.EndOfStream)
+            {
+                IList<string> lines = ReadLines(stream, 1);
+                if (lines == null) yield break;
+
+                string[] tokens = lines[0].Split(' ');
+                string tag1 = tokens[0];
+                string tag2 = tokens[1];
+                int cost = int.Parse(tokens[2]);
+
+                yield return new RawConnector(tag1, tag2, cost);
+            }
         }
 
         public static RawGameData Parse(StreamReader stream)
         {
-            Modes mode = Modes.Invalid;
+            _currentMode = Modes.Invalid;
 
-            IList<RawProvince> provinces = new List<RawProvince>();
-            IList<RawRealm>    realms    = new List<RawRealm>(); 
+            IList<RawProvince>  provinces  = new List<RawProvince>();
+            IList<RawRealm>     realms     = new List<RawRealm>(); 
+            IList<RawConnector> connectors = new List<RawConnector>();
 
-            while (!stream.EndOfStream)
+            while (!stream.EndOfStream && _currentMode == Modes.Invalid)
             {
                 string line = stream.ReadLine().Trim();
                 if (line == "") continue;
 
-                mode = GetMode(line, mode);
+                _currentMode = GetMode(line);    
+            }
 
-                switch (mode)
+            while (!stream.EndOfStream)
+            {
+                switch (_currentMode)
                 {
                 case Modes.Province:
-                    provinces.Add(ParseProvince(stream, provinces.Count));
+                    foreach (RawProvince prov in ParseProvinces(stream))
+                    {
+                        provinces.Add(prov);
+                    }
                     break;
                 case Modes.Realm:
-                    realms.Add(ParseRealm(stream, realms.Count));
+                    foreach (RawRealm realm in ParseRealms(stream))
+                    {
+                        realms.Add((realm));
+                    }
+                    break;
+                case Modes.MapGraph:
+                    foreach (RawConnector conn in ParseConnectors(stream))
+                    {
+                        connectors.Add(conn);
+                    }
                     break;
                 case Modes.Invalid:
                     throw new ParseException();
                 }
             }
 
-            return new RawGameData(provinces, realms, null);
+            return new RawGameData(provinces, realms, connectors);
         }
             
-        private enum Modes { Province, Realm, Invalid }
+        private enum Modes { Province, Realm, MapGraph, Invalid }
     }
 
     public class UnexpectedCallExeption : Exception {}

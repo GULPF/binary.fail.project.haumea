@@ -84,7 +84,7 @@ namespace Haumea_Core.Game
             LastSelected  = -1;
 
             ProvinceTagIdMapping = new BiDictionary<int, string>();
-            MapGraph = data.MapGraph;
+
             Realms = new Realms();
             Units = new Units(this, _game);
             PlayerID = 0;
@@ -97,11 +97,23 @@ namespace Haumea_Core.Game
 
             foreach (RawRealm realm in data.RawRealms)
             {
-                foreach (int provinceID in realm.ProvincesOwned)
+                foreach (string provinceTag in realm.ProvincesOwned)
                 {
+                    int provinceID = ProvinceTagIdMapping[provinceTag];
                     Realms.AssignOwnership(provinceID, realm.Tag);
                 }
             }
+
+            IList<Connector<int>> conns = new List<Connector<int>>();
+
+            foreach (RawConnector rconn in data.RawConnectors)
+            {
+                int ID1 = ProvinceTagIdMapping[rconn.Tag1];
+                int ID2 = ProvinceTagIdMapping[rconn.Tag2];
+                conns.Add(new Connector<int>(ID1, ID2, rconn.Cost));
+            }
+
+            MapGraph = new NodeGraph<int>(conns, true);
         }
             
         public void Update(InputState input)
@@ -176,28 +188,42 @@ namespace Haumea_Core.Game
 
         public struct RawRealm
         {
-            public IList<int> ProvincesOwned { get; }
+            public IList<string> ProvincesOwned { get; }
             public string Tag { get; }
 
-            public RawRealm(IList<int> provinces, string tag)
+            public RawRealm(IList<string> provinces, string tag)
             {
                 ProvincesOwned = provinces;
                 Tag = tag;
             }
         }
 
+        public struct RawConnector
+        {
+            public string Tag1 { get; }
+            public string Tag2 { get; }
+            public int Cost { get; }
+
+            public RawConnector(string tag1, string tag2, int cost)
+            {
+                Tag1 = tag1;
+                Tag2 = tag2;
+                Cost = cost;
+            }
+        }
+
         public struct RawGameData
         {
-            public IList<Provinces.RawProvince> RawProvinces { get; }
-            public IList<Provinces.RawRealm> RawRealms { get; }
-            public NodeGraph<int> MapGraph { get; }
+            public IList<RawProvince> RawProvinces { get; }
+            public IList<RawRealm> RawRealms { get; }
+            public IList<RawConnector> RawConnectors { get; }
 
-            public RawGameData(IList<Provinces.RawProvince> rawProvinces,
-                IList<Provinces.RawRealm> rawRealms, NodeGraph<int> mapGraph)
+            public RawGameData(IList<RawProvince> rawProvinces,
+                IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors)
             {
                 RawProvinces = rawProvinces;
                 RawRealms = rawRealms;
-                MapGraph = mapGraph;
+                RawConnectors = rawConnectors;
             }
         }
     }

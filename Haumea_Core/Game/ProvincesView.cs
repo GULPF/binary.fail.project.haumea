@@ -25,17 +25,17 @@ namespace Haumea_Core.Game
         /// </summary>
         public RenderInstruction[] RenderInstructions { get; }
 
-        public ProvincesView(ContentManager content, Provinces.RawProvince[] rawProvinces, Provinces provinces)
+        public ProvincesView(ContentManager content, IList<Provinces.RawProvince> rawProvinces, Provinces provinces)
         {
             _labelFont = content.Load<SpriteFont>("test/LabelFont");
 
             _provinces = provinces;
 
-            _labelBoxes            = new AABB[rawProvinces.Length];
-            RenderInstructions     = new RenderInstruction[rawProvinces.Length];
+            _labelBoxes            = new AABB[rawProvinces.Count];
+            RenderInstructions     = new RenderInstruction[rawProvinces.Count];
             _allRenderInstructions = new Dictionary<int, Dictionary<RenderState, RenderInstruction>>();
 
-            for (int id = 0; id < rawProvinces.Length; id++) {
+            for (int id = 0; id < rawProvinces.Count; id++) {
 
                 var renderInstructions = new Dictionary<RenderState, RenderInstruction>();
 

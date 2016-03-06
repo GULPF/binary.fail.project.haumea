@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -31,9 +32,9 @@ namespace Haumea_Core.Game
 
         // ** The public interface - exposed to entities etc **
 
-        public void AddEvent(DateTime trigger, Action handler) { _worldDate.AddEvent(trigger, handler);}
-        public void AddEvent(int years, int days, Action handler) { _worldDate.AddEvent(years, days, handler);}
-        public void AddEvent(int days, Action handler) { _worldDate.AddEvent(days, handler);}
+        public void AddEvent(DateTime trigger, Action handler)    { _worldDate.AddEvent(trigger, handler);     }
+        public void AddEvent(int years, int days, Action handler) { _worldDate.AddEvent(years, days, handler); }
+        public void AddEvent(int days, Action handler)            { _worldDate.AddEvent(days, handler);        }
 
         public static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
@@ -86,13 +87,22 @@ namespace Haumea_Core.Game
             _logFont = Content.Load<SpriteFont>("test/LogFont");
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
-            var rawProvinces = Provinces.CreateRawProvinces();
-            var rawRealms    = Provinces.CreateRawRealms();
-            var mapGraph     = Provinces.CreateMapGraph();
-            var gameData     = new Provinces.RawGameData(rawProvinces, rawRealms, mapGraph);
+            //var rawProvinces = Provinces.CreateRawProvinces();
+            //var rawRealms    = Provinces.CreateRawRealms();
+            //var mapGraph     = Provinces.CreateMapGraph();
+            //var gameData     = new Provinces.RawGameData(rawProvinces, rawRealms, mapGraph);
+            string path = "../../../gamedata.haumea";
+            Provinces.RawGameData gameData;
+
+            using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+            {
+                gameData = Provinces.Parse(stream);    
+            }
+
+
 
             _provinces = new Provinces(gameData, this);
-            _provincesView = new ProvincesView(Content, rawProvinces, _provinces);
+            _provincesView = new ProvincesView(Content, gameData.RawProvinces, _provinces);
 
             _worldDate = new WorldDate(Content, new DateTime(1452, 6, 23));
         }
