@@ -6,26 +6,12 @@ using System.IO;
 using Microsoft.Xna.Framework;
 
 using Haumea_Core.Geometric;
-using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
-    public partial class Provinces
+    public static class GameFile
     {
-        public static NodeGraph<int> CreateMapGraph()
-        {
-            IList<Connector<int>> data = new List<Connector<int>>{
-                new Connector<int>(0, 1, 2),
-                new Connector<int>(0, 2, 1),
-                new Connector<int>(2, 1, 3),
-                new Connector<int>(2, 3, 5)
-            };
-
-            NodeGraph<int> graph = new NodeGraph<int>(data, true);
-
-            return graph;
-        }
-    
+        // Parses this vector notation: (x, y)
         private static Regex vectorRgx = new Regex(@" *\( *(-?\d+) *, *(-?\d+) *\) *");
 
         // It would be nice to make this work without needing a mutable field.
@@ -186,7 +172,7 @@ namespace Haumea_Core.Game
 
             return new RawGameData(provinces, realms, connectors);
         }
-            
+
         private enum Modes { Province, Realm, MapGraph, Invalid }
     }
 

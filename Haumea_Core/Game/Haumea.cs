@@ -92,11 +92,11 @@ namespace Haumea_Core.Game
             //var mapGraph     = Provinces.CreateMapGraph();
             //var gameData     = new Provinces.RawGameData(rawProvinces, rawRealms, mapGraph);
             string path = "../../../gamedata.haumea";
-            Provinces.RawGameData gameData;
+            RawGameData gameData;
 
             using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
             {
-                gameData = Provinces.Parse(stream);    
+                gameData = GameFile.Parse(stream);    
             }
 
 

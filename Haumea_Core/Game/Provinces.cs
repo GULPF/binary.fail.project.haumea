@@ -14,11 +14,9 @@ namespace Haumea_Core.Game
     // It is implemented using Data Oriented Design (DOD, see http://www.dataorienteddesign.com/dodmain/).
     // Any delegators should also prefer DOD.
 
-    public partial class Provinces
+    public class Provinces
     {
         private readonly Poly[] _polys;
-        private readonly AABB[] _labelBoxes;
-
         private readonly Haumea _game;
 
         #region properties
@@ -168,63 +166,63 @@ namespace Haumea_Core.Game
             Selected = -1;
             LastSelected = -1;
         }
+    }
 
-        // Not intended to be used for anyting else other than temporarily holding parsed data. 
-        public struct RawProvince
+    // Not intended to be used for anyting else other than temporarily holding parsed data. 
+    public struct RawProvince
+    {
+        public Poly Poly { get; }
+        public string Tag { get; }
+        public Color Color { get; }
+        public int Units { get; }
+
+        public RawProvince(Poly poly, String tag, Color color, int units)
         {
-            public Poly Poly { get; }
-            public string Tag { get; }
-            public Color Color { get; }
-            public int Units { get; }
-
-            public RawProvince(Poly poly, String tag, Color color, int units)
-            {
-                Poly = poly;
-                Tag = tag;
-                Color = color;
-                Units = units;
-            }
+            Poly = poly;
+            Tag = tag;
+            Color = color;
+            Units = units;
         }
+    }
 
-        public struct RawRealm
+    public struct RawRealm
+    {
+        public IList<string> ProvincesOwned { get; }
+        public string Tag { get; }
+
+        public RawRealm(IList<string> provinces, string tag)
         {
-            public IList<string> ProvincesOwned { get; }
-            public string Tag { get; }
-
-            public RawRealm(IList<string> provinces, string tag)
-            {
-                ProvincesOwned = provinces;
-                Tag = tag;
-            }
+            ProvincesOwned = provinces;
+            Tag = tag;
         }
+    }
 
-        public struct RawConnector
+    public struct RawConnector
+    {
+        public string Tag1 { get; }
+        public string Tag2 { get; }
+        public int Cost { get; }
+
+        public RawConnector(string tag1, string tag2, int cost)
         {
-            public string Tag1 { get; }
-            public string Tag2 { get; }
-            public int Cost { get; }
-
-            public RawConnector(string tag1, string tag2, int cost)
-            {
-                Tag1 = tag1;
-                Tag2 = tag2;
-                Cost = cost;
-            }
+            Tag1 = tag1;
+            Tag2 = tag2;
+            Cost = cost;
         }
+    }
 
-        public struct RawGameData
+    public struct RawGameData
+    {
+        public IList<RawProvince> RawProvinces { get; }
+        public IList<RawRealm> RawRealms { get; }
+        public IList<RawConnector> RawConnectors { get; }
+
+        public RawGameData(IList<RawProvince> rawProvinces,
+            IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors)
         {
-            public IList<RawProvince> RawProvinces { get; }
-            public IList<RawRealm> RawRealms { get; }
-            public IList<RawConnector> RawConnectors { get; }
-
-            public RawGameData(IList<RawProvince> rawProvinces,
-                IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors)
-            {
-                RawProvinces = rawProvinces;
-                RawRealms = rawRealms;
-                RawConnectors = rawConnectors;
-            }
+            RawProvinces = rawProvinces;
+            RawRealms = rawRealms;
+            RawConnectors = rawConnectors;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Haumea_Core.Game
         /// </summary>
         public RenderInstruction[] RenderInstructions { get; }
 
-        public ProvincesView(ContentManager content, IList<Provinces.RawProvince> rawProvinces, Provinces provinces)
+        public ProvincesView(ContentManager content, IList<RawProvince> rawProvinces, Provinces provinces)
         {
             _labelFont = content.Load<SpriteFont>("test/LabelFont");
 
