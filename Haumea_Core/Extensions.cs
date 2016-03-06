@@ -71,6 +71,11 @@ namespace Haumea_Core
                 device.PresentationParameters.BackBufferHeight);
         }
 
+        public static string[] Split(this string str, char khar)
+        {
+            return str.Split(new char[] { khar });
+        }
+
         // These two are a bit silly...
 
         // Creates a single IEnumerable<T> from several others.

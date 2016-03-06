@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -72,9 +73,9 @@ namespace Haumea_Core.Game
 
         #endregion
 
-        public Provinces(RawProvince[] rawProvinces, NodeGraph<int> mapGraph, Haumea game)
+        public Provinces(RawGameData data, Haumea game)
         {
-            _polys = new Poly[rawProvinces.Length];
+            _polys = new Poly[data.RawProvinces.Count];
             _game  = game;
 
             MouseOver     = -1;
@@ -83,15 +84,23 @@ namespace Haumea_Core.Game
             LastSelected  = -1;
 
             ProvinceTagIdMapping = new BiDictionary<int, string>();
-            MapGraph = mapGraph;
+            MapGraph = data.MapGraph;
             Realms = new Realms();
             Units = new Units(this, _game);
+            PlayerID = 0;
 
             for (int id = 0; id < _polys.Length; id++) {
-                ProvinceTagIdMapping.Add(id, rawProvinces[id].Tag);
-                Realms.AssignOwnership(id, rawProvinces[id].RealmTag);
-                _polys[id] = rawProvinces[id].Poly;
-                Units.AddUnits(rawProvinces[id].Units, id);
+                ProvinceTagIdMapping.Add(id, data.RawProvinces[id].Tag);
+                _polys[id] = data.RawProvinces[id].Poly;
+                Units.AddUnits(data.RawProvinces[id].Units, id);
+            }
+
+            foreach (RawRealm realm in data.RawRealms)
+            {
+                foreach (int provinceID in realm.ProvincesOwned)
+                {
+                    Realms.AssignOwnership(provinceID, realm.Tag);
+                }
             }
         }
             
@@ -153,17 +162,42 @@ namespace Haumea_Core.Game
         {
             public Poly Poly { get; }
             public string Tag { get; }
-            public string RealmTag { get; }
             public Color Color { get; }
             public int Units { get; }
 
-            public RawProvince(Poly poly, String tag, String realmTag, Color color, int units)
+            public RawProvince(Poly poly, String tag, Color color, int units)
             {
                 Poly = poly;
                 Tag = tag;
-                RealmTag = realmTag;
                 Color = color;
                 Units = units;
+            }
+        }
+
+        public struct RawRealm
+        {
+            public IList<int> ProvincesOwned { get; }
+            public string Tag { get; }
+
+            public RawRealm(IList<int> provinces, string tag)
+            {
+                ProvincesOwned = provinces;
+                Tag = tag;
+            }
+        }
+
+        public struct RawGameData
+        {
+            public IList<Provinces.RawProvince> RawProvinces { get; }
+            public IList<Provinces.RawRealm> RawRealms { get; }
+            public NodeGraph<int> MapGraph { get; }
+
+            public RawGameData(IList<Provinces.RawProvince> rawProvinces,
+                IList<Provinces.RawRealm> rawRealms, NodeGraph<int> mapGraph)
+            {
+                RawProvinces = rawProvinces;
+                RawRealms = rawRealms;
+                MapGraph = mapGraph;
             }
         }
     }

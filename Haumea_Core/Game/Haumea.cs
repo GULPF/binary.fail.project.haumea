@@ -86,9 +86,12 @@ namespace Haumea_Core.Game
             _logFont = Content.Load<SpriteFont>("test/LogFont");
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
-            var rawProvinces = Provinces.CreateRaw();
+            var rawProvinces = Provinces.CreateRawProvinces();
+            var rawRealms    = Provinces.CreateRawRealms();
             var mapGraph     = Provinces.CreateMapGraph();
-            _provinces = new Provinces(rawProvinces, mapGraph, this);
+            var gameData     = new Provinces.RawGameData(rawProvinces, rawRealms, mapGraph);
+
+            _provinces = new Provinces(gameData, this);
             _provincesView = new ProvincesView(Content, rawProvinces, _provinces);
 
             _worldDate = new WorldDate(Content, new DateTime(1452, 6, 23));
