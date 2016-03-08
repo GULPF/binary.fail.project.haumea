@@ -20,6 +20,7 @@ namespace Haumea_Core.Game
 
         private Point _selectionBoxP1;
         private Point _selectionBoxP2;
+        private const int _minimumSelectionSize = 10;
 
         private Rectangle _selection
         {
@@ -59,8 +60,6 @@ namespace Haumea_Core.Game
 
         public void Update(InputState input)
         {
-            UpdateSelection(input);
-
             if (_units.SelectedArmies.Count > 0 && _provinces.Selected > -1)
             {
                 foreach (int armyID in _units.SelectedArmies)
@@ -93,6 +92,22 @@ namespace Haumea_Core.Game
                     _units.ClearSelection();
                 }
             }
+            else if (input.WentInactive(Buttons.LeftButton))
+            {
+                Rectangle selection = _selection;
+                if (selection.Width * selection.Height > _minimumSelectionSize)
+                {
+                    foreach (var pair in _labelClickableBoundaries)
+                    {
+                        if (pair.Value.Intersects(selection))
+                        {
+                            _units.SelectArmy(pair.Key, true);
+                        }
+                    }
+                }
+            }
+
+            UpdateSelection(input);
         }
 
         public void UpdateSelection(InputState input)
@@ -121,9 +136,9 @@ namespace Haumea_Core.Game
 
             // Currently, this is really messy. Min/Max should __not__
             // have to switch places. Something is clearly wrong somewhere.
-            int id = 0;
-            foreach (Units.Army army in _units.Armies)
+            for (int id = 0; id < _units.Armies.Count; id++)
             {
+                Units.Army army = _units.Armies[id];
                 AABB box = _labelBoxes[army.Location];
                 AABB screenBox = new AABB(Haumea.WorldToScreenCoordinates(box.Min, renderer.RenderState),
                     Haumea.WorldToScreenCoordinates(box.Max, renderer.RenderState));
@@ -159,8 +174,7 @@ namespace Haumea_Core.Game
                 spriteBatch.Draw(texture, snugBox,   new Color(210, 210, 210));
                 spriteBatch.DrawString(_unitsFont, text, p0, c);
 
-                _labelClickableBoundaries[army.Location] = borderBox;
-                id++;
+                _labelClickableBoundaries[id] = borderBox;
             }
 
             Rectangle[] borders = _selection.Borders(1);

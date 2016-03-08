@@ -24,7 +24,7 @@ namespace Haumea_Core.Game
         public IList<Army> Armies { get; }
         public IDictionary<int, IList<Battle>> Battles { get; }
     
-        public IList<int> SelectedArmies { get; }
+        public ISet<int> SelectedArmies { get; }
 
         // These are splitted into two because DoD.
         // In the common case, a moving army will be between two provinces.
@@ -88,7 +88,7 @@ namespace Haumea_Core.Game
             _paths  = new List<ArmyPath>();
 
             ProvinceArmies = new Dictionary<int, IList<int>>();
-            SelectedArmies = new List<int>();
+            SelectedArmies = new HashSet<int>();
             Armies =  new List<Army>();
         }
 
@@ -147,25 +147,19 @@ namespace Haumea_Core.Game
             }
         }
 
-        public void SelectArmy(int provinceID, bool keepOldSelection)
+        public void SelectArmy(int armyID, bool keepOldSelection)
         {
             // We asume that the province actually contains an army.
-            IList<int> armies = ProvinceArmies[provinceID];
+            //IList<int> armies = ProvinceArmies[provinceID];
 
             if (keepOldSelection)
             {
-                foreach (int armyID in armies)
-                {
-                    if (SelectedArmies.IndexOf(armyID) > -1)
-                    {
-                        SelectedArmies.Add(armyID);
-                    }
-                }    
+                SelectedArmies.Add(armyID);
             }
             else
             {
                 SelectedArmies.Clear();
-                SelectedArmies.Add(armies[0]);
+                SelectedArmies.Add(armyID);
             }
         }
 
