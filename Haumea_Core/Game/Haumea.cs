@@ -100,7 +100,7 @@ namespace Haumea_Core.Game
             _logFont = Content.Load<SpriteFont>("test/LogFont");
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
-            string path = "../../../gamedata.haumea";
+            const string path = "../../../gamedata.haumea";
             RawGameData gameData;
 
             using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
@@ -204,6 +204,9 @@ namespace Haumea_Core.Game
             }
 
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
+
+            Texture2D texture = new Texture2D(_renderer.Device, 1, 1);
+            texture.SetData<Color>(new [] { Color.Black });
 
             DrawDebugText();
 

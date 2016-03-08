@@ -140,26 +140,29 @@ namespace Haumea_Core.Game
                 ClearSelection();
             }
 
-            for (int id = 0; id < _polys.Length; id++)
+            if (!input.IsActive(Buttons.LeftButton))
             {
-                if (_polys[id].IsPointInside(position)) {
-                    // Only handle new selections.
-                    if (id != Selected && doSelect)
-                    {
-                        LastSelected = Selected;
-                        Selected = id;   
-                    }
+                for (int id = 0; id < _polys.Length; id++)
+                {
+                    if (_polys[id].IsPointInside(position)) {
+                        // Only handle new selections.
+                        if (id != Selected && doSelect)
+                        {
+                            LastSelected = Selected;
+                            Selected = id;   
+                        }
 
-                    // If this is not a new mouse over, don't bother.
-                    if (id != MouseOver)
-                    {
-                        LastMouseOver = MouseOver;
-                        MouseOver = id;    
-                    }
+                        // If this is not a new mouse over, don't bother.
+                        if (id != MouseOver)
+                        {
+                            LastMouseOver = MouseOver;
+                            MouseOver = id;    
+                        }
 
-                    // Provinces can't overlap so we exit immediately when we find a hit.
-                    return;
-                }
+                        // Provinces can't overlap so we exit immediately when we find a hit.
+                        return;
+                    }
+                }    
             }
 
             // Not hit - clear mouse over.

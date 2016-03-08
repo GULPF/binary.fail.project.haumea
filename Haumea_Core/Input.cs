@@ -22,6 +22,7 @@ namespace Haumea_Core
                 newKbState, _oldKbState, mouseWorldPos);
             _oldMouseState = newMouseState;
             _oldKbState    = newKbState;
+                
             return hstate;
         }
     }
@@ -59,6 +60,11 @@ namespace Haumea_Core
             return _kbState.IsKeyDown(key) && !_oldKbState.IsKeyDown(key);
         }
 
+        public bool WentInactive(Keys key)
+        {
+            return !_kbState.IsKeyDown(key) && _oldKbState.IsKeyDown(key);
+        }
+
         public bool IsActive(Buttons button)
         {
             switch (button)
@@ -92,6 +98,30 @@ namespace Haumea_Core
             case Buttons.XButton2:
                 return _mouseState.XButton2     == ButtonState.Pressed
                     && _oldMouseState.XButton2 == ButtonState.Released;;
+            }
+
+            return false; // can't happen
+        }
+
+        public bool WentInactive(Buttons button)
+        {
+            switch (button)
+            {
+            case Buttons.LeftButton:
+                return _mouseState.LeftButton   == ButtonState.Released
+                    && _oldMouseState.LeftButton == ButtonState.Pressed;
+            case Buttons.MiddleButton:
+                return _mouseState.MiddleButton == ButtonState.Released
+                    && _oldMouseState.MiddleButton == ButtonState.Pressed;
+            case Buttons.RightButton:
+                return _mouseState.RightButton  == ButtonState.Released
+                    && _oldMouseState.RightButton == ButtonState.Pressed;
+            case Buttons.XButton1:
+                return _mouseState.XButton1     == ButtonState.Released
+                    && _oldMouseState.XButton1 == ButtonState.Pressed;
+            case Buttons.XButton2:
+                return _mouseState.XButton2     == ButtonState.Released
+                    && _oldMouseState.XButton2 == ButtonState.Pressed;
             }
 
             return false; // can't happen

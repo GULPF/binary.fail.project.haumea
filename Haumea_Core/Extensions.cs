@@ -74,13 +74,23 @@ namespace Haumea_Core
 
         public static string[] Split(this string str, char khar)
         {
-            return str.Split(new char[] { khar });
+            return str.Split(new [] { khar });
         }
 
         public static bool IsPointInside(this Rectangle rect, Point point)
         {
             return rect.Left <= point.X && point.X <= rect.Right
                 && rect.Top <= point.Y && point.Y <= rect.Bottom;
+        }
+
+        public static Rectangle[] Borders(this Rectangle rect, int thickness)
+        {
+            return new []{
+                new Rectangle(rect.Left, rect.Top, rect.Width, thickness),
+                new Rectangle(rect.Right, rect.Top, thickness, rect.Height),
+                new Rectangle(rect.Left, rect.Top, thickness, rect.Height),
+                new Rectangle(rect.Left, rect.Bottom, rect.Width, thickness)
+            };
         }
 
         //

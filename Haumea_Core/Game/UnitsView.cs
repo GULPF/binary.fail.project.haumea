@@ -18,6 +18,22 @@ namespace Haumea_Core.Game
         private readonly AABB[] _labelBoxes;
         private readonly Color[] _labelColors;
 
+        private Point _selectionBoxP1;
+        private Point _selectionBoxP2;
+
+        private Rectangle _selection
+        {
+            get
+            {
+                Point p1 = _selectionBoxP1;
+                Point p2 = _selectionBoxP2;
+                Point p0  = new Point(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y));
+                Point dim = new Point(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
+                Console.WriteLine(new Rectangle(p0, dim));
+                return new Rectangle(p0, dim);    
+            }
+        }
+
         private readonly IDictionary<int, Rectangle> _labelClickableBoundaries;
 
         public UnitsView(IList<RawProvince> rawProvinces, Provinces provinces, Units units)
@@ -44,8 +60,7 @@ namespace Haumea_Core.Game
 
         public void Update(InputState input)
         {
-            bool madeSelection = false;
-
+            UpdateSelection(input);
 
             if (_units.SelectedArmies.Count > 0 && _provinces.Selected > -1)
             {
@@ -61,6 +76,8 @@ namespace Haumea_Core.Game
             }
             else if (input.WentActive(Buttons.LeftButton))
             {
+                bool madeSelection = false;
+
                 foreach (var pair in _labelClickableBoundaries)
                 {
                     if (pair.Value.IsPointInside(input.ScreenMouse))
@@ -79,9 +96,30 @@ namespace Haumea_Core.Game
             }
         }
 
+        public void UpdateSelection(InputState input)
+        {
+            if (input.WentActive(Buttons.LeftButton))
+            {
+                _selectionBoxP1 = input.ScreenMouse;
+                _selectionBoxP2 = input.ScreenMouse;
+            }
+            else if (input.IsActive(Buttons.LeftButton))
+            {
+                _selectionBoxP2 = input.ScreenMouse;
+            }
+            else if (input.WentInactive(Buttons.LeftButton))
+            {
+                _selectionBoxP1 = Point.Zero;
+                _selectionBoxP2 = Point.Zero;
+            }
+        }
+
         // TODO: This method does a lot that only has to be done once.
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
+            Texture2D texture = new Texture2D(renderer.Device, 1, 1);
+            texture.SetData<Color>(new [] { Color.White });
+
             // Currently, this is really messy. Min/Max should __not__
             // have to switch places. Something is clearly wrong somewhere.
             int id = 0;
@@ -90,10 +128,7 @@ namespace Haumea_Core.Game
                 AABB box = _labelBoxes[army.Location];
                 AABB screenBox = new AABB(Haumea.WorldToScreenCoordinates(box.Min, renderer.RenderState),
                     Haumea.WorldToScreenCoordinates(box.Max, renderer.RenderState));
-
-                Texture2D texture = new Texture2D(renderer.Device, 1, 1);
-                texture.SetData<Color>(new Color[] { Color.White });
-
+           
                 Rectangle rect = screenBox.ToRectangle();
 
                 string text = army.NUnits.ToString();
@@ -117,13 +152,21 @@ namespace Haumea_Core.Game
                     (p0 - new Vector2(6, 1)).ToPoint(),
                     (dim + new Vector2(12, 2)).ToPoint());
 
-                spriteBatch.Draw(texture, borderBox, new Color(70, 70, 70));
+                Color borderColor = (_units.SelectedArmies.Contains(id))
+                    ? Color.Red
+                    : new Color(70, 70, 70);
+                    
+                spriteBatch.Draw(texture, borderBox, borderColor);
                 spriteBatch.Draw(texture, snugBox,   new Color(210, 210, 210));
                 spriteBatch.DrawString(_unitsFont, text, p0, c);
 
                 _labelClickableBoundaries[army.Location] = borderBox;
                 id++;
             }
+
+            Rectangle[] borders = _selection.Borders(1);
+            spriteBatch.Draw(texture, _selection, new Color(Color.Black, 0.4f));
+            foreach (Rectangle border in borders) spriteBatch.Draw(texture, border, Color.Black);
         }
     }
 }
