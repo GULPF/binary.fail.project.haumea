@@ -130,13 +130,16 @@ namespace Haumea_Core
         public static string Join<T>(this IEnumerable<T> enumer, string sep)
         {
             StringBuilder sb = new StringBuilder();
-            var itr = enumer.GetEnumerator();
-            itr.MoveNext();
-            sb.Append(itr.Current);
 
-            while (itr.MoveNext()){
-                sb.Append(sep);
-                sb.Append(itr.Current.ToString());
+            using (var itr = enumer.GetEnumerator())
+            {
+                itr.MoveNext();
+                sb.Append(itr.Current);
+
+                while (itr.MoveNext()){
+                    sb.Append(sep);
+                    sb.Append(itr.Current.ToString());
+                }    
             }
 
             return sb.ToString();

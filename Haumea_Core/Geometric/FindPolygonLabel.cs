@@ -128,16 +128,19 @@ namespace Haumea_Core.Geometric
 
             int index = 1;
             var strips = new List<Strip>();
-            var enumerator = yList.GetEnumerator();
-            enumerator.MoveNext();
-            float prev = enumerator.Current;
 
-            while (enumerator.MoveNext())
+            using (var enumerator = yList.GetEnumerator())
             {
-                float curr = enumerator.Current;
-                strips.Add(new Strip(prev, curr, index));
-                index++;
-                prev = curr;
+                enumerator.MoveNext();
+                float prev = enumerator.Current;
+
+                while (enumerator.MoveNext())
+                {
+                    float curr = enumerator.Current;
+                    strips.Add(new Strip(prev, curr, index));
+                    index++;
+                    prev = curr;
+                }    
             }
 
             return strips;
@@ -153,13 +156,14 @@ namespace Haumea_Core.Geometric
             Vector2 prev = (Vector2)enumerator.Current;
             Vector2 first = prev;
             Vector2 curr  = prev;
-        
+
             while (enumerator.MoveNext())
             {
                 curr = (Vector2)enumerator.Current;
                 ekvations.Add(GetLineEkvation(prev, curr));
                 prev = curr;
-            }
+            }    
+
             ekvations.Add(GetLineEkvation(curr, first));
 
             return ekvations;
