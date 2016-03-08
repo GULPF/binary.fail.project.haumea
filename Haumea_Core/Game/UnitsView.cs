@@ -29,7 +29,6 @@ namespace Haumea_Core.Game
                 Point p2 = _selectionBoxP2;
                 Point p0  = new Point(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y));
                 Point dim = new Point(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
-                Console.WriteLine(new Rectangle(p0, dim));
                 return new Rectangle(p0, dim);    
             }
         }
