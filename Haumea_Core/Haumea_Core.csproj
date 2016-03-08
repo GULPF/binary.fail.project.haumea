@@ -93,7 +93,6 @@
     <Compile Include="Collections\SortedList.cs" />
     <Compile Include="Collections\NodeGraph.cs" />
     <Compile Include="Game\Provinces.cs" />
-    <Compile Include="Game\Provinces-Create.cs" />
     <Compile Include="Game\Realms.cs" />
     <Compile Include="Game\Units.cs" />
     <Compile Include="Debug.cs" />
@@ -102,6 +101,9 @@
     <Compile Include="Game\WorldDate.cs" />
     <Compile Include="Game\IView.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="Game\GameFile.cs" />
+    <Compile Include="Game\UnitsView.cs" />
+    <Compile Include="Game\IUpdate.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">

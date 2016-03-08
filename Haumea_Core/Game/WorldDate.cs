@@ -17,6 +17,8 @@ namespace Haumea_Core
     /// </summary>
     public class WorldDate : IView
     {
+        public bool IsNewDay { get; private set; }
+
         private static Vector2 Pos = new Vector2(10, 10);
 
         private DateTime _date;
@@ -35,19 +37,22 @@ namespace Haumea_Core
 
         public bool Frozen { get; set; }
 
-        public WorldDate(ContentManager content, DateTime startDate)
+        public WorldDate(DateTime startDate)
         {
-            _dateFont = content.Load<SpriteFont>("test/LabelFont");
             _date = startDate;
             _dayFrac = 0;
             _listeners = new SortedList<DateEvent>();
             Frozen = false;
+            IsNewDay = false;
         }
 
         public void Update(GameTime gameTime, int gameSpeed)
         {
             if (Frozen) return;
 
+            // RESEARCH: Some code is written with the assumption that `fulldays` is allways lower than 2.
+            // ......... I think that's a reasonable assumption,
+            // ......... so perhaps this method should also mbe written as such?
             double passedDays = 0.005 * gameSpeed * gameTime.ElapsedGameTime.TotalMilliseconds;
             int   fullDays    = (int)passedDays;
 
@@ -59,13 +64,23 @@ namespace Haumea_Core
                 _dayFrac--;
             }
 
-            _date = _date.AddDays(fullDays);
+            IsNewDay = fullDays > 0;
+
+            if (IsNewDay)
+            {
+                _date = _date.AddDays(fullDays);
+            }
 
             while (_listeners.Count > 0 &&_listeners[0].Trigger <= _date)
             {
                 _listeners[0].Handler();
                 _listeners.RemoveAt(0);
             }
+        }
+
+        public void LoadContent(ContentManager content)
+        {
+            _dateFont = content.Load<SpriteFont>("test/LabelFont");
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
@@ -85,13 +100,22 @@ namespace Haumea_Core
             {
                 _listeners.Add(new DateEvent(trigger, handler));    
             }
+            else
+            {
+                // RESEARCH: I'm not certain this is a good idea. 
+                // Without this, events will allways be called before __all__
+                // other update methods, but if this happen,
+                // the event will be called before some update methods and after some others.
+                // It might be better to just discard events that has already occured.
+                handler();
+            }
         }
 
         public void AddEvent(int years, int days, Action handler)
         {
             // TODO: This doesn't handle leap years?
             TimeSpan offset = new TimeSpan(365 * years + days, 0, 0, 0);
-            _listeners.Add(new DateEvent(_date.Add(offset), handler));
+            AddEvent(_date.Add(offset), handler);
         }
 
         public void AddEvent(int days, Action handler)

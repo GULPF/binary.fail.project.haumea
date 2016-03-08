@@ -34,7 +34,7 @@ namespace Haumea_Core
         private KeyboardState _kbState;
         private KeyboardState _oldKbState;
 
-        public Vector2 ScreenMouse { get; }
+        public Point ScreenMouse { get; }
         public Vector2 Mouse { get; }
 
         public InputState(MouseState mouseState, MouseState oldMouseState,
@@ -45,7 +45,7 @@ namespace Haumea_Core
             _kbState = kbState;
             _oldKbState = oldKbState;
 
-            ScreenMouse = _mouseState.Position.ToVector2();
+            ScreenMouse = _mouseState.Position;
             Mouse = mouseWorldPos;
         }
 

@@ -28,3 +28,7 @@ P1 P2 4
 P1 P3 3
 P2 P3 2
 P3 P4 6
+
+[armies]
+DAN P1 3
+DAN P2 1

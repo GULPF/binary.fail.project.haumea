@@ -90,7 +90,6 @@ namespace Haumea_Core.Game
             for (int id = 0; id < _polys.Length; id++) {
                 ProvinceTagIdMapping.Add(id, data.RawProvinces[id].Tag);
                 _polys[id] = data.RawProvinces[id].Poly;
-                Units.AddUnits(data.RawProvinces[id].Units, id);
             }
 
             foreach (RawRealm realm in data.RawRealms)
@@ -100,6 +99,14 @@ namespace Haumea_Core.Game
                     int provinceID = ProvinceTagIdMapping[provinceTag];
                     Realms.AssignOwnership(provinceID, realm.Tag);
                 }
+            }
+
+            foreach (RawArmy rawArmy in data.RawArmies)
+            {
+                int ownerID = Realms.RealmTagIdMapping[rawArmy.Owner];
+                int locationID = ProvinceTagIdMapping[rawArmy.Location];
+                Units.Army army = new Units.Army(ownerID, locationID, rawArmy.NUnits);
+                Units.AddArmy(army);
             }
 
             IList<Connector<int>> conns = new List<Connector<int>>();
@@ -120,6 +127,7 @@ namespace Haumea_Core.Game
             Units.Update();
         }
 
+        // TODO: move to ProvincesView
         public void UpdateSelection(InputState input)
         {
             Vector2 position = input.Mouse;
@@ -216,13 +224,29 @@ namespace Haumea_Core.Game
         public IList<RawProvince> RawProvinces { get; }
         public IList<RawRealm> RawRealms { get; }
         public IList<RawConnector> RawConnectors { get; }
+        public IList<RawArmy> RawArmies { get; }
 
         public RawGameData(IList<RawProvince> rawProvinces,
-            IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors)
+            IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors, IList<RawArmy> rawArmies)
         {
             RawProvinces = rawProvinces;
             RawRealms = rawRealms;
             RawConnectors = rawConnectors;
+            RawArmies = rawArmies;
+        }
+    }
+
+    public struct RawArmy
+    {
+        public string Owner { get; }
+        public string Location { get; }
+        public int NUnits { get; }
+
+        public RawArmy(string owner, string location, int nUnits)
+        {
+            Owner = owner;
+            Location = location;
+            NUnits = nUnits;
         }
     }
 }

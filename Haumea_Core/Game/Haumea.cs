@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Rendering;
-using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
@@ -24,13 +24,24 @@ namespace Haumea_Core.Game
 
         private Provinces _provinces;
         private ProvincesView _provincesView;
+        private UnitsView _unitsView;
 
         private WorldDate _worldDate;
         private int _gameSpeed;
 
         private double _tickTime;
 
+        private IList<IView> _views;
+
         // ** The public interface - exposed to entities etc **
+
+        /// <summary>
+        /// Some things needs to be checked every day-tick instead of every game-tick.
+        /// By checking this prop in the <code>Update</code> method, it can be achieved.
+        /// </summary>
+        public bool IsNewDay {
+            get { return _worldDate.IsNewDay; }
+        }
 
         public void AddEvent(DateTime trigger, Action handler)    { _worldDate.AddEvent(trigger, handler);     }
         public void AddEvent(int years, int days, Action handler) { _worldDate.AddEvent(years, days, handler); }
@@ -56,6 +67,8 @@ namespace Haumea_Core.Game
         {
             Content.RootDirectory = "Content";
             _graphics = new GraphicsDeviceManager(this);
+            _graphics.PreferredBackBufferWidth = 600;
+            _graphics.PreferredBackBufferHeight = 600;
             _graphics.IsFullScreen = true;
         }
 
@@ -87,10 +100,6 @@ namespace Haumea_Core.Game
             _logFont = Content.Load<SpriteFont>("test/LogFont");
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
-            //var rawProvinces = Provinces.CreateRawProvinces();
-            //var rawRealms    = Provinces.CreateRawRealms();
-            //var mapGraph     = Provinces.CreateMapGraph();
-            //var gameData     = new Provinces.RawGameData(rawProvinces, rawRealms, mapGraph);
             string path = "../../../gamedata.haumea";
             RawGameData gameData;
 
@@ -99,12 +108,18 @@ namespace Haumea_Core.Game
                 gameData = GameFile.Parse(stream);    
             }
 
-
+            _worldDate = new WorldDate(new DateTime(1452, 6, 23));
 
             _provinces = new Provinces(gameData, this);
-            _provincesView = new ProvincesView(Content, gameData.RawProvinces, _provinces);
+            _provincesView = new ProvincesView(gameData.RawProvinces, _provinces);
+            _unitsView = new UnitsView(gameData.RawProvinces, _provinces, _provinces.Units);
 
-            _worldDate = new WorldDate(Content, new DateTime(1452, 6, 23));
+            _views = new List<IView> { _worldDate, _provincesView, _unitsView };
+
+            foreach (IView view in _views)
+            {
+                view.LoadContent(Content);
+            }
         }
 
         /// <summary>
@@ -115,7 +130,7 @@ namespace Haumea_Core.Game
         protected override void Update(GameTime gameTime)
         {
             // Read input.
-            _input = Input.GetState((v) => ScreenToWorldCoordinates(v, _renderer.RenderState));
+            _input = Input.GetState(v => ScreenToWorldCoordinates(v, _renderer.RenderState));
             Vector2 screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
             _renderer.RenderState.UpdateAspectRatio(screenDim);
 
@@ -159,8 +174,11 @@ namespace Haumea_Core.Game
                     _worldDate.Frozen = !_worldDate.Frozen;
                 }
 
+                // It is important that _worldDate is updated first of all entities,
+                // since it sets the `IsNewDay` property.
                 _worldDate.Update(gameTime, _gameSpeed);
                 _provinces.Update(_input);
+                _unitsView.Update(_input);
             }
 
             base.Update(gameTime);
@@ -176,17 +194,18 @@ namespace Haumea_Core.Game
 
             device.Clear(Color.CornflowerBlue);
 
-            _renderer.Render(_provincesView.RenderInstructions.Union(Debug.DebugInstructions.Values.Join()));
+            _renderer.Render(_provincesView.RenderInstructions.Union(Debug.DebugInstructions.Values.Flatten()));
 
             _spriteBatch.Begin();
 
-            _provincesView.Draw(_spriteBatch, _renderer);
+            foreach (IView view in _views)
+            {
+                view.Draw(_spriteBatch, _renderer);
+            }
 
-            _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse, Color.White);
+            _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
 
             DrawDebugText();
-
-            _worldDate.Draw(_spriteBatch, _renderer);
 
             _spriteBatch.End();
 
@@ -200,15 +219,19 @@ namespace Haumea_Core.Game
             Camera camera      = _renderer.RenderState.Camera;
             Vector2 screenDim  = _renderer.RenderState.ScreenDim;
     
-            string units = "<n/a>";
             string hoveredTag = "<n/a>";
             string hoveredRealm = "<n/a>";
+            string armies = "<n/a>";
 
             if (_provinces.MouseOver > -1)
             {
                 hoveredTag = _provinces.ProvinceTagIdMapping[_provinces.MouseOver];
                 hoveredRealm = _provinces.Realms.GetOwnerTag(_provinces.MouseOver);
-                units = _provinces.Units.StationedUnits[_provinces.MouseOver].ToString();
+            }
+
+            if (_provinces.Units.SelectedArmies.Count > 0)
+            {
+                armies = _provinces.Units.SelectedArmies.Join(", ");
             }
 
             string selectedTag = _provinces.Selected > -1
@@ -227,7 +250,7 @@ namespace Haumea_Core.Game
                 $"zoom:     {camera.Zoom}\n" +
                 $"province: {hoveredTag}\n" + 
                 $"realm:    {hoveredRealm}\n" +
-                $"units:    {units}\n" +
+                $"armies:   {armies}\n" + 
                 $"selected: {selectedTag}" +
                 "",
                 screenDim);

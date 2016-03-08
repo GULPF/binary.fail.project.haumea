@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
@@ -76,6 +77,16 @@ namespace Haumea_Core
             return str.Split(new char[] { khar });
         }
 
+        public static bool IsPointInside(this Rectangle rect, Point point)
+        {
+            return rect.Left <= point.X && point.X <= rect.Right
+                && rect.Top <= point.Y && point.Y <= rect.Bottom;
+        }
+
+        //
+        // IEnumerable
+        //
+
         // These two are a bit silly...
 
         // Creates a single IEnumerable<T> from several others.
@@ -95,7 +106,7 @@ namespace Haumea_Core
             }
         }
 
-        public static IEnumerable<T> Join<T>(this IEnumerable<IEnumerable<T>> enumers)
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> enumers)
         {
             foreach (IEnumerable<T> enumer in enumers)
             {
@@ -104,6 +115,21 @@ namespace Haumea_Core
                     yield return t;
                 }
             }
+        }
+
+        public static string Join<T>(this IEnumerable<T> enumer, string sep)
+        {
+            StringBuilder sb = new StringBuilder();
+            var itr = enumer.GetEnumerator();
+            itr.MoveNext();
+            sb.Append(itr.Current);
+
+            while (itr.MoveNext()){
+                sb.Append(sep);
+                sb.Append(itr.Current.ToString());
+            }
+
+            return sb.ToString();
         }
     }
 }
