@@ -174,7 +174,7 @@ namespace Haumea_Core.Game
 
                 // It is important that _worldDate is updated first of all,
                 // since the other object depend on it being in sync.
-                _worldDate = _worldDate.Update(gameTime, _gameSpeed, _input);
+                _views[0] = _worldDate = _worldDate.Update(gameTime, _gameSpeed, _input);
 
                 foreach (IEntity entity in _entities)
                 {

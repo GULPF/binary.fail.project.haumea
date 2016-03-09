@@ -21,7 +21,7 @@ namespace Haumea_Core
 
         // The smallest unit of time is a day, so there really isn't a point in messing around
         // with hours and such in the DateTime class.
-        private double _dayFrac;
+        private readonly double _dayFrac;
         private SpriteFont _dateFont;
         private static readonly IList<string> MonthNames = new List<string>{
             "January", "February", "March", "April",
@@ -77,20 +77,22 @@ namespace Haumea_Core
 
         public WorldDate Update(GameTime gameTime, int gameSpeed, InputState input)
         {
-            bool freeze = input.WentActive(Keys.Space);
+            if (Frozen) return this;
+
+            bool freeze = input.WentActive(Keys.Space) ? !Frozen : Frozen;
 
             // RESEARCH: Some code is written with the assumption that `fulldays` is allways lower than 2.
             // ......... I think that's a reasonable assumption,
             // ......... so perhaps this method should also mbe written as such?
             double passedDays = 0.005 * gameSpeed * gameTime.ElapsedGameTime.TotalMilliseconds;
-            int   fullDays    = (int)passedDays;
+            int    fullDays    = (int)passedDays;
 
-            _dayFrac += passedDays - fullDays;
+            double dayFrac = _dayFrac + passedDays - fullDays;
 
-            if (_dayFrac > 1)
+            if (dayFrac > 1)
             {
                 fullDays++;
-                _dayFrac--;
+                dayFrac--;
             }
 
             bool isNewDay = fullDays > 0;
@@ -98,13 +100,13 @@ namespace Haumea_Core
             DateTime date = Date;
             long daysPassed = DaysPassed;
 
-            if (IsNewDay)
+            if (isNewDay)
             {
                 date = date.AddDays(fullDays);
                 daysPassed++;
             }
 
-            return new WorldDate(date, daysPassed, isNewDay, freeze, _dayFrac, _dateFont);
+            return new WorldDate(date, daysPassed, isNewDay, freeze, dayFrac, _dateFont);
         }
 
         public void LoadContent(ContentManager content)
