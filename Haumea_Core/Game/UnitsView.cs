@@ -71,7 +71,6 @@ namespace Haumea_Core.Game
                 _units.MergeSelected();
             }
 
-
             if (input.WentActive(Keys.Escape))
             {
                 _units.ClearSelection();    
@@ -152,6 +151,10 @@ namespace Haumea_Core.Game
         {
             Texture2D texture = new Texture2D(renderer.Device, 1, 1);
             texture.SetData<Color>(new [] { Color.White });
+
+            // SInce we are generating these every time anyway,
+            // we clear it so we don't have any label boxes belonging to deleted armies.
+            _labelClickableBoundaries.Clear();
 
             // Currently, this is really messy. Min/Max should __not__
             // have to switch places. Something is clearly wrong somewhere.
