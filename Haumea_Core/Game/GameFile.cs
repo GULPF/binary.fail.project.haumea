@@ -50,7 +50,6 @@ namespace Haumea_Core.Game
             string[] tokens = lines[0].Split(' ');
             string tag = tokens[0];
             Color color = ColorFromHex(tokens[1]);
-            int units = int.Parse(tokens[2]);
 
             List<Vector2> vectors = new List<Vector2>();
 
@@ -62,7 +61,7 @@ namespace Haumea_Core.Game
                     20 * int.Parse(match.Groups[2].Value)));
             }
 
-            return new RawProvince(new Poly(vectors.ToArray()), tag, color, units);  
+            return new RawProvince(new Poly(vectors.ToArray()), tag, color);  
         }
 
         private static RawRealm ParseRealm(IList<string> lines)

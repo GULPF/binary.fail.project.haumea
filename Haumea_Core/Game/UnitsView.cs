@@ -152,7 +152,7 @@ namespace Haumea_Core.Game
             Texture2D texture = new Texture2D(renderer.Device, 1, 1);
             texture.SetData<Color>(new [] { Color.White });
 
-            // SInce we are generating these every time anyway,
+            // Since we are generating these every time anyway,
             // we clear it so we don't have any label boxes belonging to deleted armies.
             _labelClickableBoundaries.Clear();
 
@@ -162,8 +162,8 @@ namespace Haumea_Core.Game
             {
                 Units.Army army = _units.Armies[id];
                 AABB box = _labelBoxes[army.Location];
-                AABB screenBox = new AABB(Haumea.WorldToScreenCoordinates(box.Min, renderer.RenderState),
-                    Haumea.WorldToScreenCoordinates(box.Max, renderer.RenderState));
+                AABB screenBox = new AABB(renderer.RenderState.WorldToScreenCoordinates(box.Min),
+                    renderer.RenderState.WorldToScreenCoordinates(box.Max));
            
                 Rectangle rect = screenBox.ToRectangle();
 

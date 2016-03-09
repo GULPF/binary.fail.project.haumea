@@ -58,5 +58,19 @@ namespace Haumea_Core.Rendering
         {
             World = Matrix.CreateTranslation(position.ToVector3());
         }
+
+        public Vector2 ScreenToWorldCoordinates(Vector2 v)
+        {
+            Vector2 halfWidth = ScreenDim * 0.5f;
+            return Camera.Offset + Camera.Zoom * new Vector2(v.X  - halfWidth.X, halfWidth.Y - v.Y);
+        }
+
+        public Vector2 WorldToScreenCoordinates(Vector2 v)
+        {
+            Vector2 halfWidth = ScreenDim * 0.5f;
+            v = v - Camera.Offset;
+            v = v / Camera.Zoom;
+            return new Vector2(v.X + halfWidth.X,  halfWidth.Y - v.Y);
+        }
     }
 }

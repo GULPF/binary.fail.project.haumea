@@ -36,31 +36,6 @@ namespace Haumea_Core.Game
         private IList<IView> _views;
         private IList<IEntity> _entities;
 
-        // ** The public interface - exposed to entities etc **
-
-        public EventController Events
-        {
-            get { return _eventController; }
-        }
-
-        public void AddEvent(DateTime trigger, Action handler)    { _eventController.AddEvent(trigger, handler);     }
-        public void AddEvent(int years, int days, Action handler) { _eventController.AddEvent(years, days, handler); }
-        public void AddEvent(int days, Action handler)            { _eventController.AddEvent(days, handler);        }
-
-        public static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
-        {
-            Vector2 halfWidth = renderState.ScreenDim * 0.5f;
-            return renderState.Camera.Offset + renderState.Camera.Zoom * new Vector2(v.X  - halfWidth.X, halfWidth.Y - v.Y);
-        }
-
-        public static Vector2 WorldToScreenCoordinates(Vector2 v, RenderState renderState)
-        {
-            Vector2 halfWidth = renderState.ScreenDim * 0.5f;
-            v = v - renderState.Camera.Offset;
-            v = v / renderState.Camera.Zoom;
-            return new Vector2(v.X + halfWidth.X,  halfWidth.Y - v.Y);
-        }
-
         // ** XNA interface  ** 
 
         public Haumea()
@@ -109,7 +84,7 @@ namespace Haumea_Core.Game
             }
 
             _worldDate = new WorldDate(new DateTime(1452, 6, 23));
-            _provinces = new Provinces(gameData, this);
+            _provinces = new Provinces(gameData);
             _eventController = EventController.Instance;
             _units = new Units(_provinces, gameData.RawArmies);
 
@@ -133,7 +108,7 @@ namespace Haumea_Core.Game
         protected override void Update(GameTime gameTime)
         {
             // Read input.
-            _input = Input.GetState(v => ScreenToWorldCoordinates(v, _renderer.RenderState));
+            _input = Input.GetState(_renderer.RenderState.ScreenToWorldCoordinates);
             Vector2 screenDim = _graphics.GraphicsDevice.GetScreenDimensions();
             _renderer.RenderState.UpdateAspectRatio(screenDim);
 

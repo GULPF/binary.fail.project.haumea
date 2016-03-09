@@ -13,9 +13,6 @@ namespace Haumea_Core.Game
 
     public class Provinces : IEntity
     {
-        
-        private readonly Haumea _game;
-
         #region properties
 
         /// <summary>
@@ -67,10 +64,9 @@ namespace Haumea_Core.Game
 
         #endregion
 
-        public Provinces(RawGameData data, Haumea game)
+        public Provinces(RawGameData data)
         {
             Boundaries = new Poly[data.RawProvinces.Count];
-            _game  = game;
 
             MouseOver     = -1;
             LastMouseOver = -1;
@@ -135,14 +131,12 @@ namespace Haumea_Core.Game
         public Poly Poly { get; }
         public string Tag { get; }
         public Color Color { get; }
-        public int Units { get; }
 
-        public RawProvince(Poly poly, String tag, Color color, int units)
+        public RawProvince(Poly poly, String tag, Color color)
         {
             Poly = poly;
             Tag = tag;
             Color = color;
-            Units = units;
         }
     }
 

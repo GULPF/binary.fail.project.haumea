@@ -140,22 +140,7 @@ namespace Haumea_Core.Game
 
         public bool MergeSelected()
         {
-            if (SelectedArmies.Count < 2) return false;
-
-            using (var enumer = SelectedArmies.GetEnumerator())
-            {
-                enumer.MoveNext();
-                int location = Armies[enumer.Current].Location;
-
-                // We are only allowed to merge if all armies are in the same province.
-                foreach (int armyID in SelectedArmies)
-                {
-                    if (location != Armies[armyID].Location)
-                    {
-                        return false;
-                    }
-                }
-            }
+            if (SelectedArmies.Count < 2 || !IsValidMerge()) return false;
 
             using (var enumer = SelectedArmies.GetEnumerator())
             {
@@ -177,51 +162,31 @@ namespace Haumea_Core.Game
             return true;
         }
 
-        private void MoveArmy(int orderID)
-        {
-
-
-//            ArmyPath path   = _paths[orderID];
-//            ArmyOrder order = _orders[orderID];
-         
-            // Because orders belonging to deleted armies are not removed immedietly
-            // (would be expensive), we need to watch out for orders without armies.
-//            if (!Armies.ContainsKey(order.ArmyID)) return true;
-            /*
-            Army army = Armies[order.ArmyID];
-            bool orderDone = false;
-
-            int from = path.Path.Nodes[path.PathIndex];
-            int to   = path.Path.Nodes[path.PathIndex + 1];
-
-            army.Location = to;
-
-            if (path.Path.Nodes.Count > path.PathIndex + 2)
-            {
-                path.PathIndex++;
-
-                order.DaysUntilNext = _provinces.MapGraph.NeighborDistance(
-                    path.Path.Nodes[path.PathIndex], path.Path.Nodes[path.PathIndex + 1]);    
-            }
-            else
-            {
-                // RemoveAt is O(n), maybe this is bad?
-                _orders.RemoveAt(orderID);
-                _paths.RemoveAt(orderID);
-                orderDone = true;
-            }
-
-            RemoveArmyFromProvince(from, order.ArmyID);
-            AddArmyToProvince(to, order.ArmyID);
-
-            return orderDone;*/
-        }
-
         public void AddArmy(Army army)
         {
             int armyID = _guid.Generate();
             Armies.Add(Armies.Count, army);
             AddArmyToProvince(army.Location, armyID);
+        }
+
+        private bool IsValidMerge()
+        {
+            using (var enumer = SelectedArmies.GetEnumerator())
+            {
+                enumer.MoveNext();
+                int location = Armies[enumer.Current].Location;
+
+                // We are only allowed to merge if all armies are in the same province.
+                foreach (int armyID in SelectedArmies)
+                {
+                    if (location != Armies[armyID].Location)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private void RemoveArmyFromProvince(int province, int armyID)

@@ -47,9 +47,7 @@ namespace Haumea_Core
 
         public void AddEvent(int years, int days, Action handler)
         {
-            // TODO: This doesn't handle leap years?
-            TimeSpan offset = new TimeSpan(365 * years + days, 0, 0, 0);
-            AddEvent(_currentDate.Date.Add(offset), handler);
+            AddEvent(_currentDate.Date.AddYears(years).AddDays(days), handler);
         }
 
         public void AddEvent(int days, Action handler)
