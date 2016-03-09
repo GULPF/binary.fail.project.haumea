@@ -8,7 +8,6 @@ namespace Haumea_Core.Game
     public class Units : IEntity
     {
         // A lot of things in this class might seem weird and clunky, but it's not that bad.
-        // 
 
         private Provinces _provinces;
         private IntGUID _guid;
@@ -19,21 +18,13 @@ namespace Haumea_Core.Game
     
         public ISet<int> SelectedArmies { get; }
 
-        // These are splitted into two because DoD.
-        // In the common case, a moving army will be between two provinces.
-        // To check if an army is between two provinces, only the information
-        // in _orders is needed.
-        private IList<ArmyOrder> _orders;
-        private IList<ArmyPath> _paths;
-
-        //private 
-
         public class Battle
         {
             public int Army1 { get; }
             public int Army2 { get; }
         }
 
+        // TODO: It's really bad that this class is exposed & mutable.
         public class Army
         {
             public int Owner { get; }
@@ -51,22 +42,28 @@ namespace Haumea_Core.Game
         private class ArmyOrder
         {
             public int ArmyID { get; }
-            public int DaysUntilNext { get; set; }
+            public GraphPath<int> Path { get; }
+            public int PathIndex { get; private set; }
 
-            public ArmyOrder(int armyID, int daysUntilNext)
+            public int CurrentNode
+            {
+                get { return Path.Nodes[PathIndex]; }
+            }
+
+            public int NextNode
+            {
+                get { return Path.Nodes[PathIndex + 1]; }
+            }
+
+            public bool MoveForward()
+            {
+                PathIndex++;
+                return PathIndex + 1 < Path.NJumps;
+            }
+
+            public ArmyOrder(int armyID, GraphPath<int> path)
             {
                 ArmyID = armyID;
-                DaysUntilNext = daysUntilNext;
-            }
-        }
-
-        private class ArmyPath
-        {
-            public GraphPath<int> Path { get; }
-            public int PathIndex { get; set; }
-
-            public ArmyPath(GraphPath<int> path)
-            {
                 Path = path;
                 PathIndex = 0;
             }
@@ -75,8 +72,6 @@ namespace Haumea_Core.Game
         public Units(Provinces provinces, IList<RawArmy> rawArmies)
         {
             _provinces = provinces;
-            _orders = new List<ArmyOrder>();
-            _paths  = new List<ArmyPath>();
             _guid = new IntGUID(0);
 
             ProvinceArmies = new Dictionary<int, ISet<int>>();
@@ -94,25 +89,7 @@ namespace Haumea_Core.Game
 
         public void Update(WorldDate date)
         {
-            if (date.IsNewDay)
-            {
-                for (int orderID = 0; orderID < _orders.Count; orderID++)
-                {
-                    ArmyOrder order = _orders[orderID];
-                    order.DaysUntilNext--;
 
-                    if (order.DaysUntilNext == 0)
-                    {
-                        // If the army order is completely done it will be removed from the list
-                        // so we need to compensate the loop variable.
-                        // TODO: This seems like a bad idea. It means that the orderID is not constant.
-                        if (MoveArmy(orderID)) 
-                        {
-                            orderID--;
-                        }
-                    }
-                }
-            }
         }
 
         public void SelectArmy(int armyID, bool keepOldSelection)
@@ -141,12 +118,23 @@ namespace Haumea_Core.Game
             if (path == null) return false;
 
             int daysUntilFirstMove = _provinces.MapGraph.NeighborDistance(army.Location, path.Nodes[1]);
-            ArmyOrder order = new ArmyOrder(armyID, daysUntilFirstMove);
-            ArmyPath armyPath = new ArmyPath(path);
+            ArmyOrder order = new ArmyOrder(armyID, path);
 
-            _orders.Add(order);
-            _paths.Add(armyPath);
-                
+            Action moveUnit = null; // need to initialize it twice due to recursion below
+            moveUnit = delegate {
+                RemoveArmyFromProvince(order.CurrentNode, order.ArmyID);
+                AddArmyToProvince(order.NextNode, order.ArmyID);
+                Armies[order.ArmyID].Location = order.NextNode;
+
+                if (order.MoveForward())
+                {
+                    int daysUntilNextMove = _provinces.MapGraph.NeighborDistance(order.CurrentNode, order.NextNode);
+                    EventController.Instance.AddEvent(daysUntilNextMove, moveUnit);    
+                }
+            };
+
+            EventController.Instance.AddEvent(daysUntilFirstMove, moveUnit);
+
             return true;
         }
 
@@ -189,15 +177,17 @@ namespace Haumea_Core.Game
             return true;
         }
 
-        private bool MoveArmy(int orderID)
+        private void MoveArmy(int orderID)
         {
-            ArmyPath path   = _paths[orderID];
-            ArmyOrder order = _orders[orderID];
+
+
+//            ArmyPath path   = _paths[orderID];
+//            ArmyOrder order = _orders[orderID];
          
             // Because orders belonging to deleted armies are not removed immedietly
             // (would be expensive), we need to watch out for orders without armies.
-            if (!Armies.ContainsKey(order.ArmyID)) return true;
-
+//            if (!Armies.ContainsKey(order.ArmyID)) return true;
+            /*
             Army army = Armies[order.ArmyID];
             bool orderDone = false;
 
@@ -224,7 +214,7 @@ namespace Haumea_Core.Game
             RemoveArmyFromProvince(from, order.ArmyID);
             AddArmyToProvince(to, order.ArmyID);
 
-            return orderDone;
+            return orderDone;*/
         }
 
         public void AddArmy(Army army)

@@ -110,7 +110,7 @@ namespace Haumea_Core.Game
 
             _worldDate = new WorldDate(new DateTime(1452, 6, 23));
             _provinces = new Provinces(gameData, this);
-            _eventController = new EventController();
+            _eventController = EventController.Instance;
             _units = new Units(_provinces, gameData.RawArmies);
 
             _provincesView = new ProvincesView(gameData.RawProvinces, _provinces);

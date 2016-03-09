@@ -7,10 +7,12 @@ namespace Haumea_Core
 {
     public class EventController : IEntity
     {
+        public static EventController Instance { get; } = new EventController();
+
         private IList<DateEvent> _listeners;
         private WorldDate _currentDate;
 
-        public EventController()
+        private EventController()
         {
             _listeners = new SortedList<DateEvent>();
         }
