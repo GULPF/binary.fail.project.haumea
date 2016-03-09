@@ -23,29 +23,29 @@ namespace Haumea_Core.Game
         private InputState _input;
 
         private Provinces _provinces;
+        private Units _units;
         private ProvincesView _provincesView;
         private UnitsView _unitsView;
 
+        private EventController _eventController;
         private WorldDate _worldDate;
         private int _gameSpeed;
 
         private double _tickTime;
 
         private IList<IView> _views;
+        private IList<IEntity> _entities;
 
         // ** The public interface - exposed to entities etc **
 
-        /// <summary>
-        /// Some things needs to be checked every day-tick instead of every game-tick.
-        /// By checking this prop in the <code>Update</code> method, it can be achieved.
-        /// </summary>
-        public bool IsNewDay {
-            get { return _worldDate.IsNewDay; }
+        public EventController Events
+        {
+            get { return _eventController; }
         }
 
-        public void AddEvent(DateTime trigger, Action handler)    { _worldDate.AddEvent(trigger, handler);     }
-        public void AddEvent(int years, int days, Action handler) { _worldDate.AddEvent(years, days, handler); }
-        public void AddEvent(int days, Action handler)            { _worldDate.AddEvent(days, handler);        }
+        public void AddEvent(DateTime trigger, Action handler)    { _eventController.AddEvent(trigger, handler);     }
+        public void AddEvent(int years, int days, Action handler) { _eventController.AddEvent(years, days, handler); }
+        public void AddEvent(int days, Action handler)            { _eventController.AddEvent(days, handler);        }
 
         public static Vector2 ScreenToWorldCoordinates(Vector2 v, RenderState renderState)
         {
@@ -109,12 +109,15 @@ namespace Haumea_Core.Game
             }
 
             _worldDate = new WorldDate(new DateTime(1452, 6, 23));
-
             _provinces = new Provinces(gameData, this);
-            _provincesView = new ProvincesView(gameData.RawProvinces, _provinces);
-            _unitsView = new UnitsView(gameData.RawProvinces, _provinces, _provinces.Units);
+            _eventController = new EventController();
+            _units = new Units(_provinces, gameData.RawArmies);
 
-            _views = new List<IView> { _worldDate, _provincesView, _unitsView };
+            _provincesView = new ProvincesView(gameData.RawProvinces, _provinces);
+            _unitsView = new UnitsView(gameData.RawProvinces, _provinces, _units);
+
+            _views   = new List<IView>   { _worldDate, _provincesView, _unitsView };
+            _entities = new List<IEntity> { _eventController, _provinces, _units };
 
             foreach (IView view in _views)
             {
@@ -169,16 +172,19 @@ namespace Haumea_Core.Game
                 _renderer.RenderState.Camera.Move(move);
                 _renderer.RenderState.Camera.ApplyZoom(zoom);
 
-                if (_input.WentActive(Keys.Space))
+                // It is important that _worldDate is updated first of all,
+                // since the other object depend on it being in sync.
+                _worldDate = _worldDate.Update(gameTime, _gameSpeed, _input);
+
+                foreach (IEntity entity in _entities)
                 {
-                    _worldDate.Frozen = !_worldDate.Frozen;
+                    entity.Update(_worldDate);
                 }
 
-                // It is important that _worldDate is updated first of all entities,
-                // since it sets the `IsNewDay` property.
-                _worldDate.Update(gameTime, _gameSpeed);
-                _provinces.Update(_input);
-                _unitsView.Update(_input);
+                foreach (IView view in _views)
+                {
+                    view.Update(_input);
+                }
             }
 
             base.Update(gameTime);
@@ -228,17 +234,17 @@ namespace Haumea_Core.Game
 
             if (_provinces.MouseOver > -1)
             {
-                hoveredTag = _provinces.ProvinceTagIdMapping[_provinces.MouseOver];
+                hoveredTag = _provinces.TagIdMapping[_provinces.MouseOver];
                 hoveredRealm = _provinces.Realms.GetOwnerTag(_provinces.MouseOver);
             }
 
-            if (_provinces.Units.SelectedArmies.Count > 0)
+            if (_units.SelectedArmies.Count > 0)
             {
-                armies = _provinces.Units.SelectedArmies.Join(", ");
+                armies = _units.SelectedArmies.Join(", ");
             }
 
             string selectedTag = _provinces.Selected > -1
-                ? _provinces.ProvinceTagIdMapping[_provinces.Selected]
+                ? _provinces.TagIdMapping[_provinces.Selected]
                 : "<n/a>";
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.

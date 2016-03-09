@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
-using Haumea_Core.Collections;
 using Haumea_Core.Rendering;
 
 namespace Haumea_Core
@@ -17,11 +17,8 @@ namespace Haumea_Core
     /// </summary>
     public class WorldDate : IView
     {
-        public bool IsNewDay { get; private set; }
-
         private static Vector2 Pos = new Vector2(10, 10);
 
-        private DateTime _date;
         // The smallest unit of time is a day, so there really isn't a point in messing around
         // with hours and such in the DateTime class.
         private double _dayFrac;
@@ -32,23 +29,55 @@ namespace Haumea_Core
             "October", "November", "December"
         };
 
-        // TODO: Switch to priorityqueue?
-        private IList<DateEvent> _listeners;
+        /// <summary>
+        /// Indicates if the game is paused.
+        /// </summary>
+        public bool Frozen { get; }
 
-        public bool Frozen { get; set; }
+        /// <summary>
+        /// Some things needs to be checked every day-tick instead of every game-tick.
+        /// By checking this prop in the <code>Update</code> method, it can be achieved.
+        /// </summary>
+        public bool IsNewDay { get; }
+
+        /// <summary>
+        /// Number of days that have passed since the game started.
+        /// Useful when entities implement their own event-system.
+        /// </summary>
+        public long DaysPassed { get; }
+
+        /// <summary>
+        /// The current date.
+        /// </summary>
+        public DateTime Date { get; }
 
         public WorldDate(DateTime startDate)
         {
-            _date = startDate;
             _dayFrac = 0;
-            _listeners = new SortedList<DateEvent>();
+
+            Date = startDate;
             Frozen = false;
             IsNewDay = false;
+            DaysPassed = 0;
         }
 
-        public void Update(GameTime gameTime, int gameSpeed)
+        private WorldDate(DateTime date, long daysPassed, bool isNewDay, bool frozen,
+            double dayFrac, SpriteFont dateFont)
         {
-            if (Frozen) return;
+            _dayFrac = dayFrac;
+            _dateFont = dateFont;
+
+            Date = date;
+            DaysPassed = daysPassed;
+            IsNewDay = isNewDay;
+            Frozen = frozen;
+        }
+
+        public void Update(InputState input) {}
+
+        public WorldDate Update(GameTime gameTime, int gameSpeed, InputState input)
+        {
+            bool freeze = input.WentActive(Keys.Space);
 
             // RESEARCH: Some code is written with the assumption that `fulldays` is allways lower than 2.
             // ......... I think that's a reasonable assumption,
@@ -64,18 +93,18 @@ namespace Haumea_Core
                 _dayFrac--;
             }
 
-            IsNewDay = fullDays > 0;
+            bool isNewDay = fullDays > 0;
+
+            DateTime date = Date;
+            long daysPassed = DaysPassed;
 
             if (IsNewDay)
             {
-                _date = _date.AddDays(fullDays);
+                date = date.AddDays(fullDays);
+                daysPassed++;
             }
 
-            while (_listeners.Count > 0 &&_listeners[0].Trigger <= _date)
-            {
-                _listeners[0].Handler();
-                _listeners.RemoveAt(0);
-            }
+            return new WorldDate(date, daysPassed, isNewDay, freeze, _dayFrac, _dateFont);
         }
 
         public void LoadContent(ContentManager content)
@@ -90,54 +119,8 @@ namespace Haumea_Core
 
         public override String ToString()
         {
-            return (MonthNames[_date.Month - 1] + " ") + (_date.Day + " ") +
-                ", " + _date.Year;
-        }
-
-        public void AddEvent(DateTime trigger, Action handler)
-        {
-            if (trigger > _date)
-            {
-                _listeners.Add(new DateEvent(trigger, handler));    
-            }
-            else
-            {
-                // RESEARCH: I'm not certain this is a good idea. 
-                // Without this, events will allways be called before __all__
-                // other update methods, but if this happen,
-                // the event will be called before some update methods and after some others.
-                // It might be better to just discard events that has already occured.
-                handler();
-            }
-        }
-
-        public void AddEvent(int years, int days, Action handler)
-        {
-            // TODO: This doesn't handle leap years?
-            TimeSpan offset = new TimeSpan(365 * years + days, 0, 0, 0);
-            AddEvent(_date.Add(offset), handler);
-        }
-
-        public void AddEvent(int days, Action handler)
-        {
-            AddEvent(0, days, handler);
-        }
-
-        private class DateEvent : IComparable<DateEvent>
-        {
-            public DateTime Trigger { get; }
-            public Action Handler { get; }
-
-            public DateEvent(DateTime trigger, Action handler)
-            {
-                Trigger = trigger;
-                Handler = handler;
-            }
-
-            public int CompareTo(DateEvent other)
-            {
-                return Trigger.CompareTo(other.Trigger);
-            }
+            return (MonthNames[Date.Month - 1] + " ") + (Date.Day + " ") +
+                ", " + Date.Year;
         }
     }
 }

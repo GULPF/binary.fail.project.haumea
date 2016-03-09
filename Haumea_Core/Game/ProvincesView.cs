@@ -3,6 +3,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Rendering;
 
@@ -51,6 +52,45 @@ namespace Haumea_Core.Game
         public void LoadContent(ContentManager content)
         {
             _labelFont = content.Load<SpriteFont>("test/LabelFont");   
+        }
+
+        public void Update(InputState input)
+        {
+            Vector2 position = input.Mouse;
+
+            bool doDeselect  = input.WentActive(Keys.Escape);
+            bool doSelect    = input.WentActive(Buttons.LeftButton) && !doDeselect;
+
+            if (doDeselect)
+            {
+                _provinces.ClearSelection();
+            }
+
+            for (int id = 0; id < _provinces.Boundaries.Length; id++)
+            {
+                if (_provinces.Boundaries[id].IsPointInside(position)) {
+                    
+                    // Only handle new selections.
+                    if (id != _provinces.Selected && doSelect)
+                    {
+                        _provinces.Select(id);
+                    }
+
+                    // If this is not a new mouse over, don't bother.
+                    if (id != _provinces.MouseOver && !input.IsActive(Buttons.LeftButton))
+                    {
+                        _provinces.Hover(id);
+                    }
+
+                    // Provinces can't overlap so we exit immediately when we find a hit.
+                    return;
+                }
+            }
+
+            // Not hit - clear mouse over.
+            if (_provinces.MouseOver > -1) {
+                _provinces.Hover(-1);
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)

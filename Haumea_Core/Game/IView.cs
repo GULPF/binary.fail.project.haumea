@@ -11,6 +11,7 @@ namespace Haumea_Core
     {
         void LoadContent(ContentManager content);
         void Draw(SpriteBatch spriteBatch, Renderer renderer); 
+        void Update(InputState input);
     }
 }
 

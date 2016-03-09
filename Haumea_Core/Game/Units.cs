@@ -1,28 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Microsoft.Xna.Framework;
-
 using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
-    public class Units
+    public class Units : IEntity
     {
-        // This is the new system (should comply more with DoD).
-        // When arriving to province <p> (or after battle), an army has to take the following steps:
-        //      1. O(1) If OccupiedProvinces[<p>].Count == 0, Done
-        //      2. O(n) Search Battles[<p>] for battles that can be joined. If found, join then Done.
-        //      3. O(n) Search OccupiedProvinces[<p>] for enemy. If found, attack then Done.
-        //      4. O(1) Update OccupiedProvinces[<p>] then Done.
+        // A lot of things in this class might seem weird and clunky, but it's not that bad.
+        // 
 
-        // _orders is checked and updated every tick.
+        private Provinces _provinces;
+        private IntGUID _guid;
 
-        // This __should__ be good enough. There is a couple of O(n) in there, but the n is small.
-
-        public IDictionary<int, IList<int>> ProvinceArmies { get; }
-        public IList<Army> Armies { get; }
-        public IDictionary<int, IList<Battle>> Battles { get; }
+        public IDictionary<int, ISet<int>> ProvinceArmies { get; }
+        public IDictionary<int, Army> Armies { get; }
+        public IDictionary<int, ISet<Battle>> Battles { get; }
     
         public ISet<int> SelectedArmies { get; }
 
@@ -32,6 +25,8 @@ namespace Haumea_Core.Game
         // in _orders is needed.
         private IList<ArmyOrder> _orders;
         private IList<ArmyPath> _paths;
+
+        //private 
 
         public class Battle
         {
@@ -43,7 +38,7 @@ namespace Haumea_Core.Game
         {
             public int Owner { get; }
             public int Location { get; set; }
-            public int NUnits { get; }
+            public int NUnits { get; set; }
 
             public Army(int owner, int location, int nUnits)
             {
@@ -77,81 +72,51 @@ namespace Haumea_Core.Game
             }
         }
 
-        private Provinces _provinces;
-        private Haumea _game;
-
-        public Units(Provinces provinces, Haumea game)
+        public Units(Provinces provinces, IList<RawArmy> rawArmies)
         {
             _provinces = provinces;
-            _game = game;
             _orders = new List<ArmyOrder>();
             _paths  = new List<ArmyPath>();
+            _guid = new IntGUID(0);
 
-            ProvinceArmies = new Dictionary<int, IList<int>>();
+            ProvinceArmies = new Dictionary<int, ISet<int>>();
             SelectedArmies = new HashSet<int>();
-            Armies =  new List<Army>();
+            Armies =  new Dictionary<int, Army>();
+
+            foreach (RawArmy rawArmy in rawArmies)
+            {
+                int ownerID = _provinces.Realms.RealmTagIdMapping[rawArmy.Owner];
+                int locationID = _provinces.TagIdMapping[rawArmy.Location];
+                Units.Army army = new Units.Army(ownerID, locationID, rawArmy.NUnits);
+                AddArmy(army);
+            }
         }
 
-        public void Update()
+        public void Update(WorldDate date)
         {
-            if (_game.IsNewDay)
+            if (date.IsNewDay)
             {
                 for (int orderID = 0; orderID < _orders.Count; orderID++)
                 {
                     ArmyOrder order = _orders[orderID];
                     order.DaysUntilNext--;
-                    //Console.WriteLine(order.DaysUntilNext);
+
                     if (order.DaysUntilNext == 0)
                     {
-                        ArmyPath path = _paths[orderID];
-                        Army army = Armies[order.ArmyID];
-
-                        int from = path.Path.Nodes[path.PathIndex];
-                        int to   = path.Path.Nodes[path.PathIndex + 1];
-
-                        army.Location = to;
-
-                        if (path.Path.Nodes.Count > path.PathIndex + 2)
+                        // If the army order is completely done it will be removed from the list
+                        // so we need to compensate the loop variable.
+                        // TODO: This seems like a bad idea. It means that the orderID is not constant.
+                        if (MoveArmy(orderID)) 
                         {
-                            path.PathIndex++;
-
-                            order.DaysUntilNext = _provinces.MapGraph.NeighborDistance(
-                                path.Path.Nodes[path.PathIndex], path.Path.Nodes[path.PathIndex + 1]);    
-                        }
-                        else
-                        {
-                            _orders.RemoveAt(orderID);
-                            _paths.RemoveAt(orderID);
-                        }
-
-
-                        if (ProvinceArmies[from].Count == 1)
-                        {
-                            ProvinceArmies.Remove(from);
-                        }
-                        else
-                        {
-                            ProvinceArmies[from].Remove(order.ArmyID);    
-                        }
-
-                        if (ProvinceArmies.ContainsKey(to))
-                        {
-                            ProvinceArmies[to].Add(order.ArmyID);
-                        }
-                        else
-                        {
-                            ProvinceArmies[to] = new List<int> { order.ArmyID };
+                            orderID--;
                         }
                     }
-                } 
+                }
             }
         }
 
         public void SelectArmy(int armyID, bool keepOldSelection)
         {
-            // We asume that the province actually contains an army.
-            //IList<int> armies = ProvinceArmies[provinceID];
-
             if (keepOldSelection)
             {
                 SelectedArmies.Add(armyID);
@@ -168,58 +133,159 @@ namespace Haumea_Core.Game
             SelectedArmies.Clear();
         }
 
-        public bool MoveUnits(int armyID, int destination)
+        public bool AddOrder(int armyID, int destination)
         {
             Army army = Armies[armyID];
 
             GraphPath<int> path = _provinces.MapGraph.Dijkstra(army.Location, destination);
             if (path == null) return false;
 
-
             int daysUntilFirstMove = _provinces.MapGraph.NeighborDistance(army.Location, path.Nodes[1]);
             ArmyOrder order = new ArmyOrder(armyID, daysUntilFirstMove);
             ArmyPath armyPath = new ArmyPath(path);
-            Console.WriteLine(daysUntilFirstMove);
+
             _orders.Add(order);
             _paths.Add(armyPath);
                 
             return true;
         }
 
-        // RESEARCH: So... is this bad? It's not DoD, but maybe it's fine anyway?
-        /*private void ExecOrder(ArmyOrder order)
+        public bool MergeSelected()
         {
-            var path = order.Path;
-            int from = path.Nodes[order.PathIndex];
-            int to   = path.Nodes[order.PathIndex + 1];
+            if (SelectedArmies.Count < 2) return false;
 
-            int cost = _provinces.MapGraph.NeighborDistance(from, to);
+            using (var enumer = SelectedArmies.GetEnumerator())
+            {
+                enumer.MoveNext();
+                int location = Armies[enumer.Current].Location;
 
-            _game.AddEvent(cost, delegate {
-//                StationedUnits[from] -= order.NUnits;
-//                StationedUnits[to]   += order.NUnits;
-                order.PathIndex++;
-
-                if (order.PathIndex < path.NJumps - 1)
+                // We are only allowed to merge if all armies are in the same province.
+                foreach (int armyID in SelectedArmies)
                 {
-                    ExecOrder(order);
+                    if (location != Armies[armyID].Location)
+                    {
+                        return false;
+                    }
                 }
-            });
+            }
+
+            using (var enumer = SelectedArmies.GetEnumerator())
+            {
+                enumer.MoveNext();
+                int mergedArmyID = enumer.Current;
+                Army army = Armies[mergedArmyID];
+
+                while (enumer.MoveNext())
+                {
+                    army.NUnits += Armies[enumer.Current].NUnits;
+                    RemoveArmyFromProvince(Armies[enumer.Current].Location, enumer.Current);
+                    Armies.Remove(enumer.Current);
+                }
+
+                SelectedArmies.Clear();
+                SelectedArmies.Add(mergedArmyID);
+            }
+
+            return true;
         }
-*/
+
+        private bool MoveArmy(int orderID)
+        {
+            ArmyPath path   = _paths[orderID];
+            ArmyOrder order = _orders[orderID];
+         
+            // Because orders belonging to deleted armies are not removed immedietly
+            // (would be expensive), we need to watch out for orders without armies.
+            if (!Armies.ContainsKey(order.ArmyID)) return true;
+
+            Army army = Armies[order.ArmyID];
+            bool orderDone = false;
+
+            int from = path.Path.Nodes[path.PathIndex];
+            int to   = path.Path.Nodes[path.PathIndex + 1];
+
+            army.Location = to;
+
+            if (path.Path.Nodes.Count > path.PathIndex + 2)
+            {
+                path.PathIndex++;
+
+                order.DaysUntilNext = _provinces.MapGraph.NeighborDistance(
+                    path.Path.Nodes[path.PathIndex], path.Path.Nodes[path.PathIndex + 1]);    
+            }
+            else
+            {
+                // RemoveAt is O(n), maybe this is bad?
+                _orders.RemoveAt(orderID);
+                _paths.RemoveAt(orderID);
+                orderDone = true;
+            }
+
+            RemoveArmyFromProvince(from, order.ArmyID);
+            AddArmyToProvince(to, order.ArmyID);
+
+            return orderDone;
+        }
+
         public void AddArmy(Army army)
         {
-            int id = Armies.Count;
-            Armies.Add(army);
+            int armyID = _guid.Generate();
+            Armies.Add(Armies.Count, army);
+            AddArmyToProvince(army.Location, armyID);
+        }
 
-            if (ProvinceArmies.ContainsKey(army.Location))
+        private void RemoveArmyFromProvince(int province, int armyID)
+        {
+            if (ProvinceArmies[province].Count == 1)
             {
-                ProvinceArmies[army.Location].Add(id);
+                ProvinceArmies.Remove(province);
             }
-            else 
+            else
             {
-                ProvinceArmies[army.Location] = new List<int> { id };
+                ProvinceArmies[province].Remove(armyID);    
             }
+        }
+
+        private void AddArmyToProvince(int province, int armyID)
+        {
+            ISet<int> armies;
+            if (ProvinceArmies.TryGetValue(province, out armies))
+            {
+                armies.Add(armyID);
+            }
+            else
+            {
+                ProvinceArmies[province] = new HashSet<int> { armyID };
+            }
+        }
+    
+        private class IntGUID
+        {
+            private int _nextID;
+
+            public IntGUID(int nextID)
+            {
+                _nextID = nextID;
+            }
+
+            public int Generate()
+            {
+                return _nextID++;
+            }
+        }
+    }
+
+    public struct RawArmy
+    {
+        public string Owner { get; }
+        public string Location { get; }
+        public int NUnits { get; }
+
+        public RawArmy(string owner, string location, int nUnits)
+        {
+            Owner = owner;
+            Location = location;
+            NUnits = nUnits;
         }
     }
 }

@@ -3,24 +3,31 @@ using System.Collections.Generic;
 
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework;
 
 using Haumea_Core.Rendering;
 using Haumea_Core.Geometric;
 
+// Stuff to fix:
+// - When multiple units in one province, only one can be selected.
+// - When one unit is selected, another one can't be selected without deselected the old first.
+// - When rendering multiple units in one province, the selected on needs to be rendered last.
+// - When multiple units are in a single province, it should be indicated.
+// - The unit marker should indicate owner.
+
 namespace Haumea_Core.Game
 {
-    public class UnitsView : IView, IUpdate
+    public class UnitsView : IView
     {
         private SpriteFont _unitsFont;
         private readonly Units _units;
         private readonly Provinces _provinces;
         private readonly AABB[] _labelBoxes;
-        private readonly Color[] _labelColors;
 
         private Point _selectionBoxP1;
         private Point _selectionBoxP2;
-        private const int _minimumSelectionSize = 10;
+        private const int _minimumSelectionSize = 20;
 
         private Rectangle _selection
         {
@@ -41,7 +48,6 @@ namespace Haumea_Core.Game
             _units = units;
             _provinces = provinces;
             _labelBoxes = new AABB[rawProvinces.Count];
-            _labelColors = new Color[rawProvinces.Count];
 
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
@@ -60,13 +66,23 @@ namespace Haumea_Core.Game
 
         public void Update(InputState input)
         {
-            if (_units.SelectedArmies.Count > 0 && _provinces.Selected > -1)
+            if (input.WentActive(Keys.G))
+            {
+                _units.MergeSelected();
+            }
+
+
+            if (input.WentActive(Keys.Escape))
+            {
+                _units.ClearSelection();    
+            }
+            else if (_units.SelectedArmies.Count > 0 && _provinces.Selected > -1)
             {
                 foreach (int armyID in _units.SelectedArmies)
                 {
                     if (_units.Armies[armyID].Location != _provinces.Selected)
                     {
-                        _units.MoveUnits(armyID, _provinces.Selected);
+                        _units.AddOrder(armyID, _provinces.Selected);
                     }
                 }
                 _units.ClearSelection();
@@ -80,7 +96,7 @@ namespace Haumea_Core.Game
                 {
                     if (pair.Value.IsPointInside(input.ScreenMouse))
                     {
-                        _units.SelectArmy(pair.Key, false);
+                        _units.SelectArmy(pair.Key, input.IsActive(Keys.LeftControl));
                         _provinces.ClearSelection();
                         madeSelection = true;
                         break;
@@ -95,6 +111,7 @@ namespace Haumea_Core.Game
             else if (input.WentInactive(Buttons.LeftButton))
             {
                 Rectangle selection = _selection;
+
                 if (selection.Width * selection.Height > _minimumSelectionSize)
                 {
                     foreach (var pair in _labelClickableBoundaries)
@@ -104,13 +121,15 @@ namespace Haumea_Core.Game
                             _units.SelectArmy(pair.Key, true);
                         }
                     }
+
+                    _provinces.ClearSelection();
                 }
             }
 
-            UpdateSelection(input);
+            UpdateSelectionBox(input);
         }
 
-        public void UpdateSelection(InputState input)
+        public void UpdateSelectionBox(InputState input)
         {
             if (input.WentActive(Buttons.LeftButton))
             {
@@ -176,7 +195,7 @@ namespace Haumea_Core.Game
 
                 _labelClickableBoundaries[id] = borderBox;
             }
-
+                
             Rectangle[] borders = _selection.Borders(1);
             spriteBatch.Draw(texture, _selection, new Color(Color.Black, 0.4f));
             foreach (Rectangle border in borders) spriteBatch.Draw(texture, border, Color.Black);
