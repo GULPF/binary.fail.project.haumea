@@ -105,6 +105,7 @@
     <Compile Include="Game\UnitsView.cs" />
     <Compile Include="Game\EventController.cs" />
     <Compile Include="Game\IEntitity.cs" />
+    <Compile Include="Game\Initializer.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">

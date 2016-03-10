@@ -9,82 +9,34 @@ namespace Haumea_Core.Game
     {
         // A lot of things in this class might seem weird and clunky, but it's not that bad.
 
-        private Provinces _provinces;
+        private readonly NodeGraph<int> _mapGraph;
         private IntGUID _guid;
 
+        /// <summary>
+        /// Keeps track of which armies are located in which province.
+        /// </summary>
         public IDictionary<int, ISet<int>> ProvinceArmies { get; }
+
+        /// <summary>
+        /// (ID, ARMY) pairs for all armies.
+        /// </summary>
         public IDictionary<int, Army> Armies { get; }
+
         public IDictionary<int, ISet<Battle>> Battles { get; }
     
+        /// <summary>
+        /// Contains the selected armies.
+        /// </summary>
         public ISet<int> SelectedArmies { get; }
 
-        public class Battle
+        public Units(NodeGraph<int> mapGraph)
         {
-            public int Army1 { get; }
-            public int Army2 { get; }
-        }
-
-        // TODO: It's really bad that this class is exposed & mutable.
-        public class Army
-        {
-            public int Owner { get; }
-            public int Location { get; set; }
-            public int NUnits { get; set; }
-
-            public Army(int owner, int location, int nUnits)
-            {
-                Owner = owner;
-                Location = location;
-                NUnits = nUnits;
-            }
-        }
-
-        private class ArmyOrder
-        {
-            public int ArmyID { get; }
-            public GraphPath<int> Path { get; }
-            public int PathIndex { get; private set; }
-
-            public int CurrentNode
-            {
-                get { return Path.Nodes[PathIndex]; }
-            }
-
-            public int NextNode
-            {
-                get { return Path.Nodes[PathIndex + 1]; }
-            }
-
-            public bool MoveForward()
-            {
-                PathIndex++;
-                return PathIndex + 1 < Path.NJumps;
-            }
-
-            public ArmyOrder(int armyID, GraphPath<int> path)
-            {
-                ArmyID = armyID;
-                Path = path;
-                PathIndex = 0;
-            }
-        }
-
-        public Units(Provinces provinces, IList<RawArmy> rawArmies)
-        {
-            _provinces = provinces;
+            _mapGraph = mapGraph;
             _guid = new IntGUID(0);
 
             ProvinceArmies = new Dictionary<int, ISet<int>>();
             SelectedArmies = new HashSet<int>();
             Armies =  new Dictionary<int, Army>();
-
-            foreach (RawArmy rawArmy in rawArmies)
-            {
-                int ownerID = _provinces.Realms.RealmTagIdMapping[rawArmy.Owner];
-                int locationID = _provinces.TagIdMapping[rawArmy.Location];
-                Units.Army army = new Units.Army(ownerID, locationID, rawArmy.NUnits);
-                AddArmy(army);
-            }
         }
 
         public void Update(WorldDate date)
@@ -114,10 +66,10 @@ namespace Haumea_Core.Game
         {
             Army army = Armies[armyID];
 
-            GraphPath<int> path = _provinces.MapGraph.Dijkstra(army.Location, destination);
+            GraphPath<int> path = _mapGraph.Dijkstra(army.Location, destination);
             if (path == null) return false;
 
-            int daysUntilFirstMove = _provinces.MapGraph.NeighborDistance(army.Location, path.Nodes[1]);
+            int daysUntilFirstMove = _mapGraph.NeighborDistance(army.Location, path.Nodes[1]);
             ArmyOrder order = new ArmyOrder(armyID, path);
 
             Action moveUnit = null; // need to initialize it twice due to recursion below
@@ -128,7 +80,7 @@ namespace Haumea_Core.Game
 
                 if (order.MoveForward())
                 {
-                    int daysUntilNextMove = _provinces.MapGraph.NeighborDistance(order.CurrentNode, order.NextNode);
+                    int daysUntilNextMove = _mapGraph.NeighborDistance(order.CurrentNode, order.NextNode);
                     EventController.Instance.AddEvent(daysUntilNextMove, moveUnit);    
                 }
             };
@@ -138,6 +90,10 @@ namespace Haumea_Core.Game
             return true;
         }
 
+        /// <summary>
+        /// Merge the selected armies into a single army.
+        /// </summary>
+        /// <returns><c>true</c>, if merge was succesfull, <c>false</c> otherwise.</returns>
         public bool MergeSelected()
         {
             if (SelectedArmies.Count < 2 || !IsValidMerge()) return false;
@@ -214,6 +170,57 @@ namespace Haumea_Core.Game
             }
         }
     
+        public class Battle
+        {
+            public int Army1 { get; }
+            public int Army2 { get; }
+        }
+
+        // TODO: It's really bad that this class is exposed & mutable.
+        public class Army
+        {
+            public int Owner { get; }
+            public int Location { get; set; }
+            public int NUnits { get; set; }
+
+            public Army(int owner, int location, int nUnits)
+            {
+                Owner = owner;
+                Location = location;
+                NUnits = nUnits;
+            }
+        }
+
+        private class ArmyOrder
+        {
+            public int ArmyID { get; }
+            public GraphPath<int> Path { get; }
+            public int PathIndex { get; private set; }
+
+            public int CurrentNode
+            {
+                get { return Path.Nodes[PathIndex]; }
+            }
+
+            public int NextNode
+            {
+                get { return Path.Nodes[PathIndex + 1]; }
+            }
+
+            public bool MoveForward()
+            {
+                PathIndex++;
+                return PathIndex + 1 < Path.NJumps;
+            }
+
+            public ArmyOrder(int armyID, GraphPath<int> path)
+            {
+                ArmyID = armyID;
+                Path = path;
+                PathIndex = 0;
+            }
+        }
+
         private class IntGUID
         {
             private int _nextID;
@@ -227,20 +234,6 @@ namespace Haumea_Core.Game
             {
                 return _nextID++;
             }
-        }
-    }
-
-    public struct RawArmy
-    {
-        public string Owner { get; }
-        public string Location { get; }
-        public int NUnits { get; }
-
-        public RawArmy(string owner, string location, int nUnits)
-        {
-            Owner = owner;
-            Location = location;
-            NUnits = nUnits;
         }
     }
 }

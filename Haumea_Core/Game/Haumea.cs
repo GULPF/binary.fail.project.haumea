@@ -76,7 +76,7 @@ namespace Haumea_Core.Game
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
             const string path = "../../../gamedata.haumea";
-            RawGameData gameData;
+            GameFile.RawGameData gameData;
 
             using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
             {
@@ -84,15 +84,15 @@ namespace Haumea_Core.Game
             }
 
             _worldDate = new WorldDate(new DateTime(1452, 6, 23));
-            _provinces = new Provinces(gameData);
-            _eventController = EventController.Instance;
-            _units = new Units(_provinces, gameData.RawArmies);
 
-            _provincesView = new ProvincesView(gameData.RawProvinces, _provinces);
-            _unitsView = new UnitsView(gameData.RawProvinces, _provinces, _units);
+            InitializedWorld world = Initializer.Initialize(gameData);
 
-            _views   = new List<IView>   { _worldDate, _provincesView, _unitsView };
-            _entities = new List<IEntity> { _eventController, _provinces, _units };
+            _views   = world.Views;
+            _entities = world.Entities;
+
+            _views.Insert(0, _worldDate);
+
+            _provincesView = world.ProvincesView;
 
             foreach (IView view in _views)
             {
@@ -200,6 +200,8 @@ namespace Haumea_Core.Game
 
         private void DrawDebugText()
         {
+            return;
+
             Camera camera      = _renderer.RenderState.Camera;
             Vector2 screenDim  = _renderer.RenderState.ScreenDim;
     

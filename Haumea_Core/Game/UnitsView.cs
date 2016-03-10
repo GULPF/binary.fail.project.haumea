@@ -43,20 +43,15 @@ namespace Haumea_Core.Game
 
         private readonly IDictionary<int, Rectangle> _labelClickableBoundaries;
 
-        public UnitsView(IList<RawProvince> rawProvinces, Provinces provinces, Units units)
+        public UnitsView(AABB[] labelBoxes, Provinces provinces, Units units)
         {
             _units = units;
             _provinces = provinces;
-            _labelBoxes = new AABB[rawProvinces.Count];
+            _labelBoxes = labelBoxes;
 
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
             _labelClickableBoundaries = new Dictionary<int, Rectangle>();
-
-            for (int id = 0; id < rawProvinces.Count; id++)
-            {
-                _labelBoxes[id] = rawProvinces[id].Poly.FindBestLabelBox();
-            }
         }
 
         public void LoadContent(ContentManager content)

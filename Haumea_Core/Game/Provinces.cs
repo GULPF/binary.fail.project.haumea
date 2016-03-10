@@ -47,12 +47,6 @@ namespace Haumea_Core.Game
         public int LastSelected { get; private set; }
 
         /// <summary>
-        //  Graph over how the provinces are connected,
-        //  with a distance value assigned to every connection.
-        /// </summary>
-        public NodeGraph<int> MapGraph { get; }
-
-        /// <summary>
         /// Handles the realms: keeps track of which realm each province belongs to.
         /// </summary>
         public Realms Realms { get; }
@@ -64,44 +58,17 @@ namespace Haumea_Core.Game
 
         #endregion
 
-        public Provinces(RawGameData data)
+        public Provinces(Poly[] boundaries, BiDictionary<int, string> tagIdMapping)
         {
-            Boundaries = new Poly[data.RawProvinces.Count];
+            Boundaries = boundaries;
+            TagIdMapping = tagIdMapping;
 
             MouseOver     = -1;
             LastMouseOver = -1;
             Selected      = -1;
             LastSelected  = -1;
 
-            TagIdMapping = new BiDictionary<int, string>();
-
-            Realms = new Realms();
             PlayerID = 0;
-
-            for (int id = 0; id < Boundaries.Length; id++) {
-                TagIdMapping.Add(id, data.RawProvinces[id].Tag);
-                Boundaries[id] = data.RawProvinces[id].Poly;
-            }
-
-            foreach (RawRealm realm in data.RawRealms)
-            {
-                foreach (string provinceTag in realm.ProvincesOwned)
-                {
-                    int provinceID = TagIdMapping[provinceTag];
-                    Realms.AssignOwnership(provinceID, realm.Tag);
-                }
-            }
-
-            IList<Connector<int>> conns = new List<Connector<int>>();
-
-            foreach (RawConnector rconn in data.RawConnectors)
-            {
-                int ID1 = TagIdMapping[rconn.Tag1];
-                int ID2 = TagIdMapping[rconn.Tag2];
-                conns.Add(new Connector<int>(ID1, ID2, rconn.Cost));
-            }
-
-            MapGraph = new NodeGraph<int>(conns, true);
         }
             
         public void Update(WorldDate date) {}
@@ -122,33 +89,6 @@ namespace Haumea_Core.Game
         {
             Selected = -1;
             LastSelected = -1;
-        }
-    }
-
-    // Not intended to be used for anyting else other than temporarily holding parsed data. 
-    public struct RawProvince
-    {
-        public Poly Poly { get; }
-        public string Tag { get; }
-        public Color Color { get; }
-
-        public RawProvince(Poly poly, String tag, Color color)
-        {
-            Poly = poly;
-            Tag = tag;
-            Color = color;
-        }
-    }
-
-    public struct RawRealm
-    {
-        public IList<string> ProvincesOwned { get; }
-        public string Tag { get; }
-
-        public RawRealm(IList<string> provinces, string tag)
-        {
-            ProvincesOwned = provinces;
-            Tag = tag;
         }
     }
 }

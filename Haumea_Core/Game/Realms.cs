@@ -5,7 +5,7 @@ using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
-    public class Realms
+    public class Realms : IEntity
     {
         // Maps province => realm
         private readonly IDictionary<int, string> _ownerships;
@@ -23,6 +23,8 @@ namespace Haumea_Core.Game
             RealmTagIdMapping.Add(1, "DAN");
             RealmTagIdMapping.Add(2, "NOR");
         }
+
+        public void Update(WorldDate date) {}
 
         public void AssignOwnership(int province, string realmTag)
         {

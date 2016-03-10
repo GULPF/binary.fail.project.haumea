@@ -15,6 +15,43 @@ namespace Haumea_Core.Game
         // Parses this vector notation: (x, y)
         private static Regex vectorRgx = new Regex(@" *\( *(-?\d+) *, *(-?\d+) *\) *");
 
+        public static RawGameData Parse(StreamReader stream)
+        {
+            Modes currentMode = Modes.Invalid;
+
+            var provinceParser  = new SubParser<RawProvince> (2, ParseProvince,  Modes.Province);
+            var realmParser     = new SubParser<RawRealm>    (2, ParseRealm,     Modes.Realm);
+            var connectorParser = new SubParser<RawConnector>(1, ParseConnector, Modes.MapGraph);
+            var armyParser      = new SubParser<RawArmy>     (1, ParseArmy,      Modes.Army);
+
+            IList<ISubParser> parsers = new List<ISubParser> {
+                provinceParser, realmParser, connectorParser, armyParser
+            };
+
+            while (!stream.EndOfStream && currentMode == Modes.Invalid)
+            {
+                string line = stream.ReadLine().Trim();
+                if (line == "") continue;
+
+                currentMode = GetMode(line, currentMode);    
+            }
+
+            while (!stream.EndOfStream)
+            {
+                foreach (ISubParser parser in parsers)
+                {
+                    if (parser.Mode == currentMode)
+                    {
+                        currentMode = parser.Parse(stream);
+                        break;
+                    }
+                }
+            }
+
+            return new RawGameData(provinceParser.Output, realmParser.Output,
+                connectorParser.Output, armyParser.Output);
+        }
+            
         private static Modes GetMode(string line, Modes currentMode)
         {
             switch (line)
@@ -99,44 +136,79 @@ namespace Haumea_Core.Game
             return new RawArmy(rtag, ptag, nunits);
         }
 
-        public static RawGameData Parse(StreamReader stream)
+        private enum Modes { Province, Realm, MapGraph, Army, Invalid }
+
+        // None of these raw-structs are intended for anyting other than temporarily holding parsed data. 
+        public struct RawProvince
         {
-            Modes currentMode = Modes.Invalid;
+            public Poly Poly { get; }
+            public string Tag { get; }
+            public Color Color { get; }
 
-            var provinceParser  = new SubParser<RawProvince> (2, ParseProvince,  Modes.Province);
-            var realmParser     = new SubParser<RawRealm>    (2, ParseRealm,     Modes.Realm);
-            var connectorParser = new SubParser<RawConnector>(1, ParseConnector, Modes.MapGraph);
-            var armyParser      = new SubParser<RawArmy>     (1, ParseArmy,      Modes.Army);
-
-            IList<ISubParser> parsers = new List<ISubParser> {
-                provinceParser, realmParser, connectorParser, armyParser
-            };
-
-            while (!stream.EndOfStream && currentMode == Modes.Invalid)
+            public RawProvince(Poly poly, String tag, Color color)
             {
-                string line = stream.ReadLine().Trim();
-                if (line == "") continue;
-
-                currentMode = GetMode(line, currentMode);    
+                Poly = poly;
+                Tag = tag;
+                Color = color;
             }
-
-            while (!stream.EndOfStream)
-            {
-                foreach (ISubParser parser in parsers)
-                {
-                    if (parser.Mode == currentMode)
-                    {
-                        currentMode = parser.Parse(stream);
-                        break;
-                    }
-                }
-            }
-
-            return new RawGameData(provinceParser.Output, realmParser.Output,
-                connectorParser.Output, armyParser.Output);
         }
 
-        private enum Modes { Province, Realm, MapGraph, Army, Invalid }
+        public struct RawRealm
+        {
+            public IList<string> ProvincesOwned { get; }
+            public string Tag { get; }
+
+            public RawRealm(IList<string> provinces, string tag)
+            {
+                ProvincesOwned = provinces;
+                Tag = tag;
+            }
+        }
+
+        public struct RawArmy
+        {
+            public string Owner { get; }
+            public string Location { get; }
+            public int NUnits { get; }
+
+            public RawArmy(string owner, string location, int nUnits)
+            {
+                Owner = owner;
+                Location = location;
+                NUnits = nUnits;
+            }
+        }
+
+        public struct RawConnector
+        {
+            public string Tag1 { get; }
+            public string Tag2 { get; }
+            public int Cost { get; }
+
+            public RawConnector(string tag1, string tag2, int cost)
+            {
+                Tag1 = tag1;
+                Tag2 = tag2;
+                Cost = cost;
+            }
+        }
+
+        public struct RawGameData
+        {
+            public IList<RawProvince> RawProvinces { get; }
+            public IList<RawRealm> RawRealms { get; }
+            public IList<RawConnector> RawConnectors { get; }
+            public IList<RawArmy> RawArmies { get; }
+
+            public RawGameData(IList<RawProvince> rawProvinces,
+                IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors, IList<RawArmy> rawArmies)
+            {
+                RawProvinces = rawProvinces;
+                RawRealms = rawRealms;
+                RawConnectors = rawConnectors;
+                RawArmies = rawArmies;
+            }
+        }
 
         private interface ISubParser {
             Modes Mode { get; }
@@ -181,36 +253,5 @@ namespace Haumea_Core.Game
     }
 
     public class ParseException : Exception {}
-
-    public struct RawConnector
-    {
-        public string Tag1 { get; }
-        public string Tag2 { get; }
-        public int Cost { get; }
-
-        public RawConnector(string tag1, string tag2, int cost)
-        {
-            Tag1 = tag1;
-            Tag2 = tag2;
-            Cost = cost;
-        }
-    }
-
-    public struct RawGameData
-    {
-        public IList<RawProvince> RawProvinces { get; }
-        public IList<RawRealm> RawRealms { get; }
-        public IList<RawConnector> RawConnectors { get; }
-        public IList<RawArmy> RawArmies { get; }
-
-        public RawGameData(IList<RawProvince> rawProvinces,
-            IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors, IList<RawArmy> rawArmies)
-        {
-            RawProvinces = rawProvinces;
-            RawRealms = rawRealms;
-            RawConnectors = rawConnectors;
-            RawArmies = rawArmies;
-        }
-    }
 }
 

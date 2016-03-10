@@ -13,8 +13,8 @@ namespace Haumea_Core.Game
     {
         private readonly Provinces _provinces;
 
-        private enum RenderState { Hover, Idle };
-        private readonly Dictionary<int, Dictionary<RenderState, RenderInstruction>> _allRenderInstructions;
+        public enum RenderState { Hover, Idle };
+        private readonly IDictionary<int, IDictionary<RenderState, RenderInstruction>> _allRenderInstructions;
 
         private SpriteFont _labelFont;
 
@@ -23,29 +23,17 @@ namespace Haumea_Core.Game
         /// </summary>
         public RenderInstruction[] RenderInstructions { get; }
 
-        public ProvincesView(IList<RawProvince> rawProvinces, Provinces provinces)
+        public ProvincesView(IDictionary<int, IDictionary<RenderState, RenderInstruction>> allRenderInstructions,
+            Provinces provinces)
         {
             _provinces = provinces;
 
-            RenderInstructions     = new RenderInstruction[rawProvinces.Count];
-            _allRenderInstructions = new Dictionary<int, Dictionary<RenderState, RenderInstruction>>();
+            _allRenderInstructions = allRenderInstructions;
+            RenderInstructions     = new RenderInstruction[allRenderInstructions.Count];
 
-            for (int id = 0; id < rawProvinces.Count; id++) {
-
-                var renderInstructions = new Dictionary<RenderState, RenderInstruction>();
-
-                Color color = rawProvinces[id].Color;
-
-                // Initialize the render states - all provinces start in `Idle`.
-                // This can be done at compile time, but whatever.
-
-                renderInstructions[RenderState.Idle] = RenderInstruction.
-                    Polygon(rawProvinces[id].Poly.Points, color);
-                renderInstructions[RenderState.Hover] = RenderInstruction.
-                    Polygon(rawProvinces[id].Poly.Points, color.Darken());
-
-                _allRenderInstructions[id] = renderInstructions; 
-                RenderInstructions[id]    = _allRenderInstructions[id][RenderState.Idle];
+            for (int provinceID = 0; provinceID < allRenderInstructions.Count; provinceID++)
+            {
+                RenderInstructions[provinceID] = _allRenderInstructions[provinceID][RenderState.Idle];
             }
         }
 
