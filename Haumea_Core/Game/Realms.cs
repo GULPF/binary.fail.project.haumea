@@ -15,6 +15,11 @@ namespace Haumea_Core.Game
         /// </summary>
         public BiDictionary<int, string> RealmTagIdMapping { get; }
             
+        /// <summary>
+        /// Indicate which realm ID belongs to the player.
+        /// </summary>
+        public int PlayerID { get; }
+
         public Realms()
         {
             _ownerships = new Dictionary<int, string>();
@@ -22,6 +27,8 @@ namespace Haumea_Core.Game
             RealmTagIdMapping.Add(0, "TEU");
             RealmTagIdMapping.Add(1, "DAN");
             RealmTagIdMapping.Add(2, "NOR");
+
+            PlayerID = 0;
         }
 
         public void Update(WorldDate date) {}

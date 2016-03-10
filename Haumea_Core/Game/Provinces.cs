@@ -40,16 +40,6 @@ namespace Haumea_Core.Game
         /// </summary>
         public int LastSelected { get; private set; }
 
-        /// <summary>
-        /// Handles the realms: keeps track of which realm each province belongs to.
-        /// </summary>
-        public Realms Realms { get; }
-
-        /// <summary>
-        /// Indicate which realm ID belongs to the player.
-        /// </summary>
-        public int PlayerID { get; }
-
         #endregion
 
         public Provinces(Poly[] boundaries, BiDictionary<int, string> tagIdMapping)
@@ -61,8 +51,6 @@ namespace Haumea_Core.Game
             LastMouseOver = -1;
             Selected      = -1;
             LastSelected  = -1;
-
-            PlayerID = 0;
         }
             
         public void Update(WorldDate date) {}

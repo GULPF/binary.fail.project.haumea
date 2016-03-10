@@ -21,13 +21,14 @@ namespace Haumea_Core.Game.Parsing
             // ..... Something like "mapView"
             ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
             UnitsView unitsView = InitializeUnitsView(data.RawProvinces, provinces, units);
+            DebugTextInfo debugView = new DebugTextInfo(provinces, units, realms);
 
             IList<IEntity> entities = new List<IEntity> {
                 EventController.Instance, provinces, realms, units
             };
-
+            
             IList<IView> views = new List<IView> {
-                provincesView, unitsView
+                provincesView, unitsView, debugView
             };
 
             return new InitializedWorld(entities, views, provincesView);

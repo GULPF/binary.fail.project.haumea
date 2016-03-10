@@ -19,7 +19,6 @@ namespace Haumea_Core.Game
         private Renderer _renderer;
         private GraphicsDeviceManager _graphics;
 
-        private SpriteFont _logFont;
         private Texture2D _mouseCursorTexture;
         private InputState _input;
 
@@ -69,7 +68,6 @@ namespace Haumea_Core.Game
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            _logFont = Content.Load<SpriteFont>("test/LogFont");
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
             const string path = "../../../gamedata.haumea";
@@ -183,69 +181,12 @@ namespace Haumea_Core.Game
 
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
 
-            Texture2D texture = new Texture2D(_renderer.Device, 1, 1);
-            texture.SetData<Color>(new [] { Color.Black });
-
-            DrawDebugText();
-
             _spriteBatch.End();
 
             base.Draw(gameTime);
         }
             
         // ** Helpers etc ** 
-
-        private void DrawDebugText()
-        {
-            // TODO: This need to reimplemented with an entitiy or something.
-            return;
-            /*
-            Camera camera      = _renderer.RenderState.Camera;
-            Vector2 screenDim  = _renderer.RenderState.ScreenDim;
-    
-            string hoveredTag = "<n/a>";
-            string hoveredRealm = "<n/a>";
-            string armies = "<n/a>";
-
-            if (_provinces.MouseOver > -1)
-            {
-                hoveredTag = _provinces.TagIdMapping[_provinces.MouseOver];
-                hoveredRealm = _provinces.Realms.GetOwnerTag(_provinces.MouseOver);
-            }
-
-            if (_units.SelectedArmies.Count > 0)
-            {
-                armies = _units.SelectedArmies.Join(", ");
-            }
-
-            string selectedTag = _provinces.Selected > -1
-                ? _provinces.TagIdMapping[_provinces.Selected]
-                : "<n/a>";
-
-            // Apparently, sprite batch coordinates are automagicly translated to clip space.
-            // Handling of new-line characters is built in, but not tab characters.
-            Log($"mouse:    x = {_input.Mouse.X}\n" +
-                $"          y = {_input.Mouse.Y}\n" +
-                $"offset:   x = {camera.Offset.X}\n" +
-                $"          y = {camera.Offset.Y}\n" +
-                $"window:   x = {screenDim.X}\n" +
-                $"          y = {screenDim.Y}\n" +
-                $"fps:      {_tickTime}\n" +
-                $"zoom:     {camera.Zoom}\n" +
-                $"province: {hoveredTag}\n" + 
-                $"realm:    {hoveredRealm}\n" +
-                $"armies:   {armies}\n" + 
-                $"selected: {selectedTag}" +
-                "",
-                screenDim);
-            */
-        }
-
-        private void Log(string msg, Vector2 screenDim)
-        {
-            Vector2 p0 = new Vector2(10, screenDim.Y - _logFont.MeasureString(msg).Y - 10);
-            _spriteBatch.DrawString(_logFont, msg, p0, Color.Black);
-        }
 
         private static readonly Random rnd = new Random();
 
