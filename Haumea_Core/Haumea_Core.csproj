@@ -101,11 +101,12 @@
     <Compile Include="Game\WorldDate.cs" />
     <Compile Include="Game\IView.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="Game\GameFile.cs" />
     <Compile Include="Game\UnitsView.cs" />
     <Compile Include="Game\EventController.cs" />
     <Compile Include="Game\IEntitity.cs" />
-    <Compile Include="Game\Initializer.cs" />
+    <Compile Include="Game\Parsing\GameFile.cs" />
+    <Compile Include="Game\Parsing\Initializer.cs" />
+    <Compile Include="Game\Parsing\RawTypes.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">
@@ -193,5 +194,6 @@
   <ItemGroup>
     <Folder Include="Collections\" />
     <Folder Include="Game\" />
+    <Folder Include="Game\Parsing\" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Rendering;
+using Haumea_Core.Game.Parsing;
 
 namespace Haumea_Core.Game
 {
@@ -22,12 +23,8 @@ namespace Haumea_Core.Game
         private Texture2D _mouseCursorTexture;
         private InputState _input;
 
-        private Provinces _provinces;
-        private Units _units;
         private ProvincesView _provincesView;
-        private UnitsView _unitsView;
 
-        private EventController _eventController;
         private WorldDate _worldDate;
         private int _gameSpeed;
 
@@ -76,7 +73,7 @@ namespace Haumea_Core.Game
             _mouseCursorTexture = Content.Load<Texture2D>("test/cursor");
 
             const string path = "../../../gamedata.haumea";
-            GameFile.RawGameData gameData;
+            RawGameData gameData;
 
             using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
             {
@@ -200,8 +197,9 @@ namespace Haumea_Core.Game
 
         private void DrawDebugText()
         {
+            // TODO: This need to reimplemented with an entitiy or something.
             return;
-
+            /*
             Camera camera      = _renderer.RenderState.Camera;
             Vector2 screenDim  = _renderer.RenderState.ScreenDim;
     
@@ -240,7 +238,7 @@ namespace Haumea_Core.Game
                 $"selected: {selectedTag}" +
                 "",
                 screenDim);
-            
+            */
         }
 
         private void Log(string msg, Vector2 screenDim)

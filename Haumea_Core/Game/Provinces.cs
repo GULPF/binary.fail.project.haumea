@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-
-using Haumea_Core.Geometric;
+﻿using Haumea_Core.Geometric;
 using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
