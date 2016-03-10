@@ -77,7 +77,7 @@ namespace Haumea_Core
 
         public WorldDate Update(GameTime gameTime, int gameSpeed, InputState input)
         {
-            if (Frozen) return this;
+            if (Frozen && !input.WentActive(Keys.Space)) return this;
 
             bool freeze = input.WentActive(Keys.Space) ? !Frozen : Frozen;
 
