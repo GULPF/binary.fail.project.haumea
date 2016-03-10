@@ -21,7 +21,7 @@ namespace Haumea_Core
 
         // The smallest unit of time is a day, so there really isn't a point in messing around
         // with hours and such in the DateTime class.
-        private readonly double _dayFrac;
+        private readonly double _dayRest;
         private SpriteFont _dateFont;
         private static readonly IList<string> MonthNames = new List<string>{
             "January", "February", "March", "April",
@@ -53,7 +53,7 @@ namespace Haumea_Core
 
         public WorldDate(DateTime startDate)
         {
-            _dayFrac = 0;
+            _dayRest = 0;
 
             Date = startDate;
             Frozen = false;
@@ -62,9 +62,9 @@ namespace Haumea_Core
         }
 
         private WorldDate(DateTime date, long daysPassed, bool isNewDay, bool frozen,
-            double dayFrac, SpriteFont dateFont)
+            double dayRest, SpriteFont dateFont)
         {
-            _dayFrac = dayFrac;
+            _dayRest = dayRest;
             _dateFont = dateFont;
 
             Date = date;
@@ -75,38 +75,29 @@ namespace Haumea_Core
 
         public void Update(InputState input) {}
 
+        // The way this is implemented means that no more than one day can pass each tick.
+        // If to much time has passed (which probably means something is wrong),
+        // the missed days are added to dayRest. It might be better to just discard them.
         public WorldDate Update(GameTime gameTime, int gameSpeed, InputState input)
         {
             if (Frozen && !input.WentActive(Keys.Space)) return this;
 
             bool freeze = input.WentActive(Keys.Space) ? !Frozen : Frozen;
 
-            // RESEARCH: Some code is written with the assumption that `fulldays` is allways lower than 2.
-            // ......... I think that's a reasonable assumption,
-            // ......... so perhaps this method should also mbe written as such?
-            double passedDays = 0.005 * gameSpeed * gameTime.ElapsedGameTime.TotalMilliseconds;
-            int    fullDays    = (int)passedDays;
-
-            double dayFrac = _dayFrac + passedDays - fullDays;
-
-            if (dayFrac > 1)
-            {
-                fullDays++;
-                dayFrac--;
-            }
-
-            bool isNewDay = fullDays > 0;
+            double dayRest = _dayRest + 0.005 * gameSpeed * gameTime.ElapsedGameTime.TotalMilliseconds;
 
             DateTime date = Date;
             long daysPassed = DaysPassed;
 
+            bool isNewDay = dayRest > 1;
+
             if (isNewDay)
             {
-                date = date.AddDays(fullDays);
+                dayRest--;
+                date = date.AddDays(1);
                 daysPassed++;
             }
-
-            return new WorldDate(date, daysPassed, isNewDay, freeze, dayFrac, _dateFont);
+            return new WorldDate(date, daysPassed, isNewDay, freeze, dayRest, _dateFont);
         }
 
         public void LoadContent(ContentManager content)
