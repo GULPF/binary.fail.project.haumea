@@ -10,7 +10,8 @@ namespace Haumea_Core.Game
         // A lot of things in this class might seem weird and clunky, but it's not that bad.
 
         private readonly NodeGraph<int> _mapGraph;
-        private IntGUID _guid;
+        private readonly IntGUID _guid;
+        private readonly EventController _events;
 
         /// <summary>
         /// Keeps track of which armies are located in which province.
@@ -29,10 +30,11 @@ namespace Haumea_Core.Game
         /// </summary>
         public ISet<int> SelectedArmies { get; }
 
-        public Units(NodeGraph<int> mapGraph)
+        public Units(NodeGraph<int> mapGraph, EventController events)
         {
             _mapGraph = mapGraph;
             _guid = new IntGUID(0);
+            _events = events;
 
             ProvinceArmies = new Dictionary<int, ISet<int>>();
             SelectedArmies = new HashSet<int>();
@@ -81,11 +83,11 @@ namespace Haumea_Core.Game
                 if (order.MoveForward())
                 {
                     int daysUntilNextMove = _mapGraph.NeighborDistance(order.CurrentNode, order.NextNode);
-                    EventController.Instance.AddEvent(daysUntilNextMove, moveUnit);    
+                    _events.AddEvent(daysUntilNextMove, moveUnit);    
                 }
             };
 
-            EventController.Instance.AddEvent(daysUntilFirstMove, moveUnit);
+            _events.AddEvent(daysUntilFirstMove, moveUnit);
 
             return true;
         }

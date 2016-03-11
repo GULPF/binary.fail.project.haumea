@@ -12,10 +12,11 @@ namespace Haumea_Core.Game.Parsing
     {
         public static InitializedWorld Initialize(RawGameData data)
         {
-            Provinces provinces = InitializeProvinces(data.RawProvinces);
-            NodeGraph<int> mapGraph = InitializeMapGraph(data.RawConnectors, provinces);
-            Realms realms = InitializeRealms(data.RawRealms, provinces);
-            Units units = InitializeUnits(data.RawArmies, provinces, mapGraph, realms);
+            var events    = new EventController();
+            var provinces = InitializeProvinces(data.RawProvinces);
+            var mapGraph  = InitializeMapGraph(data.RawConnectors, provinces);
+            var realms    = InitializeRealms(data.RawRealms, provinces);
+            var units     = InitializeUnits(data.RawArmies, provinces, mapGraph, realms, events);
 
             // TODO: I have realized these two are so tangled into each other they should probably be merged
             // ..... Something like "mapView"
@@ -24,7 +25,7 @@ namespace Haumea_Core.Game.Parsing
             DebugTextInfo debugView = new DebugTextInfo(provinces, units, realms);
 
             IList<IEntity> entities = new List<IEntity> {
-                EventController.Instance, provinces, realms, units
+                events, provinces, realms, units
             };
             
             IList<IView> views = new List<IView> {
@@ -77,9 +78,10 @@ namespace Haumea_Core.Game.Parsing
             return realms;
         }
 
-        private static Units InitializeUnits(IList<RawArmy> rawArmies, Provinces provinces, NodeGraph<int> mapGraph, Realms realms)
+        private static Units InitializeUnits(IList<RawArmy> rawArmies, Provinces provinces, NodeGraph<int> mapGraph,
+            Realms realms, EventController events)
         {
-            Units units = new Units(mapGraph);
+            Units units = new Units(mapGraph, events);
 
             foreach (RawArmy rawArmy in rawArmies)
             {
