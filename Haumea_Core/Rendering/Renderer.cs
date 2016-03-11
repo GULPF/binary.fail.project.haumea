@@ -11,7 +11,7 @@ namespace Haumea_Core.Rendering
     public class Renderer
     {
         private readonly BasicEffect _effect;
-        public  GraphicsDevice Device { get; }
+        private readonly IList<IEnumerable<RenderInstruction>> _bufferedInstructions;
 
         public BasicEffect Effect {
             get {
@@ -23,17 +23,32 @@ namespace Haumea_Core.Rendering
             }
         }
 
+        // TODO: This works for now, but having a public field is generally bad so it should be refactored.
         public readonly RenderState RenderState;
+
+        public  GraphicsDevice Device { get; }
 
         public Renderer(GraphicsDevice device, RenderState renderState)
         {
             RenderState  = renderState;
             Device = device;
             _effect = new BasicEffect(Device);
+            _bufferedInstructions = new List<IEnumerable<RenderInstruction>>();
         }
 
-        // It might be better to just make it an extension method to GraphicsDevice or something.
-        public void Render(IEnumerable<RenderInstruction> instructions)
+        public void DrawToBuffer(IEnumerable<RenderInstruction> instruction)
+        {
+            _bufferedInstructions.Add(instruction);
+        }
+
+        public void PushBuffertoScreen()
+        {
+            var instructions = _bufferedInstructions.Flatten();
+            DrawToScreen(instructions);
+            _bufferedInstructions.Clear();
+        }
+
+        public void DrawToScreen(IEnumerable<RenderInstruction> instructions)
         {
             foreach (EffectPass effectPass in Effect.CurrentTechnique.Passes) {
                 effectPass.Apply();
