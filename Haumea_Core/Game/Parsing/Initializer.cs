@@ -32,7 +32,7 @@ namespace Haumea_Core.Game.Parsing
                 provincesView, unitsView, debugView
             };
 
-            return new InitializedWorld(entities, views, provincesView);
+            return new InitializedWorld(entities, views);
         }
 
         private static Provinces InitializeProvinces(IList<RawProvince> rProvinces)
@@ -134,14 +134,10 @@ namespace Haumea_Core.Game.Parsing
         public IList<IEntity> Entities { get; }
         public IList<IView> Views { get; }
 
-        // Until rendering is fixed, this has to be included by itself.
-        public ProvincesView ProvincesView { get; }
-
-        public InitializedWorld(IList<IEntity> entities, IList<IView> views, ProvincesView provincesView)
+        public InitializedWorld(IList<IEntity> entities, IList<IView> views)
         {
             Entities = entities;
             Views = views;
-            ProvincesView = provincesView;
         }
     }
 }

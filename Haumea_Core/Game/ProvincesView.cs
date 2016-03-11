@@ -101,6 +101,8 @@ namespace Haumea_Core.Game
                         _allRenderInstructions[_provinces.LastMouseOver][RenderState.Idle];    
                 }
             }
+
+            renderer.DrawToScreen(RenderInstructions);
         }
     }
 }

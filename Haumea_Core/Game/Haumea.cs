@@ -22,8 +22,6 @@ namespace Haumea_Core.Game
         private Texture2D _mouseCursorTexture;
         private InputState _input;
 
-        private ProvincesView _provincesView;
-
         private WorldDate _worldDate;
         private int _gameSpeed;
 
@@ -86,8 +84,6 @@ namespace Haumea_Core.Game
             _entities = world.Entities;
 
             _views.Insert(0, _worldDate);
-
-            _provincesView = world.ProvincesView;
 
             foreach (IView view in _views)
             {
@@ -169,8 +165,6 @@ namespace Haumea_Core.Game
             GraphicsDevice device = _graphics.GraphicsDevice;
 
             device.Clear(Color.CornflowerBlue);
-
-            _renderer.Render(_provincesView.RenderInstructions.Union(Debug.DebugInstructions.Values.Flatten()));
 
             _spriteBatch.Begin();
 
