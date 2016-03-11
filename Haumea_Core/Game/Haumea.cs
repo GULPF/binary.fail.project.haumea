@@ -81,7 +81,7 @@ namespace Haumea_Core.Game
             InitializedWorld world = Initializer.Initialize(gameData);
 
             _views   = world.Views;
-            _models = world.Entities;
+            _models = world.Models;
 
             _views.Insert(0, _worldDate);
 
