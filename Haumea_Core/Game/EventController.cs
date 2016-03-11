@@ -5,7 +5,7 @@ using Haumea_Core.Collections;
 
 namespace Haumea_Core
 {
-    public class EventController : IEntity
+    public class EventController : IModel
     {
         private IList<DateEvent> _listeners;
         private WorldDate _currentDate;

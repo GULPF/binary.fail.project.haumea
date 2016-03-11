@@ -5,7 +5,7 @@ namespace Haumea_Core.Game
 { 
     // This is implemented using Data Oriented Design (DOD, see http://www.dataorienteddesign.com/dodmain/).
 
-    public class Provinces : IEntity
+    public class Provinces : IModel
     {
         #region properties
 

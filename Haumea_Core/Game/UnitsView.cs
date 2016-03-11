@@ -43,11 +43,16 @@ namespace Haumea_Core.Game
 
         private readonly IDictionary<int, Rectangle> _labelClickableBoundaries;
 
-        public UnitsView(AABB[] labelBoxes, Provinces provinces, Units units)
+        public UnitsView(Provinces provinces, Units units)
         {
             _units = units;
             _provinces = provinces;
-            _labelBoxes = labelBoxes;
+            _labelBoxes = new AABB[provinces.Boundaries.Length];
+
+            for (int id = 0; id < _labelBoxes.Length; id++)
+            {
+                _labelBoxes[id] = provinces.Boundaries[id].FindBestLabelBox();
+            }
 
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
@@ -64,6 +69,11 @@ namespace Haumea_Core.Game
             if (input.WentActive(Keys.G))
             {
                 _units.MergeSelected();
+            }
+
+            if (input.WentActive(Keys.D))
+            {
+                _units.DeleteSelected();
             }
 
             if (input.WentActive(Keys.Escape))
@@ -153,18 +163,17 @@ namespace Haumea_Core.Game
 
             // Currently, this is really messy. Min/Max should __not__
             // have to switch places. Something is clearly wrong somewhere.
-            for (int id = 0; id < _units.Armies.Count; id++)
+            foreach (var pair in _units.Armies)
             {
-                Units.Army army = _units.Armies[id];
-                AABB box = _labelBoxes[army.Location];
+                AABB box = _labelBoxes[pair.Value.Location];
                 AABB screenBox = new AABB(renderer.RenderState.WorldToScreenCoordinates(box.Min),
                     renderer.RenderState.WorldToScreenCoordinates(box.Max));
            
                 Rectangle rect = screenBox.ToRectangle();
 
-                string text = army.NUnits.ToString();
+                string text = pair.Value.NUnits.ToString();
 
-                if (_units.SelectedArmies.Contains(id))
+                if (_units.SelectedArmies.Contains(pair.Key))
                 {
                     text = "-" + text + "-";
                 }
@@ -183,7 +192,7 @@ namespace Haumea_Core.Game
                     (p0 - new Vector2(6, 1)).ToPoint(),
                     (dim + new Vector2(12, 2)).ToPoint());
 
-                Color borderColor = (_units.SelectedArmies.Contains(id))
+                Color borderColor = (_units.SelectedArmies.Contains(pair.Key))
                     ? Color.Red
                     : new Color(70, 70, 70);
                     
@@ -191,7 +200,7 @@ namespace Haumea_Core.Game
                 spriteBatch.Draw(texture, snugBox,   new Color(210, 210, 210));
                 spriteBatch.DrawString(_unitsFont, text, p0, c);
 
-                _labelClickableBoundaries[id] = borderBox;
+                _labelClickableBoundaries[pair.Key] = borderBox;
             }
                 
             Rectangle[] borders = _selection.Borders(1);

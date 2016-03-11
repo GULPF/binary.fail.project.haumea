@@ -2,7 +2,7 @@
 
 namespace Haumea_Core
 {
-    public interface IEntity
+    public interface IModel
     {
         void Update(WorldDate date);
     }

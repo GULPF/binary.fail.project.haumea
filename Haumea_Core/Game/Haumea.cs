@@ -28,7 +28,7 @@ namespace Haumea_Core.Game
         private double _tickTime;
 
         private IList<IView> _views;
-        private IList<IEntity> _entities;
+        private IList<IModel> _models;
 
         // ** XNA interface  ** 
 
@@ -81,7 +81,7 @@ namespace Haumea_Core.Game
             InitializedWorld world = Initializer.Initialize(gameData);
 
             _views   = world.Views;
-            _entities = world.Entities;
+            _models = world.Entities;
 
             _views.Insert(0, _worldDate);
 
@@ -142,14 +142,14 @@ namespace Haumea_Core.Game
                 // since the other object depend on it being in sync.
                 _views[0] = _worldDate = _worldDate.Update(gameTime, _gameSpeed, _input);
 
-                foreach (IEntity entity in _entities)
-                {
-                    entity.Update(_worldDate);
-                }
-
                 foreach (IView view in _views)
                 {
                     view.Update(_input);
+                }
+
+                foreach (IModel entity in _models)
+                {
+                    entity.Update(_worldDate);
                 }
             }
 

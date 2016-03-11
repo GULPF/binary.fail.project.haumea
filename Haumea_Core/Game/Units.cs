@@ -5,7 +5,7 @@ using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
-    public class Units : IEntity
+    public class Units : IModel
     {
         // A lot of things in this class might seem weird and clunky, but it's not that bad.
 
@@ -75,7 +75,7 @@ namespace Haumea_Core.Game
             ArmyOrder order = new ArmyOrder(armyID, path);
 
             Action moveUnit = null; // need to initialize it twice due to recursion below
-            moveUnit = delegate {
+            moveUnit = () => {
                 RemoveArmyFromProvince(order.CurrentNode, order.ArmyID);
                 AddArmyToProvince(order.NextNode, order.ArmyID);
                 Armies[order.ArmyID].Location = order.NextNode;
@@ -125,6 +125,18 @@ namespace Haumea_Core.Game
             int armyID = _guid.Generate();
             Armies.Add(Armies.Count, army);
             AddArmyToProvince(army.Location, armyID);
+        }
+
+        public void DeleteSelected()
+        {
+            foreach (int armyID in SelectedArmies)
+            {
+                Army army = Armies[armyID];
+                Armies.Remove(armyID);
+                RemoveArmyFromProvince(army.Location, armyID);    
+            }
+
+            ClearSelection();
         }
 
         private bool IsValidMerge()

@@ -5,7 +5,7 @@ using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
-    public class Realms : IEntity
+    public class Realms : IModel
     {
         // Maps province => realm
         private readonly IDictionary<int, string> _ownerships;

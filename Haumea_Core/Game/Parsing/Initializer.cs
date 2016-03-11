@@ -24,7 +24,7 @@ namespace Haumea_Core.Game.Parsing
             UnitsView unitsView = InitializeUnitsView(data.RawProvinces, provinces, units);
             DebugTextInfo debugView = new DebugTextInfo(provinces, units, realms);
 
-            IList<IEntity> entities = new List<IEntity> {
+            IList<IModel> models = new List<IModel> {
                 events, provinces, realms, units
             };
             
@@ -32,7 +32,7 @@ namespace Haumea_Core.Game.Parsing
                 provincesView, unitsView, debugView
             };
 
-            return new InitializedWorld(entities, views);
+            return new InitializedWorld(models, views);
         }
 
         private static Provinces InitializeProvinces(IList<RawProvince> rProvinces)
@@ -118,25 +118,18 @@ namespace Haumea_Core.Game.Parsing
     
         private static UnitsView InitializeUnitsView(IList<RawProvince> rProvinces, Provinces provinces, Units units)
         {
-            AABB[] labelBoxes = new AABB[rProvinces.Count];
-
-            for (int id = 0; id < rProvinces.Count; id++)
-            {
-                labelBoxes[id] = rProvinces[id].Poly.FindBestLabelBox();
-            }
-
-            return new UnitsView(labelBoxes, provinces, units);
+            return new UnitsView(provinces, units);
         }
     }
         
     public struct InitializedWorld
     {
-        public IList<IEntity> Entities { get; }
+        public IList<IModel> Models { get; }
         public IList<IView> Views { get; }
 
-        public InitializedWorld(IList<IEntity> entities, IList<IView> views)
+        public InitializedWorld(IList<IModel> models, IList<IView> views)
         {
-            Entities = entities;
+            Models = models;
             Views = views;
         }
     }
