@@ -89,8 +89,24 @@ namespace Haumea_Core
                 new Rectangle(rect.Left, rect.Top, rect.Width, thickness),
                 new Rectangle(rect.Right, rect.Top, thickness, rect.Height),
                 new Rectangle(rect.Left, rect.Top, thickness, rect.Height),
-                new Rectangle(rect.Left, rect.Bottom, rect.Width, thickness)
+                new Rectangle(rect.Left, rect.Bottom, rect.Width + thickness, thickness)
             };
+        }
+
+        public static void Draw(this SpriteBatch spriteBatch, Rectangle rect, Color color)
+        {
+            Texture2D texture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            texture.SetData<Color>(new [] { Color.White });
+
+            spriteBatch.Draw(texture, rect, color);
+        }
+
+        public static void Draw(this SpriteBatch spriteBatch, Rectangle[] rects, Color color)
+        {
+            foreach (Rectangle rect in rects)
+            {
+                spriteBatch.Draw(rect, color);
+            }
         }
 
         //
