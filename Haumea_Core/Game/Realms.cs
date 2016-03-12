@@ -13,7 +13,7 @@ namespace Haumea_Core.Game
         /// <summary>
         /// Bidirectional dictionary that maps tag => id and id => tag for realms.
         /// </summary>
-        public BiDictionary<int, string> RealmTagIdMapping { get; }
+        public BiDictionary<int, string> TagIdMapping { get; }
             
         /// <summary>
         /// Indicate which realm ID belongs to the player.
@@ -23,10 +23,10 @@ namespace Haumea_Core.Game
         public Realms()
         {
             _ownerships = new Dictionary<int, string>();
-            RealmTagIdMapping = new BiDictionary<int, string>();
-            RealmTagIdMapping.Add(0, "TEU");
-            RealmTagIdMapping.Add(1, "DAN");
-            RealmTagIdMapping.Add(2, "NOR");
+            TagIdMapping = new BiDictionary<int, string>();
+            TagIdMapping.Add(0, "TEU");
+            TagIdMapping.Add(1, "DAN");
+            TagIdMapping.Add(2, "NOR");
 
             PlayerID = 0;
         }

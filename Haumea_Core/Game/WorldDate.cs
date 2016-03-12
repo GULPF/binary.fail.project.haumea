@@ -110,7 +110,7 @@ namespace Haumea_Core
             spriteBatch.DrawString(_dateFont, ToString(), Pos, Color.Black);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return (MonthNames[Date.Month - 1] + " ") + (Date.Day + " ") +
                 ", " + Date.Year;

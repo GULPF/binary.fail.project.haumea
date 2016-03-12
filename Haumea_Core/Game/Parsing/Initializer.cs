@@ -85,7 +85,7 @@ namespace Haumea_Core.Game.Parsing
 
             foreach (RawArmy rawArmy in rawArmies)
             {
-                int ownerID = realms.RealmTagIdMapping[rawArmy.Owner];
+                int ownerID = realms.TagIdMapping[rawArmy.Owner];
                 int locationID = provinces.TagIdMapping[rawArmy.Location];
                 Units.Army army = new Units.Army(ownerID, locationID, rawArmy.NUnits);
                 units.AddArmy(army);

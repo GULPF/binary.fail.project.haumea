@@ -34,7 +34,7 @@ namespace Haumea_Core.Geometric {
             return new Rectangle((int)Min.X, (int)Min.Y, (int)Math.Abs(Max.X - Min.X), (int)Math.Abs(Max.Y - Min.Y));
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Max: " + Max + " Min: " + Min;
         }

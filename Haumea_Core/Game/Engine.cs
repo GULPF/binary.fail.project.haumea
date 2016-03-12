@@ -20,7 +20,7 @@ namespace Haumea_Core.Game
         // which is a bit ridiculus.
         private SpriteBatch _spriteBatch;
         private Renderer _renderer;
-        private GraphicsDeviceManager _graphics;
+        private readonly GraphicsDeviceManager _graphics;
 
         private Texture2D _mouseCursorTexture;
         private InputState _input;
@@ -169,19 +169,6 @@ namespace Haumea_Core.Game
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
 
             _spriteBatch.End();
-        }
-
-        // ** Helpers etc ** 
-
-        private static readonly Random rnd = new Random();
-
-        private static Color RndColor()
-        {
-            return new Color(
-                (float)(rnd.NextDouble()),
-                (float)(rnd.NextDouble()),
-                (float)(rnd.NextDouble())
-            );
         }
     }
 }

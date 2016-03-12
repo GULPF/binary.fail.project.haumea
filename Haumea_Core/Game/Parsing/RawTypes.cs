@@ -14,7 +14,7 @@ namespace Haumea_Core.Game.Parsing
         public string Tag { get; }
         public Color Color { get; }
 
-        public RawProvince(Poly poly, String tag, Color color)
+        public RawProvince(Poly poly, string tag, Color color)
         {
             Poly = poly;
             Tag = tag;

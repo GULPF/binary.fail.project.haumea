@@ -23,12 +23,7 @@ namespace Haumea_Core
             }
             else
             {
-                // RESEARCH: I'm not certain this is a good idea. 
-                // Without this, events will allways be called before __all__
-                // other update methods, but if this happen,
-                // the event will be called before some update methods and after some others.
-                // It might be better to just discard events that has already occured.
-                handler();
+                throw new ArgumentException("Can't create event for date that has already occured");
             }
         }
 
