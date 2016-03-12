@@ -24,6 +24,7 @@ namespace Haumea_Core.Game
         private readonly Units _units;
         private readonly Provinces _provinces;
         private readonly AABB[] _labelBoxes;
+        private readonly FormCreator _ui;
 
         private Point _selectionBoxP1;
         private Point _selectionBoxP2;
@@ -43,10 +44,11 @@ namespace Haumea_Core.Game
 
         private readonly IDictionary<int, Rectangle> _labelClickableBoundaries;
 
-        public UnitsView(Provinces provinces, Units units)
+        public UnitsView(Provinces provinces, Units units, FormCreator ui)
         {
             _units = units;
             _provinces = provinces;
+            _ui = ui;
             _labelBoxes = new AABB[provinces.Boundaries.Length];
 
             for (int id = 0; id < _labelBoxes.Length; id++)
@@ -73,7 +75,12 @@ namespace Haumea_Core.Game
 
             if (input.WentActive(Keys.D))
             {
-                _units.DeleteSelected();
+                _ui.DisplayDialog(Dialogs.Confirm, "Are you sure you want to delete " + 
+                    _units.SelectedArmies.Count + " armies?", response =>
+                {
+                    if (response == UserResponse.Yes) _units.DeleteSelected();
+                });
+
             }
 
             if (input.WentActive(Keys.Escape))
@@ -154,9 +161,6 @@ namespace Haumea_Core.Game
         // TODO: This method does a lot that only has to be done once.
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
-            Texture2D texture = new Texture2D(renderer.Device, 1, 1);
-            texture.SetData<Color>(new [] { Color.White });
-
             // Since we are generating these every time anyway,
             // we clear it so we don't have any label boxes belonging to deleted armies.
             _labelClickableBoundaries.Clear();
@@ -196,16 +200,16 @@ namespace Haumea_Core.Game
                     ? Color.Red
                     : new Color(70, 70, 70);
                     
-                spriteBatch.Draw(texture, borderBox, borderColor);
-                spriteBatch.Draw(texture, snugBox,   new Color(210, 210, 210));
+                spriteBatch.Draw(borderBox, borderColor);
+                spriteBatch.Draw(snugBox,   new Color(210, 210, 210));
                 spriteBatch.DrawString(_unitsFont, text, p0, c);
 
                 _labelClickableBoundaries[pair.Key] = borderBox;
             }
                 
             Rectangle[] borders = _selection.Borders(1);
-            spriteBatch.Draw(texture, _selection, new Color(Color.Black, 0.4f));
-            foreach (Rectangle border in borders) spriteBatch.Draw(texture, border, Color.Black);
+            spriteBatch.Draw(_selection, new Color(Color.Black, 0.4f));
+            foreach (Rectangle border in borders) spriteBatch.Draw(border, Color.Black);
         }
     }
 }

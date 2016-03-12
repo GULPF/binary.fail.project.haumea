@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Input;
 
 using Haumea_Core.Rendering;
 
@@ -14,9 +15,9 @@ namespace Haumea_Core
     public class FormCreator
     {
         private readonly ContentManager _content;
-        private readonly ICollector<IForm> _collector;
+        private readonly ICollector<IWindow> _collector;
 
-        public FormCreator(ContentManager content, ICollector<IForm> collector)
+        public FormCreator(ContentManager content, ICollector<IWindow> collector)
         {
             _content = content;
             _collector = collector;
@@ -27,7 +28,7 @@ namespace Haumea_Core
             switch (dialogType)
             {
             case Dialogs.Confirm:
-                IForm dialog = new Confirm(text, callback);
+                IWindow dialog = new Confirm(text, callback);
                 dialog.LoadContent(_content);
                 _collector.Collect(dialog);
                 break;
@@ -37,25 +38,24 @@ namespace Haumea_Core
         }
     }
 
-    public class Confirm : IForm
+    public class Confirm : IWindow
     {
         private SpriteFont _dialogFont;
-        private string _msg;
-        private Action<UserResponse> _callback;
-        private IForm[] _children;
+        private readonly string _msg;
+        private readonly Action<UserResponse> _callback;
 
         public bool Destroyed { get; private set; }
-        public IEnumerable<IForm> Children { get { return _children; } }
+        public ICollection<IForm> Children { get; }
 
         public Confirm(string msg, Action<UserResponse> callback) {
             _msg = msg;
             _callback = callback;
+            Children = new IForm[0];
         }
 
         public void LoadContent(ContentManager content)
         {
             _dialogFont = content.Load<SpriteFont>("test/LogFont");
-            _children = new IForm[0];
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
@@ -67,11 +67,21 @@ namespace Haumea_Core
 
             spriteBatch.Draw(dialog, Color.Wheat);
             spriteBatch.Draw(dialog.Borders(2), Color.Black.Darken());
+            spriteBatch.DrawString(_dialogFont, "Y/N", dialog.Center.ToVector2(), Color.Black);
         }
 
         public void Update(InputState input)
         {
-            throw new NotImplementedException();
+            if (input.WentActive(Keys.Y))
+            {
+                Destroyed = true;
+                _callback(UserResponse.Yes);
+            }
+            else if (input.WentActive(Keys.N))
+            {
+                Destroyed = true;
+                _callback(UserResponse.No);
+            }
         }
     }
 

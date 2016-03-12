@@ -4,21 +4,32 @@ namespace Haumea_Core.Collections
 {
     public interface ITreeNode<T> where T : ITreeNode<T>
     {
-        IEnumerable<T> Children { get; }
+        ICollection<T> Children { get; }
     }
-        
-    public class Tree<N> : IEnumerable<N> where N : ITreeNode<N>
-    {
-        private N _root;
 
-        public Tree(N root)
+    // Im kinda suprised that it's possible to do `where R : N`
+    public class Tree<R, N> : IEnumerable<N> where N : ITreeNode<N> where R : N
+    {
+        public R Root { get; }
+
+        public Tree(R root)
         {
-            _root = root;
+            Root = root;
         }
 
         public IEnumerator<N> GetEnumerator()
         {
-            return GetEnumerable(_root).GetEnumerator();
+            foreach (N firstChild in Root.Children)
+            {
+                foreach (N otherChild in GetEnumerable(firstChild))
+                {
+                    yield return otherChild;
+                }
+
+                yield return firstChild;
+            }
+
+            yield return Root;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -28,18 +39,20 @@ namespace Haumea_Core.Collections
 
         public IEnumerable<N> Inverse()
         {
-            return GetInverseEnumerable(_root);
+            return GetInverseEnumerable(Root);
         }
 
         private IEnumerable<N> GetInverseEnumerable(N localRoot)
         {
-            yield return localRoot;
+            yield return Root;
 
-            foreach (N localChild in localRoot.Children)
+            foreach (N firstChild in Root.Children)
             {
-                foreach (N grandChild in GetInverseEnumerable(localChild))
+                yield return firstChild;
+
+                foreach (N otherChild in GetEnumerable(firstChild))
                 {
-                    yield return grandChild;
+                    yield return otherChild;
                 }
             }
         }

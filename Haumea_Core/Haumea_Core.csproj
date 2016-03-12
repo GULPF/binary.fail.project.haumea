@@ -111,8 +111,8 @@
     <Compile Include="Game\UIForms\IForm.cs" />
     <Compile Include="Game\Engine.cs" />
     <Compile Include="Game\ICollector.cs" />
-    <Compile Include="Game\UIForms\FormCreator.cs" />
     <Compile Include="Collections\Tree.cs" />
+    <Compile Include="Game\UIForms\FormCreator.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Debug_Linux' AND '$(Configuration)' != 'Release_Linux'">
     <Reference Include="OpenTK">

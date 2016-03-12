@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 
 using Haumea_Core.Collections;
 using Haumea_Core.Geometric;
@@ -10,7 +11,7 @@ namespace Haumea_Core.Game.Parsing
 {
     public static class Initializer
     {
-        public static InitializedWorld Initialize(RawGameData data)
+        public static InitializedWorld Initialize(RawGameData data, ContentManager content)
         {
             var events    = new EventController();
             var provinces = InitializeProvinces(data.RawProvinces);
@@ -20,8 +21,11 @@ namespace Haumea_Core.Game.Parsing
 
             // TODO: I have realized these two are so tangled into each other they should probably be merged
             // ..... Something like "mapView"
+         
+            WindowsTree windows = new WindowsTree();
+            FormCreator ui = new FormCreator(content, windows);
             ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
-            UnitsView unitsView = InitializeUnitsView(data.RawProvinces, provinces, units);
+            UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
             DebugTextInfo debugView = new DebugTextInfo(provinces, units, realms);
 
             IList<IModel> models = new List<IModel> {
@@ -29,10 +33,15 @@ namespace Haumea_Core.Game.Parsing
             };
             
             IList<IView> views = new List<IView> {
-                provincesView, unitsView, debugView
+                provincesView, unitsView, windows, debugView
             };
 
-            return new InitializedWorld(models, views);
+            foreach (IView view in views)
+            {
+                view.LoadContent(content);
+            }
+
+            return new InitializedWorld(models, views, windows);
         }
 
         private static Provinces InitializeProvinces(IList<RawProvince> rProvinces)
@@ -116,9 +125,9 @@ namespace Haumea_Core.Game.Parsing
             return new ProvincesView(instructions, provinces);
         }
     
-        private static UnitsView InitializeUnitsView(IList<RawProvince> rProvinces, Provinces provinces, Units units)
+        private static UnitsView InitializeUnitsView(Provinces provinces, Units units, FormCreator ui)
         {
-            return new UnitsView(provinces, units);
+            return new UnitsView(provinces, units, ui);
         }
     }
         
@@ -126,11 +135,13 @@ namespace Haumea_Core.Game.Parsing
     {
         public IList<IModel> Models { get; }
         public IList<IView> Views { get; }
+        public WindowsTree Windows  { get; }
 
-        public InitializedWorld(IList<IModel> models, IList<IView> views)
+        public InitializedWorld(IList<IModel> models, IList<IView> views, WindowsTree windows)
         {
             Models = models;
             Views = views;
+            Windows = windows;
         }
     }
 }

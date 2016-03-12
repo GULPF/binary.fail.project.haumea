@@ -27,12 +27,11 @@ namespace Haumea_Core.Game
 
         private WorldDate _worldDate;
         private int _gameSpeed;
-        private UIFormFactory _uiFactory;
 
         private double _tickTime;
 
-        private IList<IView> _views;
-        private IList<IModel> _models;
+        private IView[] _views;
+        private IModel[] _models;
 
         public bool IsRunning { get; private set; }
 
@@ -77,14 +76,16 @@ namespace Haumea_Core.Game
             }
 
             _worldDate = new WorldDate(new DateTime(1452, 6, 23));
-            _uiFactory = new UIFormFactory(_content);
 
-            InitializedWorld world = Initializer.Initialize(gameData);
+            InitializedWorld world = Initializer.Initialize(gameData, _content);
 
-            _views   = world.Views;
-            _models = world.Models;
+            _views  = new IView[world.Views.Count + 1];
+            _models = new IModel[world.Models.Count];
 
-            _views.Insert(0, _worldDate);
+            world.Views.CopyTo(_views, 1);
+            world.Models.CopyTo(_models, 0);
+
+            _views[0] =_worldDate;
 
             foreach (IView view in _views)
             {
@@ -165,7 +166,7 @@ namespace Haumea_Core.Game
             {
                 view.Draw(_spriteBatch, _renderer);
             }
-
+                
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
 
             _spriteBatch.End();
