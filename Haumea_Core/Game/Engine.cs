@@ -129,8 +129,8 @@ namespace Haumea_Core.Game
             if (_input.IsActive(Keys.Down))  move.Y -= PanSpeed * screenDim.Y * currentZoom;
 
             // temporary keys
-            if (_input.IsActive(Keys.N)) zoom *= ZoomSpeed;
-            if (_input.IsActive(Keys.M)) zoom /= ZoomSpeed;
+            if (_input.IsActive(Keys.H)) zoom *= ZoomSpeed;
+            if (_input.IsActive(Keys.J)) zoom /= ZoomSpeed;
 
             _renderer.RenderState.Camera.Move(move);
             _renderer.RenderState.Camera.ApplyZoom(zoom);
@@ -139,7 +139,11 @@ namespace Haumea_Core.Game
             // since the other object depend on it being in sync.
             _views[0] = _worldDate = _worldDate.Update(gameTime, _gameSpeed, _input);
 
-            foreach (IView view in _views)
+            // We update the views in reverse order,
+            // because if the input state gets updated by an entity,
+            // enties behind (meaning draw before, meaning having a higher index in _views) it
+            // should get notified, but not entities in front of it.
+            foreach (IView view in _views.Reverse())
             {
                 view.Update(_input);
             }

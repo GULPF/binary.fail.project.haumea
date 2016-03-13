@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Haumea_Core.Rendering;
 using Haumea_Core.Geometric;
+using Haumea_Core.UIForms;
 
 // Stuff to fix:
 // - When multiple units in one province, only one can be selected.
@@ -75,48 +76,32 @@ namespace Haumea_Core.Game
 
             if (input.WentActive(Keys.D))
             {
-                _ui.DisplayDialog(Dialogs.Confirm, "Are you sure you want to delete " + 
-                    _units.SelectedArmies.Count + " armies?", response =>
+                _ui.DisplayDialog(Dialogs.Confirm, "Delete " + _units.SelectedArmies.Count + "?", response =>
                 {
                     if (response == UserResponse.Yes) _units.DeleteSelected();
                 });
-
             }
 
             if (input.WentActive(Keys.Escape))
             {
-                _units.ClearSelection();    
+                _units.ClearSelection();
             }
             else if (_units.SelectedArmies.Count > 0 && _provinces.Selected > -1)
             {
-                foreach (int armyID in _units.SelectedArmies)
-                {
-                    if (_units.Armies[armyID].Location != _provinces.Selected)
-                    {
-                        _units.AddOrder(armyID, _provinces.Selected);
-                    }
-                }
+                _units.AddOrder(_units.SelectedArmies, _provinces.Selected);
                 _units.ClearSelection();
                 _provinces.ClearSelection();
             }
             else if (input.WentActive(Buttons.LeftButton))
             {
-                bool madeSelection = false;
-
                 foreach (var pair in _labelClickableBoundaries)
                 {
                     if (pair.Value.IsPointInside(input.ScreenMouse))
                     {
                         _units.SelectArmy(pair.Key, input.IsActive(Keys.LeftControl));
-                        _provinces.ClearSelection();
-                        madeSelection = true;
+                        input.ConsumeMouse();
                         break;
                     }
-                }
-
-                if (!madeSelection)
-                {
-                    _units.ClearSelection();
                 }
             }
             else if (input.WentInactive(Buttons.LeftButton))

@@ -64,12 +64,12 @@ namespace Haumea_Core.Game
             SelectedArmies.Clear();
         }
 
-        public bool AddOrder(int armyID, int destination)
+        public void AddOrder(int armyID, int destination)
         {
             Army army = Armies[armyID];
 
             GraphPath<int> path = _mapGraph.Dijkstra(army.Location, destination);
-            if (path == null) return false;
+            if (path == null) return;
 
             int daysUntilFirstMove = _mapGraph.NeighborDistance(army.Location, path.Nodes[1]);
             ArmyOrder order = new ArmyOrder(armyID, path);
@@ -88,8 +88,17 @@ namespace Haumea_Core.Game
             };
 
             _events.AddEvent(daysUntilFirstMove, moveUnit);
+        }
 
-            return true;
+        public void AddOrder(IEnumerable<int> armyIDs, int destination)
+        {
+            foreach (int armyID in armyIDs)
+            {
+                if (Armies[armyID].Location != destination)
+                {
+                    AddOrder(armyID, destination);
+                }
+            }
         }
 
         /// <summary>

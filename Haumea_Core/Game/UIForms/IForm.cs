@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Haumea_Core.Collections;
 using Haumea_Core.Rendering;
 
-namespace Haumea_Core
+namespace Haumea_Core.UIForms
 {
     /// <summary>
     /// A form is a window or window component that is temporary,

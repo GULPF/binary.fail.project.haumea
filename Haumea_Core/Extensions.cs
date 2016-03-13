@@ -34,6 +34,11 @@ namespace Haumea_Core
             return new Vector2(Math.Abs(v2.X), Math.Abs(v2.Y));
         }
 
+        public static Vector2 Floor(this Vector2 v2)
+        {
+            return new Vector2((int)v2.X, (int)v2.Y);
+        }
+
         public static Vector2 RotateLeft90(this Vector2 v) {
             return new Vector2(-v.Y, v.X);
         }
@@ -106,6 +111,14 @@ namespace Haumea_Core
             foreach (Rectangle rect in rects)
             {
                 spriteBatch.Draw(rect, color);
+            }
+        }
+
+        public static IEnumerable<T> Reverse<T>(this T[] arr)
+        {
+            for (int n = arr.Length - 1; n >= 0; n--)
+            {
+                yield return arr[n];
             }
         }
 

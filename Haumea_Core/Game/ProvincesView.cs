@@ -46,18 +46,20 @@ namespace Haumea_Core.Game
         {
             Vector2 position = input.Mouse;
 
-            bool doDeselect  = input.WentActive(Keys.Escape);
-            bool doSelect    = input.WentActive(Buttons.LeftButton) && !doDeselect;
+            bool doDeselect  = input.WentActive(Keys.Escape) || input.IsMouseConsumed;
+            bool doSelect    = input.WentActive(Buttons.LeftButton);
 
             if (doDeselect)
             {
                 _provinces.ClearSelection();
+                _provinces.Hover(-1);
+                return;
             }
 
             for (int id = 0; id < _provinces.Boundaries.Length; id++)
             {
                 if (_provinces.Boundaries[id].IsPointInside(position)) {
-                    
+
                     // Only handle new selections.
                     if (id != _provinces.Selected && doSelect)
                     {
@@ -73,8 +75,8 @@ namespace Haumea_Core.Game
                     // Provinces can't overlap so we exit immediately when we find a hit.
                     return;
                 }
-            }
-
+            }    
+                
             // Not hit - clear mouse over.
             if (_provinces.MouseOver > -1) {
                 _provinces.Hover(-1);

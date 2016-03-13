@@ -27,7 +27,7 @@ namespace Haumea_Core
         }
     }
 
-    public struct InputState
+    public class InputState
     {
         private MouseState _mouseState;
         private MouseState _oldMouseState;
@@ -37,6 +37,13 @@ namespace Haumea_Core
 
         public Point ScreenMouse { get; }
         public Vector2 Mouse { get; }
+
+        /// <summary>
+        /// Anyone with access to the InputState can "consume" the mouse
+        /// by calling <code>#ConsumeMouse()</code>. A consumed mouse should be ignored
+        /// by most entities. 
+        /// </summary>
+        public bool IsMouseConsumed { get; private set; }
 
         public InputState(MouseState mouseState, MouseState oldMouseState,
             KeyboardState kbState, KeyboardState oldKbState, Vector2 mouseWorldPos)
@@ -48,6 +55,12 @@ namespace Haumea_Core
 
             ScreenMouse = _mouseState.Position;
             Mouse = mouseWorldPos;
+            IsMouseConsumed = false;
+        }
+
+        public void ConsumeMouse()
+        {
+            IsMouseConsumed = true;
         }
 
         public bool IsActive(Keys key)
