@@ -19,13 +19,16 @@ namespace Haumea_Core.Game.Parsing
         {
             Modes currentMode = Modes.Invalid;
 
-            var provinceParser  = new SubParser<RawProvince> (2, ParseProvince,  Modes.Province);
-            var realmParser     = new SubParser<RawRealm>    (2, ParseRealm,     Modes.Realm);
-            var connectorParser = new SubParser<RawConnector>(1, ParseConnector, Modes.MapGraph);
-            var armyParser      = new SubParser<RawArmy>     (1, ParseArmy,      Modes.Army);
+            var provinceParser  = new SubParser<RawProvince> (2, ParseProvince);
+            var realmParser     = new SubParser<RawRealm>    (2, ParseRealm);
+            var connectorParser = new SubParser<RawConnector>(1, ParseConnector);
+            var armyParser      = new SubParser<RawArmy>     (1, ParseArmy);
 
-            IList<ISubParser> parsers = new List<ISubParser> {
-                provinceParser, realmParser, connectorParser, armyParser
+            IDictionary<Modes, ISubParser> parsers = new Dictionary<Modes, ISubParser> {
+                { Modes.Province, provinceParser  },
+                { Modes.Realm,    realmParser     },
+                { Modes.MapGraph, connectorParser },
+                { Modes.Army,     armyParser      }
             };
 
             while (!stream.EndOfStream && currentMode == Modes.Invalid)
@@ -38,21 +41,14 @@ namespace Haumea_Core.Game.Parsing
 
             while (!stream.EndOfStream)
             {
-                foreach (ISubParser parser in parsers)
-                {
-                    if (parser.Mode == currentMode)
-                    {
-                        currentMode = parser.Parse(stream);
-                        break;
-                    }
-                }
+                currentMode = parsers[currentMode].Parse(stream, currentMode);
             }
 
             return new RawGameData(provinceParser.Output, realmParser.Output,
                 connectorParser.Output, armyParser.Output);
         }
             
-        private static Modes GetMode(string line, Modes currentMode)
+        internal static Modes GetMode(string line, Modes currentMode)
         {
             switch (line)
             {
@@ -135,48 +131,51 @@ namespace Haumea_Core.Game.Parsing
 
             return new RawArmy(rtag, ptag, nunits);
         }
+    }
 
-        private enum Modes { Province, Realm, MapGraph, Army, Invalid }
+    internal enum Modes { Province, Realm, MapGraph, Army, Invalid }
 
-        private interface ISubParser {
-            Modes Mode { get; }
-            Modes Parse(StreamReader Stream);
+    internal interface ISubParser {
+        Modes Parse(StreamReader Stream, Modes mode);
+    }
+
+    internal class SubParser<O> : ISubParser
+    {
+        public int NLines { get; }
+        private readonly Func<IList<string>, O> _doParse;
+        public IList<O> Output { get; }
+
+        public SubParser(int nLines, Func<IList<string>, O> doParse)
+        {
+            _doParse = doParse;
+
+            NLines = nLines;
+            Output = new List<O>();
         }
 
-        private class SubParser<O> : ISubParser
-        {
-            private readonly int _nLines;
-            private readonly Func<IList<string>, O> _parseLines;
-            public IList<O> Output { get; }
-            public Modes Mode { get; }
-
-            public SubParser(int nLines, Func<IList<string>, O> parseLines, Modes mode)
+        public Modes Parse(StreamReader stream, Modes currentMode) {
+            while (!stream.EndOfStream)
             {
-                _nLines = nLines;
-                _parseLines = parseLines;
-                Output = new List<O>();
-                Mode = mode;
-            }
+                IList<string> lines = new List<string>();
+                Modes nextMode;
 
-            public Modes Parse(StreamReader stream) {
-                while (!stream.EndOfStream)
+                while (lines.Count < NLines)
                 {
-                    IList<string> lines = new List<string>();
-                    Modes nextMode;
-
-                    while (lines.Count < _nLines)
-                    {
-                        string line = stream.ReadLine().Trim();
-                        nextMode = GetMode(line, Mode);
-                        if (nextMode != Mode) return nextMode;
-                        if (line != "") lines.Add(line);
-                    }
-
-                    Output.Add(_parseLines(lines));
+                    string line = stream.ReadLine().Trim();
+                    nextMode = GameFile.GetMode(line, currentMode);
+                    if (nextMode != currentMode) return nextMode;
+                    if (line != "" && !IsComment(line)) lines.Add(line);
                 }
 
-                return Modes.Invalid;
+                Output.Add(_doParse(lines));
             }
+
+            return Modes.Invalid;
+        }
+
+        private static bool IsComment(string line)
+        {
+            return line[0] == '/' && line[1] == '/';
         }
     }
 
