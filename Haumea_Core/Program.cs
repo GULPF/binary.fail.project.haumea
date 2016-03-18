@@ -1,8 +1,8 @@
 ﻿using Haumea_Core.Game;
+using System;
 
 namespace Haumea_Core
 {
-#if WINDOWS || LINUX
     /// <summary>
     /// The main class.
     /// </summary>
@@ -17,10 +17,10 @@ namespace Haumea_Core
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+		[STAThread]
         static void Main(string[] args)
         {
             RunGame();
         }
     }
-#endif
 }
