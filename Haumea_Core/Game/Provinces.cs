@@ -1,4 +1,6 @@
-﻿using Haumea_Core.Geometric;
+﻿using System.Collections.Generic;
+
+using Haumea_Core.Geometric;
 using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
@@ -9,15 +11,12 @@ namespace Haumea_Core.Game
     {
         #region properties
 
+        public NodeGraph<int> Graph { get; }
+
         /// <summary>
         /// The polygon boundaries for every province.
         /// </summary>
         public Poly[] Boundaries { get; }
-
-        /// <summary>
-        /// Bidirectional dictionary mapping tag => id and id => tag.
-        /// </summary>
-        public BiDictionary<int, string> TagIdMapping { get; }
 
         /// <summary>
         /// Indicate which province the mouse is over.
@@ -40,12 +39,18 @@ namespace Haumea_Core.Game
         /// </summary>
         public int LastSelected { get; private set; }
 
+        /// <summary>
+        /// Set of all provinces that are water.
+        /// </summary>
+        public ISet<int> WaterProvinces { get; }
+
         #endregion
 
-        public Provinces(Poly[] boundaries, BiDictionary<int, string> tagIdMapping)
+        public Provinces(Poly[] boundaries, ISet<int> waterProvinces, NodeGraph<int> graph)
         {
             Boundaries = boundaries;
-            TagIdMapping = tagIdMapping;
+            WaterProvinces = waterProvinces;
+            Graph = graph;
 
             MouseOver     = -1;
             LastMouseOver = -1;

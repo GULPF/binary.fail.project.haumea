@@ -173,5 +173,17 @@ namespace Haumea_Core
 
             return sb.ToString();
         }
+
+        // Non-extenion methods
+
+        private static readonly Random rnd = new Random();
+
+        public static Color RndColor()
+        {
+            return new Color(
+                (float)rnd.NextDouble(),
+                (float)rnd.NextDouble(),
+                (float)rnd.NextDouble());
+        }
     }
 }

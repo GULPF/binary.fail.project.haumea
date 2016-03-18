@@ -3,171 +3,122 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.IO;
 
-using Microsoft.Xna.Framework;
-
-using Haumea_Core.Geometric;
-
 namespace Haumea_Core.Game.Parsing
 {
+    internal enum Modes { Province, Realm, Graph, Army, Water, Invalid }
+
     // TODO: error handling
-    public static class GameFile
+    // This isn't the most well designed class (it uses a lot of mutable arguments f.ex),
+    // but it is fairly easy to modify which is more important.
+    public static partial class GameFile
     {
         // Parses this vector notation: (x, y)
-        private static Regex vectorRgx = new Regex(@" *\( *(-?\d+) *, *(-?\d+) *\) *");
+        internal static Regex VectorRgx { get; } = new Regex(@" *\( *(-?\d+) *, *(-?\d+) *\) *");
 
+        // When adding new sub parsers, just add them here.
         public static RawGameData Parse(StreamReader stream)
+        {
+            var parsers = new Dictionary<Modes, ISubParser>();
+
+            // AddSubParsers does a bit of magic, but the important thing is that the
+            // list it returns will be filled with values by calling ApplyParsers().
+            var rProvinces  = AddSubParser<RawProvince, ProvinceParser>(parsers);
+            var rArmies     = AddSubParser<RawArmy, ArmyParser>(parsers);
+            var rConnectors = AddSubParser<RawConnector, GraphParser>(parsers);
+            var rWater      = AddSubParser<RawProvince, WaterParser>(parsers);
+            var rRealms     = AddSubParser<RawRealm, RealmParser>(parsers);
+
+            ApplyParsers(stream, parsers);
+
+            // This is kinda silly since they could use the same list all the time instead,
+            // but since this is only done once at startup (can even be done pre-start) I simply don't care.
+            rProvinces = new List<RawProvince>(rProvinces.Union(rWater));
+
+            return new RawGameData(rProvinces, rRealms, rConnectors, rArmies);
+        }
+
+        private static void ApplyParsers(StreamReader stream, IDictionary<Modes, ISubParser> parsers)
         {
             Modes currentMode = Modes.Invalid;
 
-            var provinceParser  = new SubParser<RawProvince> (2, ParseProvince);
-            var realmParser     = new SubParser<RawRealm>    (2, ParseRealm);
-            var connectorParser = new SubParser<RawConnector>(1, ParseConnector);
-            var armyParser      = new SubParser<RawArmy>     (1, ParseArmy);
-
-            IDictionary<Modes, ISubParser> parsers = new Dictionary<Modes, ISubParser> {
-                { Modes.Province, provinceParser  },
-                { Modes.Realm,    realmParser     },
-                { Modes.MapGraph, connectorParser },
-                { Modes.Army,     armyParser      }
-            };
+            Func<string, Modes, Modes> getMode = (line, mode) => GetMode(line, mode, parsers);
 
             while (!stream.EndOfStream && currentMode == Modes.Invalid)
             {
                 string line = stream.ReadLine().Trim();
                 if (line == "") continue;
 
-                currentMode = GetMode(line, currentMode);    
+                currentMode = GetMode(line, currentMode, parsers);    
             }
 
             while (!stream.EndOfStream)
             {
-                currentMode = parsers[currentMode].Parse(stream, currentMode);
-            }
-
-            return new RawGameData(provinceParser.Output, realmParser.Output,
-                connectorParser.Output, armyParser.Output);
+                currentMode = parsers[currentMode].Parse(stream, getMode);
+            }            
         }
-            
-        internal static Modes GetMode(string line, Modes currentMode)
+
+        private static IList<R> AddSubParser<R, P>(IDictionary<Modes, ISubParser> output)
+            where P : IParser<R>, new()
         {
-            switch (line)
+            var parser = new P();
+            var list = new List<R>();
+            var parseApplier = new SubParser<R>(parser, list.ToCollector());
+            output.Add(parser.Mode, parseApplier);
+            return list;
+        }
+
+        internal static Modes GetMode(string line, Modes currentMode, IDictionary<Modes, ISubParser> parsers)
+        {
+            foreach (ISubParser parser in parsers.Values)
             {
-            case "[provinces]": return Modes.Province;
-            case "[realms]":    return Modes.Realm;
-            case "[mapgraph]":  return Modes.MapGraph;
-            case "[armies]":    return Modes.Army;
-            default:            return currentMode;
+                if (line == parser.Marker) return parser.Mode;
             }
-        }
-
-        private static Color ColorFromHex(string hexString)
-        {
-            if (hexString.StartsWith("#")) hexString = hexString.Substring(1);
-            uint hex = Convert.ToUInt32(hexString, 16);
-            Color color = Color.White;
-
-            if (hexString.Length != 6) 
-            {
-                throw new InvalidOperationException("Invalid hex representation of an RGB color value.");
-            }
-
-            color.R = (byte)(hex >> 16);
-            color.G = (byte)(hex >> 8);
-            color.B = (byte)(hex);
-
-            return color;
-        }
-
-        private static RawProvince ParseProvince (IList<string> lines)
-        {
-            string[] tokens = lines[0].Split(' ');
-            string tag = tokens[0];
-            Color color = ColorFromHex(tokens[1]);
-
-            List<Vector2> vectors = new List<Vector2>();
-
-            foreach (string vectortoken in lines[1].Split('%'))
-            {
-                Match match = vectorRgx.Match(vectortoken);
-                vectors.Add(new Vector2(
-                    20 * int.Parse(match.Groups[1].Value),
-                    20 * int.Parse(match.Groups[2].Value)));
-            }
-
-            return new RawProvince(new Poly(vectors.ToArray()), tag, color);  
-        }
-
-        private static RawRealm ParseRealm(IList<string> lines)
-        {
-            string[] tokens = lines[0].Split(' ');
-            string tag = tokens[0];
-
-            IList<string> provinceTags = new List<string>();
-
-            foreach (string provincetoken in lines[1].Split(','))
-            {
-                provinceTags.Add(provincetoken.Trim());
-            }
-
-            return new RawRealm(provinceTags, tag);   
-        }
-
-        private static RawConnector ParseConnector(IList<string> lines)
-        {
-            string[] tokens = lines[0].Split(' ');
-            string tag1 = tokens[0];
-            string tag2 = tokens[1];
-            int cost = int.Parse(tokens[2]);
-
-            return new RawConnector(tag1, tag2, cost);
-        }
-
-        private static RawArmy ParseArmy(IList<string> lines)
-        {
-            string[] tokens = lines[0].Split(' ');
-            string rtag = tokens[0];
-            string ptag = tokens[1];
-            int nunits = int.Parse(tokens[2]);
-
-            return new RawArmy(rtag, ptag, nunits);
+            return currentMode;
         }
     }
 
-    internal enum Modes { Province, Realm, MapGraph, Army, Invalid }
-
     internal interface ISubParser {
-        Modes Parse(StreamReader Stream, Modes mode);
+        Modes Parse(StreamReader stream, Func<string, Modes, Modes> getMode);
+        Modes Mode { get; }
+        string Marker { get; }
     }
 
     internal class SubParser<O> : ISubParser
     {
-        public int NLines { get; }
-        private readonly Func<IList<string>, O> _doParse;
-        public IList<O> Output { get; }
+        private readonly IParser<O> _parser;
+        private readonly ICollector<O> _collector;
 
-        public SubParser(int nLines, Func<IList<string>, O> doParse)
+        public Modes Mode
         {
-            _doParse = doParse;
-
-            NLines = nLines;
-            Output = new List<O>();
+            get { return _parser.Mode; }
         }
 
-        public Modes Parse(StreamReader stream, Modes currentMode) {
+        public string Marker
+        {
+            get { return _parser.Marker; }
+        }
+
+        public SubParser(IParser<O> parser, ICollector<O> collector)
+        {
+            _parser = parser;
+            _collector = collector;
+        }
+
+        public Modes Parse(StreamReader stream, Func<string, Modes, Modes> getMode) {
             while (!stream.EndOfStream)
             {
                 IList<string> lines = new List<string>();
                 Modes nextMode;
 
-                while (lines.Count < NLines)
+                while (lines.Count < _parser.NLinesPerEntry)
                 {
                     string line = stream.ReadLine().Trim();
-                    nextMode = GameFile.GetMode(line, currentMode);
-                    if (nextMode != currentMode) return nextMode;
+                    nextMode = getMode(line, Mode);
+                    if (nextMode != Mode) return nextMode;
                     if (line != "" && !IsComment(line)) lines.Add(line);
                 }
 
-                Output.Add(_doParse(lines));
+                _collector.Collect(_parser.Parse(lines));
             }
 
             return Modes.Invalid;

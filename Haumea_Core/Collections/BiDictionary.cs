@@ -56,13 +56,13 @@ namespace Haumea_Core.Collections
         public T1 this [T2 key]
         {
             get { return _backward[key]; }
-            set { _backward[key] = value; }
+            set { Add(key, value); }
         }
 
         public T2 this [T1 key]
         {
             get { return _forward[key]; }
-            set { _forward[key] = value; }
+            set { Add(key, value); }
         }
 
         public bool Remove(T1 key){ return Remove(key, this[key]); }

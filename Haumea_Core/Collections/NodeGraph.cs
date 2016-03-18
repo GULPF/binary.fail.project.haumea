@@ -18,7 +18,6 @@ namespace Haumea_Core.Collections
         public NodeGraph(IEnumerable<Connector<N>> connectors, bool twoway)
         {
             Nodes = new Dictionary<N, IList<Connector<N>>>();
-            IList<Connector<N>> nodeConnectors;
 
             foreach (Connector<N> connector in connectors)
             {

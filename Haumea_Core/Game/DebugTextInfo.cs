@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 
 using Haumea_Core.Rendering;
+using Haumea_Core.Collections;
 
 namespace Haumea_Core.Game
 {
@@ -12,17 +13,21 @@ namespace Haumea_Core.Game
     {
         private Provinces _provinces;
         private Units _units;
-        private Realms _realms;
+
+        private BiDictionary<int, string> _provincesTagId;
+        private BiDictionary<int, string> _realmsTagId;
 
         private SpriteFont _debugFont;
 
         private InputState _input;
 
-        public DebugTextInfo(Provinces provinces, Units units, Realms realms)
+        public DebugTextInfo(Provinces provinces, Units units, 
+            BiDictionary<int, string> realmsTagId, BiDictionary<int, string> provincesTagId)
         {
             _provinces = provinces;
             _units = units;
-            _realms = realms;
+            _provincesTagId = provincesTagId;
+            _realmsTagId = realmsTagId;
         }
 
         public void LoadContent(ContentManager content)
@@ -41,8 +46,10 @@ namespace Haumea_Core.Game
 
             if (_provinces.MouseOver > -1)
             {
-                hoveredTag = _provinces.TagIdMapping[_provinces.MouseOver];
-                hoveredRealm = _realms.GetOwnerTag(_provinces.MouseOver);
+                try {
+                    hoveredTag = _provincesTagId[_provinces.MouseOver];
+                    hoveredRealm = _realmsTagId[_provinces.MouseOver];    
+                } catch (Exception) {}
             }
 
             if (_units.SelectedArmies.Count > 0)
@@ -51,7 +58,7 @@ namespace Haumea_Core.Game
             }
 
             string selectedTag = _provinces.Selected > -1
-                ? _provinces.TagIdMapping[_provinces.Selected]
+                ? _provincesTagId[_provinces.Selected]
                 : "<n/a>";
 
             // Apparently, sprite batch coordinates are automagicly translated to clip space.

@@ -21,5 +21,13 @@ namespace Haumea_Core
             _outref.Add(t);
         }
     }
+
+    public static class CollectorExtensions
+    {
+        public static ICollector<O> ToCollector<O>(this ICollection<O> collection)
+        {
+            return new WallHole<O>(collection);
+        }
+    }
 }
 

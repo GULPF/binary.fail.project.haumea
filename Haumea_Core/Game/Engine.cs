@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -174,6 +173,8 @@ namespace Haumea_Core.Game
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
 
             _spriteBatch.End();
+
+            _renderer.DrawToScreen(Debug.DebugInstructions.Values.Flatten());
         }
     }
 }

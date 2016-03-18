@@ -8,17 +8,22 @@ using Haumea_Core.Geometric;
 using Haumea_Core.Rendering;
 using Haumea_Core.UIForms;
 
+using TagIdMap = Haumea_Core.Collections.BiDictionary<int, string>;
+
 namespace Haumea_Core.Game.Parsing
 {
     public static class Initializer
     {
         public static InitializedWorld Initialize(RawGameData data, ContentManager content)
         {
+            var realmsTagId    = InitializeRealmTags(data.RawRealms);
+            var provincesTagId = InitializeProvinceTags(data.RawProvinces);
+
             var events    = new EventController();
-            var provinces = InitializeProvinces(data.RawProvinces);
-            var mapGraph  = InitializeMapGraph(data.RawConnectors, provinces);
-            var realms    = InitializeRealms(data.RawRealms, provinces);
-            var units     = InitializeUnits(data.RawArmies, provinces, mapGraph, realms, events);
+            var mapGraph  = InitializeMapGraph(data.RawConnectors, provincesTagId);
+            var provinces = InitializeProvinces(data.RawProvinces, mapGraph);
+            var realms    = new Realms();
+            var units     = InitializeUnits(data.RawArmies, provincesTagId, realmsTagId, provinces, events);
 
             // TODO: I have realized these two are so tangled into each other they should probably be merged
             // ..... Something like "mapView"
@@ -27,7 +32,7 @@ namespace Haumea_Core.Game.Parsing
             FormCreator ui = new FormCreator(content, windows);
             ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
             UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
-            DebugTextInfo debugView = new DebugTextInfo(provinces, units, realms);
+            DebugTextInfo debugView = new DebugTextInfo(provinces, units, realmsTagId, provincesTagId);
 
             IList<IModel> models = new List<IModel> {
                 events, provinces, realms, units
@@ -45,58 +50,68 @@ namespace Haumea_Core.Game.Parsing
             return new InitializedWorld(models, views, windows);
         }
 
-        private static Provinces InitializeProvinces(IList<RawProvince> rProvinces)
+        private static BiDictionary<int, string> InitializeProvinceTags(IList<RawProvince> rProvinces)
         {
-            Poly[] boundaries = new Poly[rProvinces.Count];
-            BiDictionary<int, string> tagIdMapping = new BiDictionary<int, string>();
+            TagIdMap tagIdMapping = new TagIdMap();
 
-            for (int id = 0; id < boundaries.Length; id++) {
+            for (int id = 0; id < rProvinces.Count; id++) {
                 tagIdMapping.Add(id, rProvinces[id].Tag);
-                boundaries[id] = rProvinces[id].Poly;
             }
 
-            return new Provinces(boundaries, tagIdMapping);
+            return tagIdMapping;            
         }
 
-        private static NodeGraph<int> InitializeMapGraph(IList<RawConnector> rConns, Provinces provinces)
+        private static BiDictionary<int, string> InitializeRealmTags(IList<RawRealm> rRealms)
+        {
+            TagIdMap tagIdMapping = new TagIdMap();
+
+            for (int id = 0; id < rRealms.Count; id++)
+            {
+                tagIdMapping[id] = rRealms[id].Tag;
+            }
+
+            return tagIdMapping;
+        }
+
+        private static Provinces InitializeProvinces(IList<RawProvince> rProvinces, NodeGraph<int> graph)
+        {
+            Poly[] boundaries = new Poly[rProvinces.Count];
+            ISet<int> waterProvinces = new HashSet<int>();
+
+            for (int id = 0; id < rProvinces.Count; id++) {
+                boundaries[id] = rProvinces[id].Poly;
+                if (rProvinces[id].IsWater)
+                {
+                    waterProvinces.Add(id);
+                }
+            }
+
+            return new Provinces(boundaries, waterProvinces, graph);
+        }
+
+        private static NodeGraph<int> InitializeMapGraph(IList<RawConnector> rConns, TagIdMap provinceTagId)
         {
             IList<Connector<int>> conns = new List<Connector<int>>();
 
             foreach (RawConnector rconn in rConns)
             {
-                int ID1 = provinces.TagIdMapping[rconn.Tag1];
-                int ID2 = provinces.TagIdMapping[rconn.Tag2];
+                int ID1 = provinceTagId[rconn.Tag1];
+                int ID2 = provinceTagId[rconn.Tag2];
                 conns.Add(new Connector<int>(ID1, ID2, rconn.Cost));
             }
 
             return new NodeGraph<int>(conns, true);
         }
 
-        private static Realms InitializeRealms(IList<RawRealm> rawRealms, Provinces provinces)
+        private static Units InitializeUnits(IList<RawArmy> rawArmies, TagIdMap provinceTagId, TagIdMap realmsTagId,
+            Provinces provinces, EventController events)
         {
-            Realms realms = new Realms();
-
-            foreach (RawRealm realm in rawRealms)
-            {
-                foreach (string provinceTag in realm.ProvincesOwned)
-                {
-                    int provinceID = provinces.TagIdMapping[provinceTag];
-                    realms.AssignOwnership(provinceID, realm.Tag);
-                }
-            }
-
-            return realms;
-        }
-
-        private static Units InitializeUnits(IList<RawArmy> rawArmies, Provinces provinces, NodeGraph<int> mapGraph,
-            Realms realms, EventController events)
-        {
-            Units units = new Units(mapGraph, events);
+            Units units = new Units(provinces, events);
 
             foreach (RawArmy rawArmy in rawArmies)
             {
-                int ownerID = realms.TagIdMapping[rawArmy.Owner];
-                int locationID = provinces.TagIdMapping[rawArmy.Location];
+                int ownerID    = realmsTagId[rawArmy.Owner];
+                int locationID = provinceTagId[rawArmy.Location];
                 Units.Army army = new Units.Army(ownerID, locationID, rawArmy.NUnits);
                 units.AddArmy(army);
             }

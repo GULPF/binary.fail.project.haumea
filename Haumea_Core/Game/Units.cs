@@ -9,9 +9,11 @@ namespace Haumea_Core.Game
     {
         // A lot of things in this class might seem weird and clunky, but it's not that bad.
 
-        private readonly NodeGraph<int> _mapGraph;
+        private readonly Provinces _provinces;
         private readonly IntGUID _guid;
         private readonly EventController _events;
+
+        private readonly IDictionary<int, ISet<int>> _loadableNavies;
 
         /// <summary>
         /// Keeps track of which armies are located in which province.
@@ -30,9 +32,9 @@ namespace Haumea_Core.Game
         /// </summary>
         public ISet<int> SelectedArmies { get; }
 
-        public Units(NodeGraph<int> mapGraph, EventController events)
+        public Units(Provinces provinces, EventController events)
         {
-            _mapGraph = mapGraph;
+            _provinces = provinces;
             _guid = new IntGUID(0);
             _events = events;
 
@@ -68,10 +70,10 @@ namespace Haumea_Core.Game
         {
             Army army = Armies[armyID];
 
-            GraphPath<int> path = _mapGraph.Dijkstra(army.Location, destination);
+            GraphPath<int> path = _provinces.Graph.Dijkstra(army.Location, destination);
             if (path == null) return;
 
-            int daysUntilFirstMove = _mapGraph.NeighborDistance(army.Location, path.Nodes[1]);
+            int daysUntilFirstMove = _provinces.Graph.NeighborDistance(army.Location, path.Nodes[1]);
             ArmyOrder order = new ArmyOrder(armyID, path);
 
             Action moveUnit = null; // need to initialize it twice due to recursion below
@@ -82,7 +84,7 @@ namespace Haumea_Core.Game
 
                 if (order.MoveForward())
                 {
-                    int daysUntilNextMove = _mapGraph.NeighborDistance(order.CurrentNode, order.NextNode);
+                    int daysUntilNextMove = _provinces.Graph.NeighborDistance(order.CurrentNode, order.NextNode);
                     _events.AddEvent(daysUntilNextMove, moveUnit);    
                 }
             };

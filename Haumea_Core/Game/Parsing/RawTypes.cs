@@ -13,12 +13,14 @@ namespace Haumea_Core.Game.Parsing
         public Poly Poly { get; }
         public string Tag { get; }
         public Color Color { get; }
+        public bool IsWater { get; }
 
-        public RawProvince(Poly poly, string tag, Color color)
+        public RawProvince(Poly poly, string tag, Color color, bool isWater)
         {
             Poly = poly;
             Tag = tag;
             Color = color;
+            IsWater = isWater;
         }
     }
 
@@ -69,8 +71,8 @@ namespace Haumea_Core.Game.Parsing
         public IList<RawConnector> RawConnectors { get; }
         public IList<RawArmy> RawArmies { get; }
 
-        public RawGameData(IList<RawProvince> rawProvinces,
-            IList<RawRealm> rawRealms, IList<RawConnector> rawConnectors, IList<RawArmy> rawArmies)
+        public RawGameData(IList<RawProvince> rawProvinces, IList<RawRealm> rawRealms,
+            IList<RawConnector> rawConnectors, IList<RawArmy> rawArmies)
         {
             RawProvinces = rawProvinces;
             RawRealms = rawRealms;
