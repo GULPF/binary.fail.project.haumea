@@ -66,7 +66,7 @@ namespace Haumea_Core.Game
 
             _mouseCursorTexture = _content.Load<Texture2D>("test/cursor");
 
-            const string path = "../../../gamedata.haumea";
+            const string path = "../../../../gamedata.haumea";
             RawGameData gameData;
 
             using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
