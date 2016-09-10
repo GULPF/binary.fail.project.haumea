@@ -54,21 +54,7 @@ namespace Haumea.Game
         public void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-<<<<<<< HEAD:haumea.desktopgl/Game/Engine.cs
             _spriteBatch = new SpriteBatch(_gdm.GraphicsDevice);
-=======
-            _spriteBatch = new SpriteBatch(_graphics.GraphicsDevice);
-
-            _mouseCursorTexture = _content.Load<Texture2D>("test/cursor");
-
-            const string path = "../../../../gamedata.haumea";
-            RawGameData gameData;
-
-            using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
-            {
-                gameData = GameFile.Parse(stream);    
-            }
->>>>>>> 4668933022a51ddc3b4a0b5ac389c17a60962a57:Haumea_Core/Game/Engine.cs
 
             _mouseCursorTexture = _content.Load<Texture2D>("cursor");
 
