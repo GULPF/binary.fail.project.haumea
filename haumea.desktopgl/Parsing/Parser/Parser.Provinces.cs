@@ -13,87 +13,134 @@ namespace Haumea.Parsing
         {
             IList<RawProvince> provinces = new List<RawProvince>();
 
-            Color color = Color.White;
-            string tag = "";
-            List<IPoly> polygons = new List<IPoly>();
-            IPoly outline = null;
-            List<IPoly> holes = new List<IPoly>();
+            ProvinceBuilder provBuilder = new ProvinceBuilder();
+            PolygonBuilder  polyBuilder = new PolygonBuilder();
 
             foreach (string line in Lines(text))
             {
-                if (line.StartsWith("§"))
+                Vector2[] vectors;
+
+                switch (line[0])
                 {
-                    if (tag != "")
+                case '§':  // New province
+                    if (provBuilder.Tag != "")
                     {
-                        provinces.Add(new RawProvince(polygons, tag, color, false));
+                        provBuilder.Polys.Add(polyBuilder.Build());
+                        provinces.Add(provBuilder.Build());
                     }
 
                     string[] tokens = line.Split(' ');
-                    tag = tokens[0].Substring(1);
+                    provBuilder.Tag = tokens[0].Substring(1);
 
-                    if (!TryParseHexColor(tokens[1], out color))
+                    if (!TryParseHexColor(tokens[1], out provBuilder.Color))
                     {
-                        color = Color.Black;
                         Console.Error.WriteLine("Failed to parse color: " + tokens[1]);
                     }
-                }
-                else
-                {
-                    bool isHole = line.StartsWith("\\");
+                    break;
+                case '\\': // New hole to existing polygon
+                    vectors = ParseVectors(line.Substring(1));
+                    polyBuilder.Holes.Add(new Poly(vectors));
+                    break;
+                default:   // New polygon
+                    vectors = ParseVectors(line);
 
-                    string[] vectorTokens = isHole
-                        ? line.Substring(1).Split('%')
-                        : line.Split('%');
-                    
-                    Vector2[] vectors = new Vector2[vectorTokens.Length];
-                    int index = 0;
-
-                    foreach (string vectorToken in vectorTokens)
+                    if (polyBuilder.Outline != null)
                     {
-                        Match match = VectorRgx.Match(vectorToken);
-                        int x = 0, y = 0;
-
-                        if (!int.TryParse(match.Groups[1].Value, out x) ||
-                            !int.TryParse(match.Groups[2].Value, out y))
-                        {
-                            Console.Error.WriteLine("Failed to parse coordinate '" + vectorToken +
-                                "' belonging to '" + tag + "'");
-                        }
-
-                        vectors[index++] = new Vector2(20 * x, 20 *y);
+                        provBuilder.Polys.Add(polyBuilder.Build());
                     }
 
-                    if (isHole)
-                    {
-                        holes.Add(new Poly(vectors));
-                    }
-                    else
-                    {
-                        if (outline != null)
-                        {
-                            polygons.Add(CreatePoly(outline, holes));
-                            holes.Clear();
-                        }
-
-                        outline = new Poly(vectors);
-                    }
+                    polyBuilder.Outline = new Poly(vectors);
+                    break;
                 }
             }
 
-            polygons.Add(CreatePoly(outline, holes));
-            provinces.Add(new RawProvince(polygons, tag, color, false));
+            provBuilder.Polys.Add(polyBuilder.Build());
+            provinces.Add(provBuilder.Build());
             return provinces;
         }
 
-        private static IPoly CreatePoly(IPoly poly, List<IPoly> holes)
+        private static Vector2[] ParseVectors(string text)
         {
-            if (holes.Count > 0)
+            string[] vectorTokens = text.Split('%');
+            Vector2[] vectors = new Vector2[vectorTokens.Length];
+            int index = 0;
+
+            foreach (string vectorToken in vectorTokens)
             {
-                return new ComplexPoly(poly,  holes.ToArray());
+                Match match = VectorRgx.Match(vectorToken);
+                int x = 0, y = 0;
+
+                if (!int.TryParse(match.Groups[1].Value, out x) ||
+                    !int.TryParse(match.Groups[2].Value, out y))
+                {
+                    Console.Error.WriteLine("Failed to parse coordinate '" + vectorToken + "'");
+                }
+
+                vectors[index++] = new Vector2(20 * x, 20 *y);
             }
-            else
+
+            return vectors;
+        }
+
+        private class ProvinceBuilder
+        {
+            public String Tag;
+            public List<IPoly> Polys;
+            public Color Color;
+
+            public ProvinceBuilder()
             {
-                return poly;   
+                Reset();
+            }
+
+            public RawProvince Build()
+            {
+                var res = new RawProvince(Polys, Tag, Color, false);
+                Reset();
+                return res;
+            }
+
+            private void Reset()
+            {
+                Tag = "";
+                Polys = new List<IPoly>();
+                Color = Color.CornflowerBlue;
+            }
+        }
+
+        private class PolygonBuilder
+        {
+            public IPoly Outline;
+            public List<IPoly> Holes;
+
+            public PolygonBuilder()
+            {
+                Reset();
+            }
+
+            public IPoly Build()
+            {
+                var res = CreatePoly(Outline, Holes);
+                Reset();
+                return res;
+            }
+
+            private void Reset()
+            {
+                Holes = new List<IPoly>();
+                Outline = null;
+            }
+
+            private static IPoly CreatePoly(IPoly poly, List<IPoly> holes)
+            {
+                if (holes.Count > 0)
+                {
+                    return new ComplexPoly(poly,  holes.ToArray());
+                }
+                else
+                {
+                    return poly;   
+                }
             }
         }
     }

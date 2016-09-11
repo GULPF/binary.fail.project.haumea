@@ -34,7 +34,26 @@ namespace Haumea.Game
             //ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
             //UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
             //DebugTextView debugView = new DebugTextView(provinces, units, realmsTagId, provincesTagId);
-            var mapView = new MapView(provinces, units);
+
+            RenderInstruction[][] standardInstrs = new RenderInstruction[provinces.Boundaries.Length][];
+            RenderInstruction[][] idleInstrs     = new RenderInstruction[provinces.Boundaries.Length][];
+
+            for (int id = 0; id < provinces.Boundaries.Length; id++)
+            {
+                MultiPoly mpoly = provinces.Boundaries[id];
+
+                Color c = data.RawProvinces[id].Color;
+                if (data.RawProvinces[id].IsWater) c = Color.Blue;
+
+                RenderInstruction[] mpolyInstrs = RenderInstruction.MultiPolygon(
+                    mpoly, c, Color.Blue);
+
+                standardInstrs[id] = mpolyInstrs;
+
+                idleInstrs[id] = RenderInstruction.MultiPolygon(mpoly, c.Darken(), Color.Black);
+            }
+
+            var mapView = new MapView(provinces, units, standardInstrs, idleInstrs);
 
             IList<IModel> models = new List<IModel> {
                 events, provinces, realms, units

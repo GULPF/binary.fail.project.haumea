@@ -29,7 +29,7 @@ namespace unittests
         }
 
         [Test]
-        public void Polygon()
+        public void TwoPolygon()
         {
             const string parseText =
 @"§P1 #03020F
@@ -46,10 +46,35 @@ namespace unittests
             Assert.AreEqual(5, rProvince.Polys[1].Points.Length);
         }
 
-        private static StreamReader ToStreamReader(string str)
+        [Test]
+        public void OnePolygon()
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(str);
-            return new StreamReader(new MemoryStream(bytes));
+            const string parseText =
+@"§P1 #B82E00
+(0, 0) % (0, 5) % (5, 5) % (5, 0)
+\ (1, 1) % (1, 2) % (2, 2) % (2, 1)
+\ (3, 3) % (3, 4) % (4, 4) % (4, 3)";
+
+            var rProvince = Parser.Provinces(parseText)[0];
+            Assert.AreEqual(1, rProvince.Polys.Count);
+            Assert.AreEqual(2, rProvince.Polys[0].Holes.Length);;
+        }
+
+        [Test]
+        public void TwoProvinces()
+        {
+            const string parseText =
+@"§P1 #B82E00
+(0, 0) % (2, 1) % (3, 1) % (3, 3) % (2, 6) % (-2, 6) % (-3, 4) % (-1, 2)
+§P4 #F5B815
+(16, 3) % (17, 5) % (16, 7) % (16, 9) % (14, 10) % (12, 7) % (13, 4)";
+
+            var rProvinces = Parser.Provinces(parseText);
+            Assert.AreEqual(2, rProvinces.Count);
+            Assert.AreEqual(1, rProvinces[0].Polys.Count);
+            Assert.AreEqual(1, rProvinces[1].Polys.Count);
+            Assert.AreEqual(8, rProvinces[0].Polys[0].Points.Length);
+            Assert.AreEqual(7, rProvinces[1].Polys[0].Points.Length);
         }
     }
 }

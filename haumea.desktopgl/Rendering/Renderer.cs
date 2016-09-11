@@ -52,9 +52,10 @@ namespace Haumea.Rendering
         // TODO: Argument can't be enum if basiceffect is complex, since it needs multipass
         public void DrawToScreen(IEnumerable<RenderInstruction> instructions)
         {
-            foreach (EffectPass effectPass in Effect.CurrentTechnique.Passes) {
-                effectPass.Apply();
-                foreach (RenderInstruction renderInstruction in instructions) {
+            foreach (RenderInstruction renderInstruction in instructions) {
+                foreach (EffectPass effectPass in Effect.CurrentTechnique.Passes) {
+                    effectPass.Apply();
+
                     int nPrimitives;
 
                     switch (renderInstruction.Type) {

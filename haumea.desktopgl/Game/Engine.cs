@@ -58,7 +58,7 @@ namespace Haumea.Game
 
             _mouseCursorTexture = _content.Load<Texture2D>("cursor");
 
-            LoadFile("../../simple.haumea");
+            LoadFile("../../gamedata.haumea");
 
             foreach (IView view in _views)
             {

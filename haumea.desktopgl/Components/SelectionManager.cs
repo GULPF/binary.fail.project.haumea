@@ -32,16 +32,20 @@ namespace Haumea.Components
             Hovering.Clear();
         }
 
-        public void Select(T id, bool keepSelected = false)
+        public bool Select(T id, bool keepSelected = false)
         {
+            if (Selected.Contains(id)) return false;
             if (!keepSelected) DeselectAll();
             Selected.Add(id);
+            return true;
         }
 
-        public void Hover(T id, bool keepHovered = false)
+        public bool Hover(T id, bool keepHovered = false)
         {
+            if (Hovering.Contains(id)) return false;
             if (!keepHovered) StopHoveringAll();
             Hovering.Add(id);
+            return true;
         }
 
         public bool IsSelected(T id)

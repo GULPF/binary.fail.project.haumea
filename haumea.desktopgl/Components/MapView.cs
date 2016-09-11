@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Content;
@@ -17,12 +19,20 @@ namespace Haumea.Components
 
         private SpriteFont _unitsFont;
 
-        public MapView(Provinces provinces, Units units)
+        private readonly RenderInstruction[][] _standardInstrs;
+        private readonly RenderInstruction[][] _idleInstrs;
+
+        public MapView(Provinces provinces, Units units,
+            RenderInstruction[][] standardInstrs,
+            RenderInstruction[][] idleInstrs)
         {
             _provinces = provinces;
             _units = units;
 
             _selection = new SelectionManager<int>();
+
+            _standardInstrs = standardInstrs;
+            _idleInstrs     = idleInstrs;
         }
             
         public void LoadContent(ContentManager content)
@@ -33,6 +43,7 @@ namespace Haumea.Components
         public void Update(InputState input)
         {
             Vector2 position = input.Mouse;
+            bool isHovering = false;
 
             for (int id = 0; id < _provinces.Boundaries.Length; id++)
             {
@@ -44,7 +55,15 @@ namespace Haumea.Components
                         _selection.Select(id);
                     }
 
+                    foreach (int oldId in _selection.Hovering)
+                    {
+                        SwapInstrs(oldId);
+                    }
+
                     _selection.Hover(id);
+                    SwapInstrs(id);
+
+                    isHovering = true;
 
                     // Provinces can't overlap so we exit immediately when we find a hit.
                     return;
@@ -52,19 +71,19 @@ namespace Haumea.Components
             }    
 
             // Not hit - clear mouse over.
-            _selection.StopHoveringAll();
+            if (!isHovering)
+            {
+                foreach (int id in _selection.Hovering)
+                {
+                    SwapInstrs(id);
+                }
+                _selection.StopHoveringAll();    
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
-            foreach (MultiPoly mpoly in _provinces.Boundaries)
-            {
-                RenderInstruction[] instrs = RenderInstruction.MultiPolygon(mpoly, Color.Red, Color.Black);
-                renderer.DrawToScreen(instrs);
-            }
-                
-
-            //throw new NotImplementedException();
+            renderer.DrawToScreen(_standardInstrs.SelectMany(x => x));
         }
 
         private void DrawProvinces()
@@ -85,6 +104,13 @@ namespace Haumea.Components
             }
 
             renderer.DrawToScreen(RenderInstructions);*/
+        }
+
+        public void SwapInstrs(int id)
+        {
+            var tmp = _standardInstrs[id];
+            _standardInstrs[id] = _idleInstrs[id];
+            _idleInstrs[id] = tmp;   
         }
     }
 }
