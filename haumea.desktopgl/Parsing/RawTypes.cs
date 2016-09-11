@@ -66,14 +66,14 @@ namespace Haumea.Parsing
 
     public struct RawProvince
     {
-        public IShape Shape { get; }
+        public IList<IPoly> Polys { get; }
         public string Tag { get; }
         public Color Color { get; }
         public bool IsWater { get; }
 
-        public RawProvince(IShape shape, string tag, Color color, bool isWater)
+        public RawProvince(IList<IPoly> polys, string tag, Color color, bool isWater)
         {
-            Shape = shape;
+            Polys = polys;
             Tag = tag;
             Color = color;
             IsWater = isWater;

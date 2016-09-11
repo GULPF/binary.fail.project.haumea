@@ -25,7 +25,7 @@ namespace Haumea.Parsing
                 {
                     if (tag != "")
                     {
-                        provinces.Add(new RawProvince(new Shape(polygons.ToArray()), tag, color, false));
+                        provinces.Add(new RawProvince(polygons, tag, color, false));
                     }
 
                     string[] tokens = line.Split(' ');
@@ -81,7 +81,7 @@ namespace Haumea.Parsing
             }
 
             polygons.Add(CreatePoly(outline, holes));
-            provinces.Add(new RawProvince(new Shape(polygons.ToArray()), tag, color, false));
+            provinces.Add(new RawProvince(polygons, tag, color, false));
             return provinces;
         }
 

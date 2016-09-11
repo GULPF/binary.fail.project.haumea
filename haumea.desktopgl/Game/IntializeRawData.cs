@@ -34,14 +34,14 @@ namespace Haumea.Game
             //ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
             //UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
             //DebugTextView debugView = new DebugTextView(provinces, units, realmsTagId, provincesTagId);
-
+            var mapView = new MapView(provinces, units);
 
             IList<IModel> models = new List<IModel> {
                 events, provinces, realms, units
             };
             
             IList<IView> views = new List<IView> {
-                windows
+                mapView, windows
             };
 
             return new InitializedRawGameData(models, views, windows);
@@ -76,7 +76,9 @@ namespace Haumea.Game
             ISet<int> waterProvinces = new HashSet<int>();
 
             for (int id = 0; id < rProvinces.Count; id++) {
-                boundaries[id] = rProvinces[id].Shape;
+                // TODO: Non-complex provinces should just be kept as a single polyon,
+                // ..... not a shape.
+                boundaries[id] = new Shape(rProvinces[id].Polys.ToArray());
                 if (rProvinces[id].IsWater)
                 {
                     waterProvinces.Add(id);
