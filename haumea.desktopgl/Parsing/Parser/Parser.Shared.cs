@@ -16,7 +16,7 @@ namespace Haumea.Parsing
 
             foreach (string line in text.Split('\n'))
             {
-                yield return line;
+                if (line.Length > 0) yield return line;
             }
         }
 

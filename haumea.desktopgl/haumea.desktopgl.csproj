@@ -44,9 +44,6 @@
     <Reference Include="OpenTK">
       <HintPath>..\packages\MonoGame.Framework.DesktopGL.3.5.1.1679\lib\net40\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="Triangulator">
-      <HintPath>libs\Triangulator.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -94,9 +91,10 @@
     <Compile Include="Game\HaumeaGame.cs" />
     <Compile Include="Parsing\Parser\Parser.Waters.cs" />
     <Compile Include="Game\GameAction.cs" />
-    <Compile Include="Geometric\Shape.cs" />
     <Compile Include="Components\MapView.cs" />
-    <Compile Include="Geometric\IShape.cs" />
+    <Compile Include="Components\SelectionManager.cs" />
+    <Compile Include="Geometric\MultiPoly.cs" />
+    <Compile Include="Geometric\IHitable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
@@ -121,5 +119,11 @@
     <Folder Include="Parsing\" />
     <Folder Include="Components\" />
     <Folder Include="Parsing\Parser\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Triangulator\Triangulator.csproj">
+      <Project>{C6EDD4AE-30A0-411A-A909-59F9A99F2CF5}</Project>
+      <Name>Triangulator</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

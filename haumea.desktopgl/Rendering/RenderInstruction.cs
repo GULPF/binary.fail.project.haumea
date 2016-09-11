@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Triangulator;
@@ -57,10 +58,10 @@ namespace Haumea.Rendering
 
             Vector2[] pointsToSend = poly.Points;
 
-            foreach (IPoly hole in poly.Holes)
+            /*foreach (IPoly hole in poly.Holes)
             {
                 pointsToSend = Triangulator.Triangulator.CutHoleInShape(pointsToSend, hole.Points);
-            }
+            }*/
 
             Triangulator.Triangulator.Triangulate(pointsToSend, WindingOrder.Clockwise, out vectors, out ind);
 
@@ -276,6 +277,24 @@ namespace Haumea.Rendering
             return new RenderInstruction(vertexRectangle, ind, PrimitiveType.TriangleList);
         }
 
+        public static RenderInstruction[] MultiPolygon(MultiPoly multiPoly, Color color, Color holeColor)
+        {
+            List<RenderInstruction> instructions = new List<RenderInstruction>();
+
+            foreach (IPoly poly in multiPoly.Polys)
+            {
+                instructions.Add(RenderInstruction.Polygon(poly, color));
+
+                foreach (IPoly hole in poly.Holes)
+                {
+                    instructions.Add(RenderInstruction.Polygon(hole, holeColor));
+                }
+            }
+
+            return instructions.ToArray();
+        }
+
         #endregion
+
     }
 }

@@ -5,18 +5,18 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    public class Shape : IShape
+    public class MultiPoly : IHitable
     {
-        public IShape[] Shapes { get; }
+        public IPoly[] Polys { get; }
 
-        public Shape(IShape[] shapes)
+        public MultiPoly(IPoly[] polys)
         {
-            Shapes = shapes;
+            Polys = polys;
         }
             
         public bool IsPointInside(Vector2 point)
         {
-            return Shapes.Any(s => s.IsPointInside(point));
+            return Polys.Any(s => s.IsPointInside(point));
         }
     }
 }

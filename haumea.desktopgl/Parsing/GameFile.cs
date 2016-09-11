@@ -46,7 +46,7 @@ namespace Haumea.Parsing
             string line;
             while ((line = stream.ReadLine()) != null)
             {
-                if (!line.StartsWith("//"))
+                if (!line.StartsWith("//") && line.Length > 0)
                 {
                     Match match = _groupNameRgx.Match(line);
                     if (match.Success)

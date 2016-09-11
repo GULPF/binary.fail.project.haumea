@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    public interface IPoly : IShape
+    public interface IPoly : IHitable
     {
         // The boundary box of the polygon,
         // defined as the smallest rectangle the polygon fits in.

@@ -4,19 +4,16 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Haumea.Rendering;
+using Haumea.Geometric;
 
 namespace Haumea.Components
 {
     public class MapView : IView
     {
-        private int _mouseOver;
-        private int _lastMouseOver;
-        private int _selected;
+        private SelectionManager<int> _selection;
 
         private readonly Provinces _provinces;
         private readonly Units _units;
-
-
 
         private SpriteFont _unitsFont;
 
@@ -25,9 +22,7 @@ namespace Haumea.Components
             _provinces = provinces;
             _units = units;
 
-            _mouseOver     = -1;
-            _lastMouseOver = -1;
-            _selected      = -1;
+            _selection = new SelectionManager<int>();
         }
             
         public void LoadContent(ContentManager content)
@@ -39,25 +34,17 @@ namespace Haumea.Components
         {
             Vector2 position = input.Mouse;
 
-            bool doSelect    = input.WentActive(Buttons.LeftButton);
-
             for (int id = 0; id < _provinces.Boundaries.Length; id++)
             {
-                
                 if (_provinces.Boundaries[id].IsPointInside(position)) {
 
                     // Only handle new selections.
-                    if (id != _selected && doSelect)
+                    if (input.WentActive(Buttons.LeftButton))
                     {
-                        _selected = id;
+                        _selection.Select(id);
                     }
 
-                    // If this is not a new mouse over, don't bother.
-                    if (id != _mouseOver && !input.IsActive(Buttons.LeftButton))
-                    {
-                        _lastMouseOver = _mouseOver;
-                        _mouseOver = id;
-                    }
+                    _selection.Hover(id);
 
                     // Provinces can't overlap so we exit immediately when we find a hit.
                     return;
@@ -65,15 +52,19 @@ namespace Haumea.Components
             }    
 
             // Not hit - clear mouse over.
-            if (_mouseOver == -1) {
-                _lastMouseOver = _mouseOver;
-                _mouseOver = -1;
-            }
+            _selection.StopHoveringAll();
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
-            throw new NotImplementedException();
+            foreach (MultiPoly mpoly in _provinces.Boundaries)
+            {
+                RenderInstruction[] instrs = RenderInstruction.MultiPolygon(mpoly, Color.Red, Color.Black);
+                renderer.DrawToScreen(instrs);
+            }
+                
+
+            //throw new NotImplementedException();
         }
 
         private void DrawProvinces()
@@ -94,11 +85,6 @@ namespace Haumea.Components
             }
 
             renderer.DrawToScreen(RenderInstructions);*/
-        }
-
-        private void Units()
-        {
-            
         }
     }
 }

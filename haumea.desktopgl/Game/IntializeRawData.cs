@@ -72,13 +72,13 @@ namespace Haumea.Game
 
         private static Provinces InitializeProvinces(IList<RawProvince> rProvinces, NodeGraph<int> graph)
         {
-            IShape[] boundaries = new Shape[rProvinces.Count];
+            MultiPoly[] boundaries = new MultiPoly[rProvinces.Count];
             ISet<int> waterProvinces = new HashSet<int>();
 
             for (int id = 0; id < rProvinces.Count; id++) {
                 // TODO: Non-complex provinces should just be kept as a single polyon,
                 // ..... not a shape.
-                boundaries[id] = new Shape(rProvinces[id].Polys.ToArray());
+                boundaries[id] = new MultiPoly(rProvinces[id].Polys.ToArray());
                 if (rProvinces[id].IsWater)
                 {
                     waterProvinces.Add(id);

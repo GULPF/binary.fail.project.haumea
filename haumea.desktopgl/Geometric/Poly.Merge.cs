@@ -6,13 +6,6 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    // CHANGES NEEDED:
-    // - In some annoying cases, the next point can't be choosen. Need to test both: one is hole, one is outline
-    // - When testing ways:
-    //      - look for the end!
-    //      - add self & other candidate to visited
-    // - Need to handle merging inside hole (not to hard).
-
     /// <summary>
     /// This class makes some big assumptions:
     ///     - In the entire set of polygons which are used, no overlapps except for the rand exists.
@@ -20,7 +13,55 @@ namespace Haumea.Geometric
     ///       of another polygon, the 2nd polygon will have an extra point where the shared line stops.
     ///     - In the entire set of polygons which are used, there exist no borders between polygons which consist
     ///       of a single point.
-    ///     
+    /// 
+    /// Terminology:
+    ///     Mergee: the outlines (or outline + hole) that are being merged.
+    ///     Unique point: point that only exist in one of the mergees.
+    ///     Neighbor: a point is a neighbor to another point if they are directly connected.
+    /// 
+    /// The basic steps of the algorithm:
+    /// 0.  Figure out if the merge is inverse or normal.
+    ///     Normal merge is a merge between two outlines.
+    ///     Inverse merge is a merge between outline and hole.
+    /// 1.  Pick a unique point as starting point. If inverse merge, pick a unique point on the outline.
+    /// 2.  Polygon = Travelling(start, start)
+    /// 3.  while (Polygon doesn't contain all unuqie points):
+    ///         p = unique point which doesn't exist in Polygon
+    ///         Polygon_2 = Travelling(p, p)
+    ///         Outline = Biggest(Polygon, Polygon_2)
+    ///         Hole = Smallest(Polyon, Polygon_2)
+
+    /// Travelling (start point, end point)
+    /// 1.  Current point = start point
+    /// 2.  Collect the current point if not already collected
+    /// 3.  ns = all neighbors to current point
+    /// 4.  if ns contain end point, return collected points as polygon
+    /// 5.  if ns.length == 1:
+    ///         if un[0] is unique or un[0] doesn't have exactly two neighbors:
+    ///             collect un[0]
+    ///             goto §2
+    ///         else: return collected points as polygon
+    /// 6.  if uniques(ns).length > 1:
+    ///         set end point to un[0]
+    ///         set current point to start point
+    ///         invert order of collected points
+    ///         goto §2
+    /// 7.  if uniques(ns).length = 1:
+    ///         collect uniques(ns)[0]
+    ///         gptp §2
+    /// 8.  if neighbors_three(ns).length > 1
+    ///         set end point to un[0]
+    ///         set current point to start point
+    ///         invert order of collected points
+    ///         goto §2
+    /// 9.  if neighbors_three(ns).length = 1:
+    ///         collect neihbors_three(ns)[0]
+    ///         goto §2
+    /// 10. return collected points as polygon
+    ///             
+    /// uniques (points) : returns all points that are unique
+    /// neighbors_three (points) : returns all points with exactly three neighbors
+    /// 
     /// </summary>
     public static class MergePolygons
     {
@@ -91,7 +132,7 @@ namespace Haumea.Geometric
             return -1;
         }
 
-        private static int CountPaths(Vector2[] poly1, Vector2[] poly2, Vector2 point)
+        private static int CountNeighbors(Vector2[] poly1, Vector2[] poly2, Vector2 point)
         {
             return FindNeighboringPoints(poly1, poly2, point).Count;
         }
@@ -212,8 +253,11 @@ namespace Haumea.Geometric
             while (!done)
             {
                 Vector2 currentPoint = nextPoint;
-                visited.Add(currentPoint);
-                newPoly.Add(currentPoint);
+
+                if (visited.Add(currentPoint))
+                {
+                    newPoly.Add(currentPoint);    
+                }
 
                 // We start by finding all neighbors that we haven't used yet.
                 // (polygon points that are directly connected to our current point).
@@ -227,10 +271,10 @@ namespace Haumea.Geometric
                 // If there is only one candidate, we just have to make sure we can keep it.
                 if (neighbors.Count == 1)
                 {
-                    // We know that the set isn't empty, so there's no point in using `TruFirst`.
+                    // We know that the set isn't empty, so there's no point in using `TryFirst`.
                     Vector2 first = neighbors.First();
                     if (IsUnique(first, pointSet1, pointSet2) ||
-                        CountPaths(points1, points2, first) != 2)
+                        CountNeighbors(points1, points2, first) != 2)
                     {
                         nextPoint = first;
                     }
@@ -243,7 +287,7 @@ namespace Haumea.Geometric
                 else if (!neighbors.TryFind(out nextPoint, v => IsUnique(v, pointSet1, pointSet2)))
                 {
                     // If no unique candidate exist, check for a candidate with three paths.
-                    Vector2[] threePaths = neighbors.FindAll(v => CountPaths(points1, points2, v) == 3).ToArray();
+                    Vector2[] threePaths = neighbors.FindAll(v => CountNeighbors(points1, points2, v) == 3).ToArray();
 
 
                     switch (threePaths.Length)
@@ -301,7 +345,7 @@ namespace Haumea.Geometric
                     // We know that the set isn't empty, so there's no point in using `TruFirst`.
                     Vector2 first = neighbors.First();
                     if (IsUnique(first, holeSet, outlineSet) ||
-                        CountPaths(holePoints, outlinePoints, first) != 2)
+                        CountNeighbors(holePoints, outlinePoints, first) != 2)
                     {
                         nextPoint = first;
                     }
@@ -315,7 +359,7 @@ namespace Haumea.Geometric
                 {
                     // If no unique candidate exist, check for a candidate with three paths.
                     Vector2[] threePaths = neighbors
-                        .FindAll(v => CountPaths(holePoints, outlinePoints, v) == 3).ToArray();
+                        .FindAll(v => CountNeighbors(holePoints, outlinePoints, v) == 3).ToArray();
 
                     switch (threePaths.Length)
                     {
@@ -354,6 +398,7 @@ namespace Haumea.Geometric
                     if (!hole.Points.TryFind(out startPoint, v => !pointSet2.Contains(v)))
                     {
                         // If there are no unique points of the hole, the hole will disappear.
+                        // (the outline covers the hole exactly)
                         // No actual merging required!
                         allHoles =
                             bigPoly.Holes.Take(n - 1)
@@ -377,16 +422,13 @@ namespace Haumea.Geometric
                         // so if we have missed any there must be a hole (or several) somewhere...
 
                         Vector2 unique;
-                        bool uniqueExist = uniques.TryFind(out unique, v => !pointSet3.Contains(v));
 
-                        while (uniqueExist)
+                        while (uniques.TryFind(out unique, v => !pointSet3.Contains(v)))
                         {
                             Vector2[] additionalNewPoints = DoInverseMerge(hole.Points, smallPoly.Points,
                                 pointSet1, pointSet2, visited, unique);
                             holes.Add(new Poly(additionalNewPoints));
                             pointSet3.UnionWith(additionalNewPoints);
-
-                            uniqueExist = uniques.TryFind(out unique, v => !pointSet3.Contains(v));
                         }
 
                         allHoles =
@@ -468,16 +510,16 @@ namespace Haumea.Geometric
             // All unique points should be used,
             // so if we have missed any there must be a hole (or several) somewhere...
             Vector2 unique;
-            bool uniqueExist = uniques.TryFind(out unique, v => !pointSet3.Contains(v));
+            //bool uniqueExist = uniques.TryFind(out unique, v => !pointSet3.Contains(v));
 
-            while (uniqueExist)
+            while (uniques.TryFind(out unique, v => !pointSet3.Contains(v)))
             {
                 Vector2[] additionalNewPoints = DoMerge(poly1.Points, poly2.Points,
                     pointSet1, pointSet2, visited, unique);
                 polys.Add(new Poly(additionalNewPoints));
                 pointSet3.UnionWith(additionalNewPoints);
-            
-                uniqueExist = uniques.TryFind(out unique, v => !pointSet3.Contains(v));
+                
+                //uniqueExist = uniques.TryFind(out unique, v => !pointSet3.Contains(v));
             }
 
             if (polys.Count == 1)
@@ -487,6 +529,8 @@ namespace Haumea.Geometric
             }
             else
             {
+                // If we have multiple polygons, the biggest one must logically be te outline.
+                // The rest are holes.
                 var sorted = polys.OrderByDescending(p => p.Boundary.Area);
                 var holes = sorted.Skip(1).Concat(allHoles).ToArray();
                 merged = new ComplexPoly(sorted.First(), holes);
