@@ -58,7 +58,6 @@
     <Compile Include="Network\Client.cs" />
     <Compile Include="Network\Server.cs" />
     <Compile Include="Geometric\AABB.cs" />
-    <Compile Include="Geometric\IHitable.cs" />
     <Compile Include="Geometric\Poly.cs" />
     <Compile Include="Game\Engine.cs" />
     <Compile Include="Game\UIForms\FormCreator.cs" />
@@ -72,12 +71,9 @@
     <Compile Include="Parsing\GameFile.cs" />
     <Compile Include="Parsing\RawTypes.cs" />
     <Compile Include="Util\ICollector.cs" />
-    <Compile Include="Components\DebugTextView.cs" />
     <Compile Include="Components\Provinces.cs" />
-    <Compile Include="Components\ProvincesView.cs" />
     <Compile Include="Components\Realms.cs" />
     <Compile Include="Components\Units.cs" />
-    <Compile Include="Components\UnitsView.cs" />
     <Compile Include="Components\WorldDate.cs" />
     <Compile Include="Components\WorldDateView.cs" />
     <Compile Include="Components\IModel.cs" />
@@ -99,6 +95,8 @@
     <Compile Include="Parsing\Parser\Parser.Waters.cs" />
     <Compile Include="Game\GameAction.cs" />
     <Compile Include="Geometric\Shape.cs" />
+    <Compile Include="Components\MapView.cs" />
+    <Compile Include="Geometric\IShape.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
@@ -111,6 +109,9 @@
     <None Include="Content\test\LogFont.spritefont" />
     <None Include="Content\test\cursor.png" />
     <None Include="simple.haumea" />
+    <None Include="Components\DebugTextView.cs.old" />
+    <None Include="Components\ProvincesView.cs.old" />
+    <None Include="Components\UnitsView.cs.old" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

@@ -9,7 +9,7 @@ namespace Haumea.Geometric
     /// Axis Aligned Boundary Box.
     /// Borders are considered inside of the box.
     /// </summary>
-    public class AABB : IHitable
+    public class AABB : IShape
     {
         // This is probably to damn many props for this class.
         public Vector2 TopLeft     { get; }

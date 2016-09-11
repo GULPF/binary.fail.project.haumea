@@ -45,7 +45,12 @@ namespace Haumea.Geometric
             _poly = poly;
         }
 
-        public bool IsPointInside(Vector2 v, bool includeBorder = true)
+        public bool IsPointInside(Vector2 v)
+        {
+            return IsPointInside(v, true);
+        }
+
+        public bool IsPointInside(Vector2 v, bool includeBorder)
         {
             return _poly.IsPointInside(v, includeBorder) &&
                 Holes.All(p => !p.IsPointInside(v, !includeBorder));

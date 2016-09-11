@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    public interface IPoly
+    public interface IPoly : IShape
     {
         // The boundary box of the polygon,
         // defined as the smallest rectangle the polygon fits in.
@@ -23,7 +23,7 @@ namespace Haumea.Geometric
         /// <returns><c>true</c> if the points is within the polygon, otherwise <c>false</c>.</returns>
         /// <param name="point">The point</param>
         /// <param name="includeBorder">Indicates wether the border of the polygon should be considered "inside" or "outside"</param>
-        bool IsPointInside(Vector2 point, bool includeBorder = true);
+        bool IsPointInside(Vector2 point, bool includeBorder);
 
         Vector2 CalculateCentroid();
     }

@@ -43,9 +43,8 @@ namespace Haumea.Parsing
 
                         vectors[index++] = new Vector2(20 * x, 20 *y);
                     }
-
-                    var list = new List<IPoly> { new Poly(vectors) };
-                    waterProvinces.Add(new RawProvince(list, tag, WaterColor, true));
+                        
+                    waterProvinces.Add(new RawProvince(new Poly(vectors), tag, WaterColor, true));
                     firstToken = true;
                 }
             }

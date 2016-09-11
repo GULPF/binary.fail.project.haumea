@@ -31,16 +31,17 @@ namespace Haumea.Game
          
             WindowsTree windows = new WindowsTree();
             FormCreator ui = new FormCreator(content, windows);
-            ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
-            UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
-            DebugTextView debugView = new DebugTextView(provinces, units, realmsTagId, provincesTagId);
+            //ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
+            //UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
+            //DebugTextView debugView = new DebugTextView(provinces, units, realmsTagId, provincesTagId);
+
 
             IList<IModel> models = new List<IModel> {
                 events, provinces, realms, units
             };
             
             IList<IView> views = new List<IView> {
-                provincesView, unitsView, windows, debugView
+                windows
             };
 
             return new InitializedRawGameData(models, views, windows);
@@ -71,11 +72,11 @@ namespace Haumea.Game
 
         private static Provinces InitializeProvinces(IList<RawProvince> rProvinces, NodeGraph<int> graph)
         {
-            IPoly[][] boundaries = new IPoly[rProvinces.Count][];
+            IShape[] boundaries = new Shape[rProvinces.Count];
             ISet<int> waterProvinces = new HashSet<int>();
 
             for (int id = 0; id < rProvinces.Count; id++) {
-                boundaries[id] = rProvinces[id].Polys.ToArray();
+                boundaries[id] = rProvinces[id].Shape;
                 if (rProvinces[id].IsWater)
                 {
                     waterProvinces.Add(id);
@@ -114,7 +115,7 @@ namespace Haumea.Game
 
             return units;
         }
-    
+    /*
         private static ProvincesView InitializeProvincesView(IList<RawProvince> rProvinces, Provinces provinces)
         {
             IDictionary<int, IDictionary<ProvincesView.RenderState, RenderInstruction>> instructions =
@@ -135,12 +136,12 @@ namespace Haumea.Game
             }
 
             return new ProvincesView(instructions, provinces);
-        }
-    
+        }*/
+    /*
         private static UnitsView InitializeUnitsView(Provinces provinces, Units units, FormCreator ui)
         {
             return new UnitsView(provinces, units, ui);
-        }
+        }*/
     }
         
     public struct InitializedRawGameData

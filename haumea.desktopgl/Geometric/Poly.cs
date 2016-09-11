@@ -17,7 +17,12 @@ namespace Haumea.Geometric
             Boundary = CalculateBoundary(Points);
         }
 
-        public bool IsPointInside(Vector2 v, bool includeBorder = true)
+        public bool IsPointInside(Vector2 v)
+        {
+            return IsPointInside(v, true);
+        }
+
+        public bool IsPointInside(Vector2 v, bool includeBorder)
         {
 
             if (!Boundary.IsPointInside(v)) return false;

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    public interface IHitable
+    public interface IShape
     {
         bool IsPointInside(Vector2 point);
     }

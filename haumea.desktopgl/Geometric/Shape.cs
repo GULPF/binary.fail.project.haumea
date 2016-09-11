@@ -5,11 +5,11 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    public class Shape : IHitable
+    public class Shape : IShape
     {
-        public IHitable[] Shapes { get; }
+        public IShape[] Shapes { get; }
 
-        public Shape(IHitable[] shapes)
+        public Shape(IShape[] shapes)
         {
             Shapes = shapes;
         }
