@@ -12,7 +12,8 @@ namespace Haumea
         public static IDictionary<Guid, IEnumerable<RenderInstruction>> DebugInstructions { get; }
             = new Dictionary<Guid, IEnumerable<RenderInstruction>>();
 
-        public static IList<string> PrintInfo { get; } = new List<string>();
+        public static IDictionary<string, string> PrintInfo { get; }
+        = new Dictionary<string, string>();
 
         public static Guid AddInstructions(IEnumerable<RenderInstruction> instructions)
         {
@@ -33,9 +34,9 @@ namespace Haumea
         }
 
         [Diagnostics.ConditionalAttribute("DEBUG")]
-        public static void PrintScreenInfo(string infoName, string infoData)
+        public static void PrintScreenInfo(string infoName, Object data)
         {
-            PrintInfo.Add(infoData + "\t=\t" + infoName);
+            PrintInfo[infoName] = data.ToString();
         }
     }
 }

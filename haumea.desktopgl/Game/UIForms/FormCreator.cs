@@ -169,7 +169,7 @@ namespace Haumea.UIForms
         {
             if (!input.IsMouseConsumed && 
                 input.WentActive(Buttons.LeftButton) &&
-                _boundary.IsPointInside(input.ScreenMouse))
+                _boundary.IsPointInside(input.ScreenMouse.ToPoint()))
             {
                 _click();
             }

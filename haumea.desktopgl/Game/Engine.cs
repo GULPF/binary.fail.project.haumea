@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -31,6 +33,8 @@ namespace Haumea.Game
         private IView[]  _views;
         private IModel[] _models;
 
+        private SpriteFont _logFont;
+
         public bool IsRunning { get; private set; }
 
         public Engine(ContentManager content, GraphicsDeviceManager gdm)
@@ -57,6 +61,7 @@ namespace Haumea.Game
             _spriteBatch = new SpriteBatch(_gdm.GraphicsDevice);
 
             _mouseCursorTexture = _content.Load<Texture2D>("cursor");
+            _logFont            = _content.Load<SpriteFont>("LogFont");
 
             LoadFile("../../gamedata.haumea");
 
@@ -89,8 +94,8 @@ namespace Haumea.Game
             float currentZoom = _renderer.RenderState.Camera.Zoom;
 
             Vector2 move = new Vector2();
-            float zoom = 1;
 
+            float zoom = _renderer.RenderState.Camera.Zoom;
             const float PanSpeed = 0.010f;
             const float ZoomSpeed = 1.1f;
 
@@ -105,8 +110,13 @@ namespace Haumea.Game
             if (_input.IsActive(Keys.H, false)) zoom *= ZoomSpeed;
             if (_input.IsActive(Keys.J, false)) zoom /= ZoomSpeed;
 
+            zoom = Math.Max(zoom, 0.5f);
+            zoom = Math.Min(zoom, 3.4f);
+
+            Console.WriteLine(zoom);
+
             _renderer.RenderState.Camera.Move(move);
-            _renderer.RenderState.Camera.ApplyZoom(zoom);
+            _renderer.RenderState.Camera.SetZoom(zoom);
 
             // It is important that _worldDate is updated first of all,
             // since the other components depend on it being in sync.
@@ -125,6 +135,10 @@ namespace Haumea.Game
             {
                 entity.Update(_worldDate);
             }
+
+            Debug.PrintScreenInfo("FPS"  , Math.Round(1000 / _tickTime, 2));
+            Debug.PrintScreenInfo("Mouse", _input.ScreenMouse);
+            Debug.PrintScreenInfo("Zoom" , _renderer.RenderState.Camera.Zoom);
         }
 
         /// <summary>
@@ -142,11 +156,27 @@ namespace Haumea.Game
                 view.Draw(_spriteBatch, _renderer);
             }
                 
-            _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse.ToVector2(), Color.White);
+            _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse, Color.White);
+            PrintDebugInfo();
 
             _spriteBatch.End();
 
             _renderer.DrawToScreen(Debug.DebugInstructions.Values.SelectMany(x => x));
+        }
+
+        [ConditionalAttribute("DEBUG")]
+        private void PrintDebugInfo()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var pair in Debug.PrintInfo)
+            {
+                sb.Append(pair.Key.PadRight(5)).Append("  =  ").Append(pair.Value).Append("\n");
+            }
+
+            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - Debug.PrintInfo.Count * 20 - 10);
+            _spriteBatch.DrawString(_logFont, sb.ToString(), pos, Color.WhiteSmoke);
+
+            Debug.PrintInfo.Clear();
         }
 
         /// <summary>

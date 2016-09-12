@@ -102,13 +102,18 @@ namespace Haumea
                 && rect.Top <= point.Y && point.Y <= rect.Bottom;
         }
 
+        public static int Area(this Rectangle rect)
+        {
+            return rect.Width * rect.Height;
+        }
+
         public static Rectangle[] Borders(this Rectangle rect, int thickness)
         {
             return new []{
-                new Rectangle(rect.Left, rect.Top, rect.Width, thickness),
-                new Rectangle(rect.Right, rect.Top, thickness, rect.Height),
-                new Rectangle(rect.Left, rect.Top, thickness, rect.Height),
-                new Rectangle(rect.Left, rect.Bottom, rect.Width + thickness, thickness)
+                new Rectangle(rect.Left, rect.Top - thickness, rect.Width + thickness, thickness),
+                new Rectangle(rect.Right, rect.Top, thickness, rect.Height + thickness),
+                new Rectangle(rect.Left - thickness, rect.Top - thickness, thickness, rect.Height + thickness),
+                new Rectangle(rect.Left - thickness, rect.Bottom, rect.Width + thickness, thickness)
             };
         }
 
@@ -136,6 +141,14 @@ namespace Haumea
         // In general, Linq should be prefered over defining methods here.
         // In the cases where Linq uses exceptions that are replaceable with the `Try...` pattern,
         // it's ok to make a new method though (see TryFind, TryFirst).
+
+        public static void ForEach<T>(this IEnumerable<T> enumer, Action<T> func)
+        {
+            foreach (T t in enumer)
+            {
+                func(t);
+            }
+        }
 
         public static string Join<T>(this IEnumerable<T> enumer, string sep)
         {

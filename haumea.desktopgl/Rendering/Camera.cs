@@ -27,9 +27,9 @@ namespace Haumea.Rendering
             UpdateProjection();
         }
 
-        public void ApplyZoom(float zoom)
+        public void SetZoom(float zoom)
         {
-            Zoom *= zoom;
+            Zoom = zoom;
             UpdateProjection();
         }
 

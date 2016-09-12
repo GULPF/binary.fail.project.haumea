@@ -206,7 +206,7 @@ namespace Haumea.Geometric
         public static bool IsNeighborOnOutline(this IPoly poly1, IPoly poly2)
         {
             // Since it's quick and most polygons are not neighbors, we start by just checking the boundaries.
-            if (!poly1.Boundary.DoOverlap(poly2.Boundary)) return false;
+            if (!poly1.Boundary.Intersects(poly2.Boundary)) return false;
 
             // Then we check if the outlines are neighbors.
             ISet<Vector2> points = new HashSet<Vector2>(poly1.Points);

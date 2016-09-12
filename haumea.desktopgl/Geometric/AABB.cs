@@ -89,9 +89,9 @@ namespace Haumea.Geometric
             return new AABB(TopLeft - dimd / 2, BottomRight + dimd / 2);
         }
 
-        public bool DoOverlap(AABB aabb)
+        public bool Intersects(AABB aabb)
         {
-            if (aabb.Area > Area) return aabb.DoOverlap(this);
+            if (aabb.Area > Area) return aabb.Intersects(this);
 
             return 
                    IsPointInside(aabb.TopLeft)

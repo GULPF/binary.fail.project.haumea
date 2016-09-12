@@ -43,8 +43,8 @@ namespace Haumea
         private KeyboardState _kbState;
         private KeyboardState _oldKbState;
 
-        public Point ScreenMouse { get; }
-        public Vector2 Mouse { get; }
+        public Vector2 ScreenMouse { get; }
+        public Vector2 Mouse       { get; }
 
         /// <summary>
         /// Anyone with access to the InputState can "consume" the mouse
@@ -61,7 +61,7 @@ namespace Haumea
             _kbState = kbState;
             _oldKbState = oldKbState;
 
-            ScreenMouse = _mouseState.Position;
+            ScreenMouse = _mouseState.Position.ToVector2();
             Mouse = mouseWorldPos;
             IsMouseConsumed = false;
         }
