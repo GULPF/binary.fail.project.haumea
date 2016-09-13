@@ -53,17 +53,18 @@ namespace Haumea.Game
                 idleInstrs[id] = RenderInstruction.MultiPolygon(mpoly, c.Darken(), Color.Black);
             }
 
-            var mapView = new MapView(provinces, units, standardInstrs, idleInstrs);
-
+            var dialogManager = new DialogManager();
+            var mapView = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager);
+                
             IList<IModel> models = new List<IModel> {
                 events, provinces, realms, units
             };
             
             IList<IView> views = new List<IView> {
-                mapView, windows
+                mapView, dialogManager
             };
 
-            return new InitializedRawGameData(models, views, windows);
+            return new InitializedRawGameData(models, views, dialogManager);
         }
 
         private static BiDictionary<int, string> InitializeProvinceTags(IList<RawProvince> rProvinces)
@@ -136,46 +137,19 @@ namespace Haumea.Game
 
             return units;
         }
-    /*
-        private static ProvincesView InitializeProvincesView(IList<RawProvince> rProvinces, Provinces provinces)
-        {
-            IDictionary<int, IDictionary<ProvincesView.RenderState, RenderInstruction>> instructions =
-                new Dictionary<int, IDictionary<ProvincesView.RenderState, RenderInstruction>>();
-
-            for (int id = 0; id < rProvinces.Count; id++) {
-
-                var provinceInstructions = new Dictionary<ProvincesView.RenderState, RenderInstruction>();
-
-                Color color = rProvinces[id].Color;
-
-                provinceInstructions[ProvincesView.RenderState.Idle] = RenderInstruction.
-                    Polygon(rProvinces[id].Polys[0], color);
-                provinceInstructions[ProvincesView.RenderState.Hover] = RenderInstruction.
-                    Polygon(rProvinces[id].Polys[0], color.Darken());
-
-                instructions[id] = provinceInstructions;
-            }
-
-            return new ProvincesView(instructions, provinces);
-        }*/
-    /*
-        private static UnitsView InitializeUnitsView(Provinces provinces, Units units, FormCreator ui)
-        {
-            return new UnitsView(provinces, units, ui);
-        }*/
     }
         
     public struct InitializedRawGameData
     {
         public IList<IModel> Models { get; }
         public IList<IView> Views { get; }
-        public WindowsTree Windows  { get; }
+        public DialogManager DialogManager { get; }
 
-        public InitializedRawGameData(IList<IModel> models, IList<IView> views, WindowsTree windows)
+        public InitializedRawGameData(IList<IModel> models, IList<IView> views, DialogManager dialogManager)
         {
             Models = models;
             Views = views;
-            Windows = windows;
+            DialogManager = dialogManager;
         }
     }
 }

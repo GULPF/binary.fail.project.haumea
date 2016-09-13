@@ -110,10 +110,13 @@ namespace Haumea.Game
             if (_input.IsActive(Keys.H, false)) zoom *= ZoomSpeed;
             if (_input.IsActive(Keys.J, false)) zoom /= ZoomSpeed;
 
+            if (_input.ScrollWheel != 0)
+            {
+                zoom += (float) (Math.Sign(_input.ScrollWheel) * Math.Log10(Math.Abs(_input.ScrollWheel)) / 20);
+            }
+
             zoom = Math.Max(zoom, 0.5f);
             zoom = Math.Min(zoom, 3.4f);
-
-            Console.WriteLine(zoom);
 
             _renderer.RenderState.Camera.Move(move);
             _renderer.RenderState.Camera.SetZoom(zoom);
@@ -155,28 +158,13 @@ namespace Haumea.Game
             {
                 view.Draw(_spriteBatch, _renderer);
             }
-                
+              
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse, Color.White);
             PrintDebugInfo();
 
             _spriteBatch.End();
 
             _renderer.DrawToScreen(Debug.DebugInstructions.Values.SelectMany(x => x));
-        }
-
-        [ConditionalAttribute("DEBUG")]
-        private void PrintDebugInfo()
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (var pair in Debug.PrintInfo)
-            {
-                sb.Append(pair.Key.PadRight(5)).Append("  =  ").Append(pair.Value).Append("\n");
-            }
-
-            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - Debug.PrintInfo.Count * 20 - 10);
-            _spriteBatch.DrawString(_logFont, sb.ToString(), pos, Color.WhiteSmoke);
-
-            Debug.PrintInfo.Clear();
         }
 
         /// <summary>
@@ -206,6 +194,21 @@ namespace Haumea.Game
             // TODO: Move it to GameFileParser anyway.
             _worldDate = new WorldDate(new DateTime(1452, 6, 23));;
             _views[0] = new WorldDateView(_worldDate);
+        }
+
+        [ConditionalAttribute("DEBUG")]
+        private void PrintDebugInfo()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var pair in Debug.PrintInfo)
+            {
+                sb.Append(pair.Key.PadRight(8)).Append("  =  ").Append(pair.Value).Append("\n");
+            }
+
+            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - Debug.PrintInfo.Count * 20 - 10);
+            _spriteBatch.DrawString(_logFont, sb.ToString(), pos, Color.WhiteSmoke);
+
+            Debug.PrintInfo.Clear();
         }
     }
 }
