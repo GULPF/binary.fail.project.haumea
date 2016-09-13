@@ -13,13 +13,13 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin test/LogFont.spritefont
+#begin ./LogFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:TextureFormat=NoChange
-/build:test/LogFont.spritefont
+/build:./LogFont.spritefont
 
-#begin test/cursor.png
+#begin ./cursor.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -29,11 +29,11 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:test/cursor.png
+/build:./cursor.png
 
-#begin test/LabelFont.spritefont
+#begin ./LabelFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:TextureFormat=NoChange
-/build:test/LabelFont.spritefont
+/build:./LabelFont.spritefont
 

@@ -30,12 +30,16 @@ namespace Haumea.Components
         private Vector2 _selectionBoxP1, _selectionBoxP2;
         private const int _minimumSelectionSize = 20;
 
+        private readonly DialogManager _dialogMgr;
+
         public MapView(Provinces provinces, Units units,
             RenderInstruction[][] standardInstrs,
-            RenderInstruction[][] idleInstrs)
+            RenderInstruction[][] idleInstrs,
+            DialogManager dialogMgr)
         {
             _provinces = provinces;
             _units = units;
+            _dialogMgr = dialogMgr;
 
             _selection = new SelectionManager<int>();
 
@@ -72,6 +76,12 @@ namespace Haumea.Components
             {
                 if (_provinces.Boundaries[id].IsPointInside(position)) {
 
+                    /*if (input.WentActive(Buttons.LeftButton)
+                        && _labelClickableBoundaries[id].IsPointInside(position))
+                    {
+                        
+                    }*/
+
                     // Only handle new selections.
                     if (input.WentActive(Buttons.LeftButton))
                     {
@@ -106,10 +116,15 @@ namespace Haumea.Components
                 _selection.StopHoveringAll();    
             }
 
+            //if (input.WentActive(Keys.G))      _units.MergeSelected();
+
             if (input.WentActive(Keys.G))      _units.MergeSelected();
             if (input.WentActive(Keys.Escape)) _units.ClearSelection();
-            if (input.WentActive(Keys.D))      _units.DeleteSelected();
+            if (input.WentActive(Keys.D))      DeleteUnits();
 
+            // TODO: This can be improved. Since I need to hit check all provinces
+            // ..... anyway, I should only hit test the label which is inside the
+            // ..... province which the mouse is inside.
             if (input.WentActive(Buttons.LeftButton))
             {
                 KeyValuePair<int, AABB> selectedBox;
@@ -131,6 +146,11 @@ namespace Haumea.Components
             }
 
             UpdateSelectionBox(input);
+
+            if (_units.SelectedArmies.Count > 0)
+            {
+                Debug.PrintScreenInfo("Armies", _units.SelectedArmies.Join(", "));    
+            }
         }
 
         public void UpdateSelectionBox(InputState input)
@@ -201,6 +221,14 @@ namespace Haumea.Components
 
                 _labelClickableBoundaries[pair.Key] = snugBox;
             }     
+        }
+
+        private void DeleteUnits()
+        {
+            _dialogMgr.Add(new Confirm(
+                msg: "Are you sure you want to delete these units? [y/n]",
+                onSuccess: _units.DeleteSelected,
+                onFail:    _units.ClearSelection));
         }
 
         private void SwapInstrs(int id)
