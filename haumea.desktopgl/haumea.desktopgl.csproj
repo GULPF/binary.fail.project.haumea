@@ -95,6 +95,8 @@
     <Compile Include="Components\SelectionManager.cs" />
     <Compile Include="Geometric\MultiPoly.cs" />
     <Compile Include="Geometric\IHitable.cs" />
+    <Compile Include="Game\UIForms\Dialogs.cs" />
+    <Compile Include="Game\UIForms\DialogManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
@@ -103,13 +105,13 @@
     <None Include="gamedata.haumea" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="TODO.md" />
-    <None Include="Content\test\LabelFont.spritefont" />
-    <None Include="Content\test\LogFont.spritefont" />
-    <None Include="Content\test\cursor.png" />
     <None Include="simple.haumea" />
     <None Include="Components\DebugTextView.cs.old" />
     <None Include="Components\ProvincesView.cs.old" />
     <None Include="Components\UnitsView.cs.old" />
+    <None Include="Content\cursor.png" />
+    <None Include="Content\LabelFont.spritefont" />
+    <None Include="Content\LogFont.spritefont" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

@@ -45,6 +45,7 @@ namespace Haumea
 
         public Vector2 ScreenMouse { get; }
         public Vector2 Mouse       { get; }
+        public int     ScrollWheel { get; }
 
         /// <summary>
         /// Anyone with access to the InputState can "consume" the mouse
@@ -55,15 +56,16 @@ namespace Haumea
 
         public InputState(MouseState mouseState, MouseState oldMouseState,
             KeyboardState kbState, KeyboardState oldKbState, Vector2 mouseWorldPos)
-        {
-            _mouseState = mouseState;
+        {            
+            _mouseState    = mouseState;
             _oldMouseState = oldMouseState;
-            _kbState = kbState;
-            _oldKbState = oldKbState;
+            _kbState       = kbState;
+            _oldKbState    = oldKbState;
 
-            ScreenMouse = _mouseState.Position.ToVector2();
-            Mouse = mouseWorldPos;
+            ScreenMouse     = _mouseState.Position.ToVector2();
+            Mouse           = mouseWorldPos;
             IsMouseConsumed = false;
+            ScrollWheel     = _mouseState.ScrollWheelValue - _oldMouseState.ScrollWheelValue; 
         }
 
         public void ConsumeMouse()
