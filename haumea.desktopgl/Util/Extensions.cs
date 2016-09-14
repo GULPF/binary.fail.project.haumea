@@ -117,13 +117,17 @@ namespace Haumea
             };
         }
 
+        private static Texture2D _pixel;
+
         public static void Draw(this SpriteBatch spriteBatch, Rectangle rect, Color color)
         {
-            Texture2D texture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-            texture.SetData<Color>(new [] { Color.White });
+            if (_pixel == null)
+            {
+                _pixel = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+                _pixel.SetData<Color>(new[] { Color.White });
+            }
 
-            spriteBatch.Draw(texture, rect, color);
-
+            spriteBatch.Draw(_pixel, rect, color);
         }
 
         public static void Draw(this SpriteBatch spriteBatch, Rectangle[] rects, Color color)
