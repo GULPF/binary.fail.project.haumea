@@ -225,8 +225,15 @@ namespace Haumea.Components
 
         private void DeleteUnits()
         {
+            int count = _units.SelectedArmies.Count;
+            if (count == 0) return;
+
+            string plural = count == 1 ? "" : "s"; 
+            string msg = string.Format("Are you sure you want to \ndelete {0} unit{1}? \n\n[y/n]",
+                count, plural);
+
             _dialogMgr.Add(new Confirm(
-                msg: "Are you sure you want to delete these units? [y/n]",
+                msg: msg,
                 onSuccess: _units.DeleteSelected,
                 onFail:    _units.ClearSelection));
         }
