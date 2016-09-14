@@ -35,6 +35,7 @@ namespace Haumea.Game
 
         private SpriteFont _logFont;
 
+
         public bool IsRunning { get; private set; }
 
         public Engine(ContentManager content, GraphicsDeviceManager gdm)
@@ -49,6 +50,7 @@ namespace Haumea.Game
         {
             RenderState renderState = new RenderState(_gdm.GraphicsDevice.GetScreenDimensions());
             _renderer = new Renderer(_gdm.GraphicsDevice, renderState);
+            Network.Packet.Configure();
         }
 
         /// <summary>
