@@ -182,10 +182,10 @@ namespace Haumea.Components
             }
 
             // Selection box
-            Rectangle selectionRect = new AABB(_selectionBoxP1, _selectionBoxP2).ToRectangle();
-            Rectangle[] borders = selectionRect.Borders(1);
+            AABB selectionRect = new AABB(_selectionBoxP1, _selectionBoxP2);
+            AABB[] borders = selectionRect.Borders(1);
             spriteBatch.Draw(selectionRect, new Color(Color.Black, 0.4f));
-            foreach (Rectangle border in borders) spriteBatch.Draw(border, Color.Black);       
+            spriteBatch.Draw(borders, Color.Black);       
         }
 
         private void DrawUnits(SpriteBatch spriteBatch, Renderer renderer)
@@ -214,9 +214,9 @@ namespace Haumea.Components
                     ? Color.Red
                     : Color.Black;
 
-                var snugRectangle = snugBox.ToRectangle();
-                foreach (var border in snugRectangle.Borders(1)) spriteBatch.Draw(border, borderColor);
-                spriteBatch.Draw(snugRectangle, Color.Black);
+
+                spriteBatch.Draw(snugBox.Borders(1), borderColor);
+                spriteBatch.Draw(snugBox, Color.Black);
                 spriteBatch.DrawString(_unitsFont, text, center.Floor(), Color.White);
 
                 _labelClickableBoundaries[pair.Key] = snugBox;
