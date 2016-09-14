@@ -6,7 +6,6 @@ using Haumea.Components;
 using Haumea.Collections;
 using Haumea.Geometric;
 using Haumea.Rendering;
-using Haumea.UIForms;
 using Haumea.Parsing;
 
 using TagIdMap = Haumea.Collections.BiDictionary<int, string>;
@@ -29,8 +28,6 @@ namespace Haumea.Game
             // TODO: I have realized these two (provinces & units) are so tangled into each other
             // ..... they should probably be merged into something like "mapView"
          
-            WindowsTree windows = new WindowsTree();
-            FormCreator ui = new FormCreator(content, windows);
             //ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
             //UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
             //DebugTextView debugView = new DebugTextView(provinces, units, realmsTagId, provincesTagId);
