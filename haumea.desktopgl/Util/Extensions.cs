@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.IO;
+using Haumea.Geometric;
 
 namespace Haumea
 {
@@ -85,6 +84,14 @@ namespace Haumea
         // Other
         //
 
+        public static Rectangle ToRectangle(this AABB aabb)
+        {
+            Vector2 dim = aabb.Dim;
+            return new Rectangle(
+                (int)aabb.TopLeft.X, (int)aabb.TopLeft.Y,
+                (int)(dim.X), (int)(dim.Y));
+        }
+
         public static Vector2 GetScreenDimensions(this GraphicsDevice device)
         {
             return new Vector2(device.PresentationParameters.BackBufferWidth,
@@ -94,6 +101,11 @@ namespace Haumea
         public static string[] Split(this string str, char khar)
         {
             return str.Split(new [] { khar });
+        }
+
+        public static string[] Split(this string str, string khar)
+        {
+            return str.Split(new [] { khar }, StringSplitOptions.None);
         }
 
         public static bool IsPointInside(this Rectangle rect, Point point)
@@ -107,19 +119,22 @@ namespace Haumea
             return rect.Width * rect.Height;
         }
 
-        public static Rectangle[] Borders(this Rectangle rect, int thickness)
+        public static AABB[] Borders(this AABB aabb, int thickness)
         {
-            return new []{
-                new Rectangle(rect.Left, rect.Top - thickness, rect.Width + thickness, thickness),
-                new Rectangle(rect.Right, rect.Top, thickness, rect.Height + thickness),
-                new Rectangle(rect.Left - thickness, rect.Top - thickness, thickness, rect.Height + thickness),
-                new Rectangle(rect.Left - thickness, rect.Bottom, rect.Width + thickness, thickness)
-            };
+            Vector2 topLeft = aabb.TopLeft;
+            Vector2 dim     =aabb.Dim;
+
+            var top    = new AABB(topLeft - thickness * Vector2.One, dim.X + 2 * thickness, thickness);
+            var left   = new AABB(topLeft                          , -thickness           , dim.Y + thickness);
+            var right  = new AABB(topLeft + dim.X * Vector2.UnitX  , thickness            , dim.Y);
+            var bottom = new AABB(topLeft + dim.Y * Vector2.UnitY  , dim.X + thickness    , thickness);
+
+            return new [] { top, left, bottom, right };
         }
 
         private static Texture2D _pixel;
 
-        public static void Draw(this SpriteBatch spriteBatch, Rectangle rect, Color color)
+        public static void Draw(this SpriteBatch spriteBatch, AABB aabb, Color color)
         {
             if (_pixel == null)
             {
@@ -127,14 +142,14 @@ namespace Haumea
                 _pixel.SetData<Color>(new[] { Color.White });
             }
 
-            spriteBatch.Draw(_pixel, rect, color);
+            spriteBatch.Draw(_pixel, aabb.ToRectangle(), color);
         }
 
-        public static void Draw(this SpriteBatch spriteBatch, Rectangle[] rects, Color color)
+        public static void Draw(this SpriteBatch spriteBatch, AABB[] aabbs, Color color)
         {
-            foreach (Rectangle rect in rects)
+            foreach (AABB aabb in aabbs)
             {
-                spriteBatch.Draw(rect, color);
+                spriteBatch.Draw(aabb, color);
             }
         }
 

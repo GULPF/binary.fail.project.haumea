@@ -39,8 +39,11 @@ namespace Haumea.Geometric
             }
         }
 
+        public AABB(Vector2 v0, float width, float height) :
+                this(v0, v0 + new Vector2(width, height)) {}
+
         /// <param name="v1">A corner point of the box</param>
-        /// <param name="v2">Another corner point of the box</param>
+        /// <param name="v2">The mirrored corner point of v1</param>
         public AABB(Vector2 v1, Vector2 v2)
         {
             float x0, x1, y0, y1;
@@ -71,13 +74,6 @@ namespace Haumea.Geometric
         {
             return TopLeft.X <= point.X && point.X <= BottomRight.X
                 && TopLeft.Y <= point.Y && point.Y <= BottomRight.Y;
-        }
-            
-        public Rectangle ToRectangle()
-        {
-            return new Rectangle(
-                (int)TopLeft.X, (int)TopLeft.Y,
-                (int)(Dim.X), (int)(Dim.Y));
         }
 
         // Scales the AABB while keeping the center of gravity.

@@ -16,7 +16,7 @@ namespace Haumea.Components
         // How big is the dialog?
         // Like paradox games, I will limit my self to static dialog sizes,
         // so this is known at compile time.
-        // AABB Boundary { get; }
+        Vector2 Dimensions { get; }
     }
 
     internal interface IManagedDialog {}
@@ -24,7 +24,8 @@ namespace Haumea.Components
     // Null-object for IDialog
     public class NullDialog : IDialog
     {
-        public bool Terminate { get; } = false; 
+        public bool    Terminate   { get; } = false;
+        public Vector2 Dimensions  { get; } = Vector2.Zero;
 
         public void LoadContent(ContentManager content) {}
         public void Update(InputState input) {}
@@ -36,7 +37,8 @@ namespace Haumea.Components
     /// </summary>
     public class Dialog : IDialog
     {
-        public bool Terminate { get; private set; } = false;
+        public bool    Terminate  { get; private set; } = false;
+        public Vector2 Dimensions { get; }              = Vector2.Zero;
 
         public void LoadContent(ContentManager content)
         {
@@ -54,21 +56,27 @@ namespace Haumea.Components
 
     public class Confirm : IDialog
     {
-        public bool Terminate { get; private set; } = false;
+        public bool    Terminate  { get; private set; } = false;
+        public Vector2 Dimensions { get; }
 
-        private event Action OnSuccess;
-        private event Action OnFail;
+        private event Action _onSuccess;
+        private event Action _onFail;
         private readonly string _msg;
 
-        private AABB _boundary;
+        // The position relative to the center of the screen.
+        private Vector2 _offset;
+
+
         private SpriteFont _font;
 
         public Confirm(string msg, Action onSuccess, Action onFail)
         {
-            _boundary = new AABB(new Vector2(100, 100), new Vector2(100, 100));
-            OnSuccess += onSuccess;
-            OnFail    += onFail;
+            Dimensions = new Vector2(250, 100);
+
+            _onSuccess += onSuccess;
+            _onFail    += onFail;
             _msg = msg;
+            _offset = Vector2.Zero;
         }
 
         public void LoadContent(ContentManager content)
@@ -81,17 +89,23 @@ namespace Haumea.Components
             if (input.WentActive(Keys.Y))
             {
                 Terminate = true;
-                OnSuccess();
+                _onSuccess();
             } else if (input.WentActive(Keys.N))
             {
                 Terminate = true;
-                OnFail();
+                _onFail();
             }
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
-            spriteBatch.DrawString(_font, _msg, new Vector2(10, 100), Color.White);
+            Vector2 screenCenter = spriteBatch.GraphicsDevice.GetScreenDimensions() / 2;
+            Vector2 corner       = screenCenter + _offset - Dimensions / 2;
+            var aabb = new AABB(corner, corner + Dimensions);
+            spriteBatch.Draw(aabb, Color.WhiteSmoke);
+            spriteBatch.Draw(aabb.Borders(1), Color.Black);
+
+            spriteBatch.DrawString(_font, _msg, aabb.TopLeft + new Vector2(10, 10), Color.Black);
         }
     }
 }

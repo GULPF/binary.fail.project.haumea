@@ -14,7 +14,7 @@ namespace Haumea.Parsing
         {
             if (text.Length == 0) yield break;
 
-            foreach (string line in text.Split(new [] { Environment.NewLine }, StringSplitOptions.None))
+            foreach (string line in text.Split(Environment.NewLine))
             {
                 if (line.Length > 0) yield return line;
             }
