@@ -72,6 +72,14 @@ namespace Haumea.Components
 
         private SpriteFont _font;
 
+        public Confirm(string msg, Action onSuccess)
+        {
+            Dimensions = new Vector2(250, 100);
+
+            _onSuccess += onSuccess;
+            _msg = msg;
+        }
+
         public Confirm(string msg, Action onSuccess, Action onFail)
         {
             Dimensions = new Vector2(250, 100);

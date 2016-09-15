@@ -88,8 +88,8 @@ namespace Haumea.Game
         public void Update(GameTime gameTime)
         {
             // Read input.
-            _input = Input.GetState(_renderer.RenderState.ScreenToWorldCoordinates);
             Vector2 screenDim = _gdm.GraphicsDevice.GetScreenDimensions();
+            _input = Input.GetState(screenDim,  _renderer.RenderState.ScreenToWorldCoordinates);
             _renderer.RenderState.UpdateAspectRatio(screenDim);
 
             _tickTime = gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -170,10 +170,10 @@ namespace Haumea.Game
                 entity.Update(_worldDate);
             }
 
-            Debug.PrintScreenInfo("FPS"    , Math.Round(1000 / _tickTime, 2));
-            Debug.PrintScreenInfo("Mouse"  , _input.ScreenMouse);
-            Debug.PrintScreenInfo("Zoom"   , _renderer.RenderState.Camera.Zoom);
-            Debug.PrintScreenInfo("M-delta", _input.MouseDelta);
+            Debug.WriteToScreen("FPS"      , Math.Round(1000 / _tickTime, 2));
+            Debug.WriteToScreen("Mouse"    , _input.ScreenMouse);
+            Debug.WriteToScreen("Zoom"     , _renderer.RenderState.Camera.Zoom);
+            Debug.WriteToScreen("Mouse rel", _input.MouseRelativeToCenter);
         }
 
         /// <summary>
@@ -231,16 +231,21 @@ namespace Haumea.Game
         [ConditionalAttribute("DEBUG")]
         private void PrintDebugInfo()
         {
+            var maxNameLength = Debug.ScreenText.Max(pair => pair.Key.Length);
+
             StringBuilder sb = new StringBuilder();
-            foreach (var pair in Debug.PrintInfo)
+            foreach (var pair in Debug.ScreenText)
             {
-                sb.Append(pair.Key.PadRight(8)).Append("  =  ").Append(pair.Value).Append("\n");
+                sb  .Append(pair.Key.PadRight(maxNameLength - pair.Key.Length))
+                    .Append("  =  ")
+                    .Append(pair.Value)
+                    .Append("\n");
             }
 
-            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - Debug.PrintInfo.Count * 20 - 10);
+            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - Debug.ScreenText.Count * 20 - 10);
             _spriteBatch.DrawString(_logFont, sb.ToString(), pos, Color.WhiteSmoke);
 
-            Debug.PrintInfo.Clear();
+            Debug.ScreenText.Clear();
         }
     }
 }

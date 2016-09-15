@@ -70,7 +70,7 @@ namespace Haumea.Components
             Vector2 position = input.Mouse;
             bool isHovering = false;
 
-            for (int id = 0; id < _provinces.Boundaries.Length
+            for (int id = 0; !input.IsMouseConsumed && id < _provinces.Boundaries.Length
                 // Provinces can't overlap so we exit immediately if/when we find a hit.
                 && !isHovering; id++)
             {
@@ -149,13 +149,17 @@ namespace Haumea.Components
 
             if (_units.SelectedArmies.Count > 0)
             {
-                Debug.PrintScreenInfo("Armies", _units.SelectedArmies.Join(", "));    
+                Debug.WriteToScreen("Armies", _units.SelectedArmies.Join(", "));    
             }
         }
 
         public void UpdateSelectionBox(InputState input)
         {
-            if (input.WentActive(Buttons.LeftButton))
+            if (input.WentInactive(Buttons.LeftButton))
+            {
+                _selectionBoxP1 = Vector2.Zero;
+                _selectionBoxP2 = Vector2.Zero;
+            } else if (input.WentActive(Buttons.LeftButton))
             {
                 _selectionBoxP1 = input.ScreenMouse;
                 _selectionBoxP2 = input.ScreenMouse;
@@ -163,11 +167,6 @@ namespace Haumea.Components
             else if (input.IsActive(Buttons.LeftButton))
             {
                 _selectionBoxP2 = input.ScreenMouse;
-            }
-            else if (input.WentInactive(Buttons.LeftButton))
-            {
-                _selectionBoxP1 = Vector2.Zero;
-                _selectionBoxP2 = Vector2.Zero;
             }
         }
 
@@ -228,14 +227,15 @@ namespace Haumea.Components
             int count = _units.SelectedArmies.Count;
             if (count == 0) return;
 
+            int[] delete = _units.SelectedArmies.ToArray();
+
             string plural = count == 1 ? "" : "s"; 
             string msg = string.Format("Are you sure you want \nto delete {0} unit{1}? \n\n[y/n]",
                 count, plural);
 
             _dialogMgr.Add(new Confirm(
                 msg: msg,
-                onSuccess: _units.DeleteSelected,
-                onFail:    _units.ClearSelection));
+                onSuccess: () => _units.Delete(delete)));
         }
 
         private void SwapInstrs(int id)

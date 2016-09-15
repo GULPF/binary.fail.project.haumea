@@ -77,6 +77,17 @@ namespace Haumea.Components
 
             ClearSelection();
         }
+
+        public void Delete(IEnumerable<int> armyIDs)
+        {
+            foreach (int armyID in armyIDs)
+            {
+                Army army = Armies[armyID];
+                Armies.Remove(armyID);
+                RemoveArmyFromProvince(army.Location, armyID);    
+                SelectedArmies.Remove(armyID);
+            }            
+        }
            
         /// <summary>
         /// Merge the selected armies into a single army.

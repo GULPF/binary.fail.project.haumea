@@ -22,20 +22,21 @@ namespace Haumea.Components
         // All the non-focused dialog, ordered by z-index (lowest first).
         // It actually makes sense to use a linked list.
         private readonly LinkedList<IDialog> _dialogs;
+        // The focused dialog.
         private IDialog _focus;
-        private ContentManager _content;
+        // Indicates if `_focus` is being dragged.
+        private bool _dragged;
+
         // Since we have one null object, we can just ignore `_focus` when counting.
         private int _nDialogs { get { return _dialogs.Count; } }
-        private bool _consumeMouse;
 
-
-        private InputState _input;
+        // Need to save away the content so we can load the dialogs.
+        private ContentManager _content;
 
         public DialogManager()
         {
             _dialogs = new LinkedList<IDialog>();
             _focus   = new NullDialog();
-            _consumeMouse = false;
         }
 
         public void Add(IDialog dialog)
@@ -53,9 +54,6 @@ namespace Haumea.Components
 
         public void Update(InputState input)
         {
-            // For use in `Draw()`.
-            _input = input;
-
             _focus.Update(input);
 
             if (_focus.Terminate)
@@ -63,27 +61,10 @@ namespace Haumea.Components
                 _focus = _dialogs.Last.Value;
                 _dialogs.RemoveLast();
             }
+             
+            bool insideFocus = CalculateBox(_focus).IsPointInside(input.MouseRelativeToCenter);
 
-            if (_consumeMouse)
-            {
-                input.ConsumeMouse();
-                _consumeMouse = false;
-            }
-        }
-
-        public void Draw(SpriteBatch spriteBatch, Renderer renderer)
-        {
-            Vector2 screenDim = spriteBatch.GraphicsDevice.GetScreenDimensions();
-
-            // Responding to user input in the draw method is ugly, but...
-            // Here is the problem:
-            // Dialogs only store their coordinates relative to the center.
-            // This is preferable, since it enables dialogs to maintain a reasonable
-            // position when the user resizes the window.
-            // The real screen position is only known at draw time,
-            // because we need a SpriteBatch to check the screen dimensions. 
-            if (_input.WentActive(Buttons.LeftButton)
-                && !CalculateBox(_focus, screenDim).IsPointInside(_input.ScreenMouse))
+            if (input.WentActive(Buttons.LeftButton) && !insideFocus)
             {
                 // It's important that we iterate back-to-front,
                 // because the last element is also rendered last (meaning highest z-index).
@@ -92,25 +73,45 @@ namespace Haumea.Components
                 while (node != null)
                 {
                     var dialog = node.Value;
-                    var aabb   = CalculateBox(dialog, screenDim);
-                    if (aabb.IsPointInside(_input.ScreenMouse))
+                    var aabb = CalculateBox(dialog);
+                    if (aabb.IsPointInside(input.MouseRelativeToCenter))
                     {
                         _dialogs.AddLast(_focus);
                         _focus = node.Value;
                         _dialogs.Remove(node);
+                        _dragged = true;
                         break;
                     }
 
                     node = node.Previous;
                 }
             }
-            else if (_input.IsActive(Buttons.LeftButton) &&
-                CalculateBox(_focus, screenDim).IsPointInside(_input.ScreenMouse))
+                
+            if (input.WentActive(Buttons.LeftButton) && insideFocus)
             {
-                _focus.Offset += _input.MouseDelta;
-                _input.ConsumeMouse();
+                _dragged = true;
             }
 
+            if (_dragged && input.WentInactive(Buttons.LeftButton))
+            {
+                _dragged = false;
+                input.ConsumeMouse();
+            }
+
+            if (insideFocus)
+            {
+                
+            }
+
+            if (_dragged)
+            {
+                _focus.Offset += input.MouseDelta;
+                input.ConsumeMouse();
+            }
+        }
+
+        public void Draw(SpriteBatch spriteBatch, Renderer renderer)
+        {
             foreach (var dialog in _dialogs)
             {
                 dialog.Draw(spriteBatch, renderer);
@@ -119,12 +120,11 @@ namespace Haumea.Components
             _focus.Draw(spriteBatch, renderer);
         }
 
-        // Temporary, this doesn't really belong here. In the future, the base-dialog
+        // Temporary. This doesn't really belong here. In the future, the base-dialog
         // should have this kind of stuff (but remember no inheriting pls). 
-        public static AABB CalculateBox(IDialog dialog, Vector2 screenDim)
+        public static AABB CalculateBox(IDialog dialog)
         {
-            Vector2 screenCenter = screenDim / 2;
-            Vector2 corner       = screenCenter + dialog.Offset - dialog.Dimensions / 2;
+            Vector2 corner = dialog.Offset - dialog.Dimensions / 2;
             var aabb = new AABB(corner, corner + dialog.Dimensions);
             return aabb;
         }

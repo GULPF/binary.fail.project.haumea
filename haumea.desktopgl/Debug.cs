@@ -10,10 +10,10 @@ namespace Haumea
     public static class Debug
     {
         public static IDictionary<Guid, IEnumerable<RenderInstruction>> DebugInstructions { get; }
-            = new Dictionary<Guid, IEnumerable<RenderInstruction>>();
+                = new Dictionary<Guid, IEnumerable<RenderInstruction>>();
 
-        public static IDictionary<string, string> PrintInfo { get; }
-        = new Dictionary<string, string>();
+        public static IDictionary<string, string> ScreenText { get; }
+                = new Dictionary<string, string>();
 
         public static Guid AddInstructions(IEnumerable<RenderInstruction> instructions)
         {
@@ -34,9 +34,9 @@ namespace Haumea
         }
 
         [Diagnostics.ConditionalAttribute("DEBUG")]
-        public static void PrintScreenInfo(string infoName, Object data)
+        public static void WriteToScreen(string infoName, Object data)
         {
-            PrintInfo[infoName] = data.ToString();
+            ScreenText[infoName] = data.ToString();
         }
     }
 }
