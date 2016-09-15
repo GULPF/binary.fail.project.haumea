@@ -229,7 +229,7 @@ namespace Haumea.Components
             if (count == 0) return;
 
             string plural = count == 1 ? "" : "s"; 
-            string msg = string.Format("Are you sure you want to \ndelete {0} unit{1}? \n\n[y/n]",
+            string msg = string.Format("Are you sure you want \nto delete {0} unit{1}? \n\n[y/n]",
                 count, plural);
 
             _dialogMgr.Add(new Confirm(
