@@ -170,9 +170,10 @@ namespace Haumea.Game
                 entity.Update(_worldDate);
             }
 
-            Debug.PrintScreenInfo("FPS"  , Math.Round(1000 / _tickTime, 2));
-            Debug.PrintScreenInfo("Mouse", _input.ScreenMouse);
-            Debug.PrintScreenInfo("Zoom" , _renderer.RenderState.Camera.Zoom);
+            Debug.PrintScreenInfo("FPS"    , Math.Round(1000 / _tickTime, 2));
+            Debug.PrintScreenInfo("Mouse"  , _input.ScreenMouse);
+            Debug.PrintScreenInfo("Zoom"   , _renderer.RenderState.Camera.Zoom);
+            Debug.PrintScreenInfo("M-delta", _input.MouseDelta);
         }
 
         /// <summary>

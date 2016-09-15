@@ -43,18 +43,6 @@ namespace unittests
         }
 
         [Test]
-        public void ToRectangle()
-        {
-            Rectangle rect = _aabb.ToRectangle();
-            Assert.AreEqual(10, rect.Width);
-            Assert.AreEqual(10, rect.Height);
-            Assert.AreEqual(0, rect.Left);
-            Assert.AreEqual(0, rect.Top);
-            Assert.AreEqual(10, rect.Right);
-            Assert.AreEqual(10, rect.Bottom);
-        }
-
-        [Test]
         public void Scale() 
         {
             AABB bigger = _aabb.Scale(2);

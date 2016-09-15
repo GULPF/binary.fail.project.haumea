@@ -97,8 +97,8 @@
     <Compile Include="Components\SelectionManager.cs" />
     <Compile Include="Geometric\MultiPoly.cs" />
     <Compile Include="Geometric\IHitable.cs" />
-    <Compile Include="Game\UIForms\Dialogs.cs" />
-    <Compile Include="Game\UIForms\DialogManager.cs" />
+    <Compile Include="Game\Dialogs\Dialogs.cs" />
+    <Compile Include="Game\Dialogs\DialogManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
