@@ -35,6 +35,13 @@ namespace Haumea.Game
 
         private SpriteFont _logFont;
 
+        //Stuff for playing with network
+        private bool _startServer = false;
+        private bool _startClient = false;
+        private Network.Server _trollServer = null;
+        private Network.Client _trollClient = null;
+        //End playground
+
 
         public bool IsRunning { get; private set; }
 
@@ -91,6 +98,28 @@ namespace Haumea.Game
             {
                 IsRunning = false;
                 return;
+            }
+            if (_input.IsActive(Keys.LeftControl) && _input.IsActive(Keys.S) && !_startServer)
+            {
+                _startServer = true;
+                _trollServer = new Network.Server(6667);
+                _trollServer.start();
+            }
+            if (_input.IsActive(Keys.LeftShift) && _input.IsActive(Keys.S) && _startServer)
+            {
+                _trollServer.stop();
+                _startServer = false;
+            }
+            if (_input.IsActive(Keys.LeftControl) && _input.IsActive(Keys.C) && !_startClient)
+            {
+                _startClient = true;
+                _trollClient= new Network.Client("192.168.0.3",6667);
+                _trollClient.start();
+            }
+            if (_input.IsActive(Keys.LeftShift) && _input.IsActive(Keys.C) && _startClient)
+            {
+                _trollClient.stop();
+                _startClient = false;
             }
 
             float currentZoom = _renderer.RenderState.Camera.Zoom;

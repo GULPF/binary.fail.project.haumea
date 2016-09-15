@@ -141,7 +141,7 @@ namespace Haumea.Network
                         {
                             if (!formatOffenders.ContainsKey(source.Address)) { formatOffenders.Add(source.Address, 0); }
                             formatOffenders[source.Address]++;
-                            if (formatOffenders[source.Address] > 10)
+                            if (formatOffenders[source.Address] == 10)
                             {
                                 lock (_throttleMutex)
                                 {
@@ -154,33 +154,54 @@ namespace Haumea.Network
                         {
                             continue;
                         }
-                        if (_clients.ContainsKey(source))
+                        countvalid++; //for debugging
+                        List<Payload> reply = processPayloads(source, packet);
+                        if (reply.Count > 0)
                         {
-                            //add logic for client handling later
-                        }
-                        //if (!clients.Contains(message.Key)) { clients.Add(message.Key); }
-
-                        countvalid++;
-                        foreach (Payload p in packet.Payload)
-                        {
-                            Type type = p.GetType();
-                            if (type.Equals(typeof(Player)))
-                            {
-                                Payload[] test = new Payload[1];
-                                test[0] = new Player("ACK", 57);
-                                _buffer.putOutgoing(source, new Packet(1, test).Serialize());
-                            }
-                           
+                            _buffer.putOutgoing(source, new Packet(_clients[source].getSeq(), reply).Serialize());
                         }
                     }
                 }
             }
-            // Debug.WriteLine("Size:{0}", clients.Count);
-            // foreach (var a in clients)
-            //{
-            //Debug.WriteLine("Client: {0}", a.Address);
-            //}
             Debug.WriteLine("Server Message Processor terminated. Processed {0} messages, {1} valid ({2}%)", count, countvalid, ((double)countvalid / count * 100).ToString("F"));
+        }
+        private List<Payload> processPayloads(IPEndPoint source, Packet packet)
+        {
+            List<Payload> reply = new List<Payload>();
+            bool knownClient = _clients.ContainsKey(source);
+            bool ack = false;
+            foreach (Payload p in packet.Payload)
+            {
+                Type type = p.GetType();
+                if (!knownClient)
+                {
+                    if (type.Equals(typeof(Handshake)))
+                    {
+                        try
+                        {
+                            //Add rules for accepting new connections
+                            _clients.Add(source, new ClientConnection());
+                            knownClient = true;
+                            ack = true;
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine("Exception while accepting handshake, " + e.Message);
+                        }
+                    }
+                }
+                else
+                {
+                    if (type.Equals(typeof(Player)))
+                    {
+
+                    }
+                }
+            }
+            if (ack) {
+                reply.Add(new Ack(packet.Seq));
+            }
+            return reply;
         }
 
         private void serverSender()
@@ -222,6 +243,8 @@ namespace Haumea.Network
             private uint _acknowledged;
 
             public ClientConnection() { }
+
+            public uint getSeq() { return _sequence; }
 
         }
 

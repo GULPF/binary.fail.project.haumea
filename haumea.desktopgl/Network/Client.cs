@@ -52,7 +52,7 @@ namespace Haumea.Network
             {
                 //this is just for testing, in the future, use buffers, same as server
                 Payload[] test = new Payload[1];
-                test[0] = new Player("Test", 12);
+                test[0] = new Handshake();
                 byte[] write_bytes = new Packet(1, test).Serialize();
                 try
                 {
@@ -63,7 +63,7 @@ namespace Haumea.Network
                 {
                     //Perhaps resend the message
                 }
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             }
             Debug.WriteLine("Client Sender terminated. Sent {0} messages", count);
         }
@@ -89,9 +89,9 @@ namespace Haumea.Network
                             foreach (Payload p in packet.Payload)
                             {
                                 Type type = p.GetType();
-                                if (type.Equals(typeof(Player)))
+                                if (type.Equals(typeof(Ack)))
                                 {
-                                    Debug.WriteLine("Server returned a player object");
+                                    Debug.WriteLine("Server returned an Ack object");
                                 }
 
                             }

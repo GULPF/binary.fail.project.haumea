@@ -18,6 +18,14 @@ namespace Haumea.Network
         }
     }
     [ProtoContract]
+    public class Handshake : Payload
+    {
+        [ProtoMember(1)]
+        public uint Bitfield { get; set; }
+        public Handshake() { }
+
+    }
+    [ProtoContract]
     public class Player : Payload
     {
         [ProtoMember(1)]
@@ -40,7 +48,8 @@ namespace Haumea.Network
         {
             IDictionary<int, Type> payloadTypes = new Dictionary<int, Type>    {
                 { 1,typeof(Ack) },
-                { 2,typeof(Player) }
+                { 2,typeof(Handshake) },
+                { 3,typeof(Player) }
             };
             foreach (var entry in payloadTypes)
             {
@@ -58,6 +67,11 @@ namespace Haumea.Network
         {
             Seq = seq;
             Payload = payload;
+        }
+        public Packet(uint seq, List<Payload> payload)
+        {
+            Seq = seq;
+            Payload = payload.ToArray();
         }
         public byte[] Serialize()
         {
