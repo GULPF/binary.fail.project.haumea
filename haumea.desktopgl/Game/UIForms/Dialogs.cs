@@ -17,15 +17,20 @@ namespace Haumea.Components
         // Like paradox games, I will limit my self to static dialog sizes,
         // so this is known at compile time.
         Vector2 Dimensions { get; }
-    }
 
-    internal interface IManagedDialog {}
+        // The offset from the center of the screen.
+        // Note that the dialog doesn't have to think about the position,
+        // it just have to use it in the draw.
+        Vector2 Offset { get; set; }
+    }
 
     // Null-object for IDialog
     public class NullDialog : IDialog
     {
-        public bool    Terminate   { get; } = false;
-        public Vector2 Dimensions  { get; } = Vector2.Zero;
+        public bool    Terminate   { get;      } = false;
+        public Vector2 Dimensions  { get;      } = Vector2.Zero;
+        public Vector2 Offset      { get; set; } = Vector2.Zero;
+
 
         public void LoadContent(ContentManager content) {}
         public void Update(InputState input) {}
@@ -39,6 +44,7 @@ namespace Haumea.Components
     {
         public bool    Terminate  { get; private set; } = false;
         public Vector2 Dimensions { get; }              = Vector2.Zero;
+        public Vector2 Offset      { get; set; } = Vector2.Zero;
 
         public void LoadContent(ContentManager content)
         {
@@ -58,14 +64,11 @@ namespace Haumea.Components
     {
         public bool    Terminate  { get; private set; } = false;
         public Vector2 Dimensions { get; }
+        public Vector2 Offset     { get; set; }
 
         private event Action _onSuccess;
         private event Action _onFail;
         private readonly string _msg;
-
-        // The position relative to the center of the screen.
-        private Vector2 _offset;
-
 
         private SpriteFont _font;
 
@@ -76,7 +79,6 @@ namespace Haumea.Components
             _onSuccess += onSuccess;
             _onFail    += onFail;
             _msg = msg;
-            _offset = Vector2.Zero;
         }
 
         public void LoadContent(ContentManager content)
@@ -100,7 +102,7 @@ namespace Haumea.Components
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
             Vector2 screenCenter = spriteBatch.GraphicsDevice.GetScreenDimensions() / 2;
-            Vector2 corner       = screenCenter + _offset - Dimensions / 2;
+            Vector2 corner       = screenCenter + Offset - Dimensions / 2;
             var aabb = new AABB(corner, corner + Dimensions);
             spriteBatch.Draw(aabb, Color.WhiteSmoke);
             spriteBatch.Draw(aabb.Borders(1), Color.Black);

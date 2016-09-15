@@ -45,6 +45,7 @@ namespace Haumea
 
         public Vector2 ScreenMouse { get; }
         public Vector2 Mouse       { get; }
+        public Vector2 MouseDelta  { get; }
         public int     ScrollWheel { get; }
 
         /// <summary>
@@ -62,16 +63,20 @@ namespace Haumea
             _kbState       = kbState;
             _oldKbState    = oldKbState;
 
-            ScreenMouse     = _mouseState.Position.ToVector2();
-            Mouse           = mouseWorldPos;
-            IsMouseConsumed = false;
-            ScrollWheel     = _mouseState.ScrollWheelValue - _oldMouseState.ScrollWheelValue; 
+            Vector2 nextScreenMouse = _mouseState.Position.ToVector2();
+            Vector2 nextMouse       = mouseWorldPos;
+
+            MouseDelta       = nextScreenMouse - _oldMouseState.Position.ToVector2();
+            Mouse            = nextMouse;
+            ScreenMouse      = nextScreenMouse;
+            Mouse            = mouseWorldPos;
+            IsMouseConsumed  = false;
+            ScrollWheel      = _mouseState.ScrollWheelValue - _oldMouseState.ScrollWheelValue; 
         }
 
         public void ConsumeMouse()
         {
-            //throw new NotImplementedException();
-            //IsMouseConsumed = true;
+            IsMouseConsumed = true;
         }
 
         #region keys
@@ -152,6 +157,8 @@ namespace Haumea
 
         public bool IsActive(Buttons button)
         {
+            if (IsMouseConsumed) return false;
+
             switch (button)
             {
             case Buttons.LeftButton:   return _mouseState.LeftButton   == ButtonState.Pressed;
@@ -166,6 +173,8 @@ namespace Haumea
 
         public bool WentActive(Buttons button)
         {
+            if (IsMouseConsumed) return false;
+
             switch (button)
             {
             case Buttons.LeftButton:
@@ -190,6 +199,8 @@ namespace Haumea
 
         public bool WentInactive(Buttons button)
         {
+            if (IsMouseConsumed) return false;
+
             switch (button)
             {
             case Buttons.LeftButton:
