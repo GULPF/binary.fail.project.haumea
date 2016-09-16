@@ -227,15 +227,21 @@ namespace Haumea.Components
             int count = _units.SelectedArmies.Count;
             if (count == 0) return;
 
-            int[] delete = _units.SelectedArmies.ToArray();
+            var delete = new HashSet<int>(_units.SelectedArmies);
 
             string plural = count == 1 ? "" : "s"; 
             string msg = string.Format("Are you sure you want \nto delete {0} unit{1}? \n\n[y/n]",
                 count, plural);
 
-            _dialogMgr.Add(new Confirm(
-                msg: msg,
-                onSuccess: () => _units.Delete(delete)));
+            var dialog = new Confirm(msg, () => _units.Delete(delete));
+            _dialogMgr.Add(dialog);
+
+            int nAlreadyDeleted = 0;
+            _units.OnDelete += (sender, armyID) => 
+            {
+                if (delete.Contains(armyID)) nAlreadyDeleted++;
+                if (nAlreadyDeleted == delete.Count) dialog.Terminate = true;
+            };
         }
 
         private void SwapInstrs(int id)

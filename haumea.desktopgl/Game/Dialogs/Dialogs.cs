@@ -44,7 +44,7 @@ namespace Haumea.Components
     {
         public bool    Terminate  { get; private set; } = false;
         public Vector2 Dimensions { get; }              = Vector2.Zero;
-        public Vector2 Offset      { get; set; } = Vector2.Zero;
+        public Vector2 Offset     { get; set; }         = Vector2.Zero;
 
         public void LoadContent(ContentManager content)
         {
@@ -62,7 +62,7 @@ namespace Haumea.Components
 
     public class Confirm : IDialog
     {
-        public bool    Terminate  { get; private set; } = false;
+        public bool    Terminate  { get; set; } = false;
         public Vector2 Dimensions { get; }
         public Vector2 Offset     { get; set; }
 
