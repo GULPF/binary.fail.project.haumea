@@ -82,11 +82,14 @@ namespace Haumea.Components
         {
             foreach (int armyID in armyIDs)
             {
-                Army army = Armies[armyID];
-                Armies.Remove(armyID);
-                RemoveArmyFromProvince(army.Location, armyID);    
-                SelectedArmies.Remove(armyID);
-            }            
+                Army army;
+                if (Armies.TryGetValue(armyID, out army))
+                {
+                    Armies.Remove(armyID);
+                    RemoveArmyFromProvince(army.Location, armyID);    
+                    SelectedArmies.Remove(armyID);    
+                }
+            }
         }
            
         /// <summary>
