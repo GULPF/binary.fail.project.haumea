@@ -116,7 +116,7 @@ namespace Haumea.Components
             {
                 dialog.Draw(spriteBatch, renderer);
             }
-
+                
             _focus.Draw(spriteBatch, renderer);
         }
 

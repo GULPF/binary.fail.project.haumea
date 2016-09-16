@@ -186,11 +186,7 @@ namespace Haumea.Game
 
             _spriteBatch.Begin();
 
-            foreach (IView view in _views)
-            {
-                view.Draw(_spriteBatch, _renderer);
-            }
-              
+            foreach (IView view in _views) view.Draw(_spriteBatch, _renderer);
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse, Color.White);
             PrintDebugInfo();
 
@@ -213,19 +209,15 @@ namespace Haumea.Game
                 
             InitializedRawGameData worldData = IntializeRawData.Initialize(gameData, _content);
 
-            _views  = new IView[worldData.Views.Count + 1]; // +1 since [0] is WorldDateView
+            _views  = new IView[worldData.Views.Count];
             _models = new IModel[worldData.Models.Count];
 
             // ParsedWorldData has no behavior - it's just data.
             // We need to copy it over to the engine.
-            worldData.Views.CopyTo(_views, 1);
+            worldData.Views.CopyTo(_views, 0);
             worldData.Models.CopyTo(_models, 0);
 
-            // Since WorldDate is not an ordinary model, and WorldDateView need it as input,
-            // we initialize them here.
-            // TODO: Move it to GameFileParser anyway.
-            _worldDate = new WorldDate(new DateTime(1452, 6, 23));;
-            _views[0] = new WorldDateView(_worldDate);
+            _worldDate = worldData.WorldDate;;
         }
 
         [ConditionalAttribute("DEBUG")]
