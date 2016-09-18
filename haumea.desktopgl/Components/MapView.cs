@@ -67,6 +67,11 @@ namespace Haumea.Components
 
         public void Update(InputState input)
         {
+            if (input.WentActive(Keys.F1))
+            {
+                _dialogMgr.Add(new Prompt((str) => Console.WriteLine(str)));
+            }
+
             AABB selectionBox = new AABB(_selectionBoxP1, _selectionBoxP2);
             Vector2 position = input.Mouse;
             bool isHovering = false;

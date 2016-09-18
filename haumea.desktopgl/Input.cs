@@ -80,6 +80,7 @@ namespace Haumea
         /// by most entities. 
         /// </summary>
         public bool IsMouseConsumed { get; private set; }
+        public bool IsKeyboardConsumed { get; private set; }
 
         public InputState(MouseState mouseState, MouseState oldMouseState,
             KeyboardState kbState, KeyboardState oldKbState,
@@ -108,20 +109,28 @@ namespace Haumea
             IsMouseConsumed = true;
         }
 
+        public void ConsumeKeyboard()
+        {
+            IsKeyboardConsumed = true;
+        }
+
         #region keys
 
         public bool IsActive(Keys key, bool allowMods = true)
         {
+            if (IsKeyboardConsumed) return false;
             return _kbState.IsKeyDown(key) && (allowMods || NoMods());
         }
 
         public bool WentActive(Keys key, bool allowMods = true)
         {
+            if (IsKeyboardConsumed) return false;
             return _kbState.IsKeyDown(key) && !_oldKbState.IsKeyDown(key) && (allowMods || NoMods());
         }
 
         public bool WentInactive(Keys key, bool allowMods = true)
         {
+            if (IsKeyboardConsumed) return false;
             return !_kbState.IsKeyDown(key) && _oldKbState.IsKeyDown(key) && (allowMods || NoMods());
         }
 
@@ -131,6 +140,8 @@ namespace Haumea
 
         public bool IsActive(Modifiers mod)
         {
+            if (IsKeyboardConsumed) return false;
+
             switch (mod)
             {
             case Modifiers.Alt:
@@ -148,6 +159,8 @@ namespace Haumea
 
         public bool WentActive(Modifiers mod)
         {
+            if (IsKeyboardConsumed) return false;
+
             switch (mod)
             {
             case Modifiers.Alt:
@@ -165,6 +178,8 @@ namespace Haumea
 
         public bool WentInactive(Modifiers mod)
         {
+            if (IsKeyboardConsumed) return false;
+            
             switch (mod)
             {
             case Modifiers.Alt:

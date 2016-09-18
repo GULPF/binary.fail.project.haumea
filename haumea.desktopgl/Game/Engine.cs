@@ -125,37 +125,7 @@ namespace Haumea.Game
                 _trollClient.stop();
                 _startClient = false;
             }
-
-            float currentZoom = _renderer.RenderState.Camera.Zoom;
-
-            Vector2 move = new Vector2();
-
-            float zoom = _renderer.RenderState.Camera.Zoom;
-            const float PanSpeed = 0.010f;
-            const float ZoomSpeed = 1.1f;
-
-            // TODO: `went_down` should be prioritized
-            // TODO: The scaling of the pan speed is shit.
-            if (_input.IsActive(Keys.Left , false)) move.X -= PanSpeed * screenDim.X * currentZoom;
-            if (_input.IsActive(Keys.Right, false)) move.X += PanSpeed * screenDim.X * currentZoom;
-            if (_input.IsActive(Keys.Up   , false)) move.Y += PanSpeed * screenDim.Y * currentZoom;
-            if (_input.IsActive(Keys.Down , false)) move.Y -= PanSpeed * screenDim.Y * currentZoom;
-
-            // temporary keys
-            if (_input.IsActive(Keys.H, false)) zoom *= ZoomSpeed;
-            if (_input.IsActive(Keys.J, false)) zoom /= ZoomSpeed;
-
-            if (_input.ScrollWheel != 0)
-            {
-                zoom += (float) (Math.Sign(_input.ScrollWheel) * Math.Log10(Math.Abs(_input.ScrollWheel)) / 20);
-            }
-
-            zoom = Math.Max(zoom, 0.5f);
-            zoom = Math.Min(zoom, 3.4f);
-
-            _renderer.RenderState.Camera.Move(move);
-            _renderer.RenderState.Camera.SetZoom(zoom);
-
+                
             // It is important that _worldDate is updated first of all,
             // since the other components depend on it being in sync.
             _worldDate.Update(gameTime);
@@ -173,6 +143,8 @@ namespace Haumea.Game
             {
                 entity.Update(_worldDate);
             }
+
+            UpdateCamera();
 
             Debug.WriteToScreen("Slow"     , gameTime.IsRunningSlowly ? "Yes" : "No");
             Debug.WriteToScreen("Zoom"     , _renderer.RenderState.Camera.Zoom);
@@ -197,6 +169,35 @@ namespace Haumea.Game
             _spriteBatch.End();
 
             _renderer.DrawToScreen(Debug.DebugInstructions.Values.SelectMany(x => x));
+        }
+
+        private void UpdateCamera()
+        {
+            Vector2 screenDim = _spriteBatch.GetScreenDimensions();
+            float currentZoom = _renderer.RenderState.Camera.Zoom;
+
+            Vector2 move = new Vector2();
+
+            float zoom = _renderer.RenderState.Camera.Zoom;
+            const float PanSpeed = 0.010f;
+
+            // TODO: `went_down` should be prioritized
+            // TODO: The scaling of the pan speed is shit.
+            if (_input.IsActive(Keys.Left , false)) move.X -= PanSpeed * screenDim.X * currentZoom;
+            if (_input.IsActive(Keys.Right, false)) move.X += PanSpeed * screenDim.X * currentZoom;
+            if (_input.IsActive(Keys.Up   , false)) move.Y += PanSpeed * screenDim.Y * currentZoom;
+            if (_input.IsActive(Keys.Down , false)) move.Y -= PanSpeed * screenDim.Y * currentZoom;
+
+            if (_input.ScrollWheel != 0)
+            {
+                zoom += (float) (Math.Sign(_input.ScrollWheel) * Math.Log10(Math.Abs(_input.ScrollWheel)) / 20);
+            }
+
+            zoom = Math.Max(zoom, 0.5f);
+            zoom = Math.Min(zoom, 3.4f);
+
+            _renderer.RenderState.Camera.Move(move);
+            _renderer.RenderState.Camera.SetZoom(zoom);
         }
 
         /// <summary>

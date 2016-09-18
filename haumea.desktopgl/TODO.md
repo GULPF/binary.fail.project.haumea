@@ -16,6 +16,10 @@
 
 -	Input is a psuedo-singleton
 
+-	Textfield keybinds should be IsActive(), but needs an initial cd so it's easy to just do it once.
+
+-	Extract Textfield from Prompt, and write tests for it.
+
 Guidelines
 --------------------------------
 -	Views should be named [name]View.cs. If the view is the primary representation of a single model,
