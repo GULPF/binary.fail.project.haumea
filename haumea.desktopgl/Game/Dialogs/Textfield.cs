@@ -46,7 +46,6 @@ namespace Haumea.Dialogs
                 _userInput = new StringBuilder(matchable.Substring(0, matchable.Length - match.Length));
                 _userInput.Append(str.Substring(_caretPos));
                 _caretPos -= match.Length;
-
             }
             else if (input.WentActive(Keys.Back) && _caretPos > 0)
             {
@@ -67,7 +66,6 @@ namespace Haumea.Dialogs
             }
             else if (input.WentActive(Keys.End))  _caretPos = _userInput.Length;
             else if (input.WentActive(Keys.Home)) _caretPos = 0;
-
 
             input.ConsumeKeyboard();
         }

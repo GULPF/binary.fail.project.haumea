@@ -57,19 +57,15 @@ namespace Haumea.Dialogs
         {
             _focus.Update(input);
 
-            if (_focus.Terminate)
-            {
-                _focus = _dialogs.Last.Value;
-                _dialogs.RemoveLast();
-            }
-             
+            RemoveTerminatedDialogs();
+
             bool insideFocus = DialogHelpers.CalculateBox(_focus).IsPointInside(input.MouseRelativeToCenter);
 
             if (input.WentActive(Buttons.LeftButton) && !insideFocus)
             {
                 // It's important that we iterate back-to-front,
                 // because the last element is also rendered last (meaning highest z-index).
-                var node   = _dialogs.Last;
+                var node = _dialogs.Last;
 
                 while (node != null)
                 {
@@ -99,11 +95,6 @@ namespace Haumea.Dialogs
                 input.ConsumeMouse();
             }
 
-            if (insideFocus)
-            {
-                
-            }
-
             if (_dragged)
             {
                 _focus.Offset += input.MouseDelta;
@@ -119,6 +110,30 @@ namespace Haumea.Dialogs
             }
                 
             _focus.Draw(spriteBatch);
+        }
+
+        private void RemoveTerminatedDialogs()
+        {
+            var node = _dialogs.First;
+            while (node != null)
+            {
+                if (node.Value.Terminate)
+                {
+                    var tmp = node.Next;
+                    _dialogs.Remove(node);
+                    node = tmp;
+                }
+                else
+                {
+                    node = node.Next;
+                }
+            }
+
+            if (_focus.Terminate)
+            {
+                _focus = _dialogs.Last.Value;
+                _dialogs.RemoveLast();
+            }
         }
     }
 }
