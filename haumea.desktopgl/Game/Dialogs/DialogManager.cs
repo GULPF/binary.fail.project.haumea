@@ -115,10 +115,10 @@ namespace Haumea.Dialogs
         {
             foreach (var dialog in _dialogs)
             {
-                dialog.Draw(spriteBatch, renderer);
+                dialog.Draw(spriteBatch);
             }
                 
-            _focus.Draw(spriteBatch, renderer);
+            _focus.Draw(spriteBatch);
         }
     }
 }

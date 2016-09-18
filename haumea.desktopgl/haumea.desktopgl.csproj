@@ -97,8 +97,11 @@
     <Compile Include="Components\SelectionManager.cs" />
     <Compile Include="Geometric\MultiPoly.cs" />
     <Compile Include="Geometric\IHitable.cs" />
-    <Compile Include="Game\Dialogs\Dialogs.cs" />
     <Compile Include="Game\Dialogs\DialogManager.cs" />
+    <Compile Include="Game\Dialogs\Prompt.cs" />
+    <Compile Include="Game\Dialogs\Confirm.cs" />
+    <Compile Include="Game\Dialogs\Textfield.cs" />
+    <Compile Include="Game\Dialogs\IDialog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
