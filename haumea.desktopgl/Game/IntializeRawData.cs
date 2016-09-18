@@ -8,6 +8,7 @@ using Haumea.Collections;
 using Haumea.Geometric;
 using Haumea.Rendering;
 using Haumea.Parsing;
+using Haumea.Dialogs;
 
 using TagIdMap = Haumea.Collections.BiDictionary<int, string>;
 
@@ -50,11 +51,11 @@ namespace Haumea.Game
             var worldDateView = new WorldDateView(worldDate);
 
 
-            IList<IModel> models = new List<IModel> {
+            List<IModel> models = new List<IModel> {
                 events, provinces, realms, units
             };
             
-            IList<IView> views = new List<IView> {
+            List<IView> views = new List<IView> {
                 worldDateView, mapView, dialogManager
             };
 
@@ -135,11 +136,11 @@ namespace Haumea.Game
         
     public struct InitializedRawGameData
     {
-        public IList<IModel> Models { get; }
-        public IList<IView> Views { get; }
+        public List<IModel> Models { get; }
+        public List<IView> Views { get; }
         public WorldDate WorldDate { get; }
 
-        public InitializedRawGameData(IList<IModel> models, IList<IView> views, WorldDate worldDate)
+        public InitializedRawGameData(List<IModel> models, List<IView> views, WorldDate worldDate)
         {
             Models = models;
             Views = views;

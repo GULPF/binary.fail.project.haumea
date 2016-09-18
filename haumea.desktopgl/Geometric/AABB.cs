@@ -75,6 +75,11 @@ namespace Haumea.Geometric
                 || IsPointInside(new Vector2(aabb.TopLeft.Y, aabb.BottomRight.X));
         }
 
+        public AABB Move(Vector2 vd)
+        {
+            return new AABB(TopLeft + vd, BottomRight + vd);
+        }
+
         public override string ToString()
         {
             return "Top left: " + TopLeft + " Bottom right: " + BottomRight;

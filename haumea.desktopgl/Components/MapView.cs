@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Haumea.Rendering;
 using Haumea.Geometric;
+using Haumea.Dialogs;
 
 namespace Haumea.Components
 {

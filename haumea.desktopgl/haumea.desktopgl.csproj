@@ -99,7 +99,6 @@
     <Compile Include="Geometric\IHitable.cs" />
     <Compile Include="Game\Dialogs\Dialogs.cs" />
     <Compile Include="Game\Dialogs\DialogManager.cs" />
-    <Compile Include="TextInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />

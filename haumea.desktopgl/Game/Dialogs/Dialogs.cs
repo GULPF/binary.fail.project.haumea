@@ -5,8 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Haumea.Rendering;
 using Haumea.Geometric;
+using Haumea.Components;
 
-namespace Haumea.Components
+namespace Haumea.Dialogs
 {
     public interface IDialog : IView
     {
@@ -25,7 +26,7 @@ namespace Haumea.Components
     }
 
     // Null-object for IDialog
-    public class NullDialog : IDialog
+    internal class NullDialog : IDialog
     {
         public bool    Terminate   { get;      } = false;
         public Vector2 Dimensions  { get;      } = Vector2.Zero;
@@ -36,27 +37,14 @@ namespace Haumea.Components
         public void Update(InputState input) {}
         public void Draw(SpriteBatch spriteBatch, Renderer renderer) {}
     }
-
-    /// <summary>
-    /// A simple dialog class to be used by other dialogs.
-    /// </summary>
-    public class Dialog : IDialog
+        
+    internal static class DialogHelpers
     {
-        public bool    Terminate  { get; private set; } = false;
-        public Vector2 Dimensions { get; }              = Vector2.Zero;
-        public Vector2 Offset     { get; set; }         = Vector2.Zero;
-
-        public void LoadContent(ContentManager content)
+        public static AABB CalculateBox(IDialog dialog)
         {
-            throw new NotImplementedException();
-        }
-        public void Update(InputState input)
-        {
-            throw new NotImplementedException();
-        }
-        public void Draw(SpriteBatch spriteBatch, Renderer renderer)
-        {
-            throw new NotImplementedException();
+            Vector2 corner = dialog.Offset - dialog.Dimensions / 2;
+            var aabb = new AABB(corner, corner + dialog.Dimensions);
+            return aabb;
         }
     }
 
@@ -72,6 +60,8 @@ namespace Haumea.Components
 
         private SpriteFont _font;
 
+        private string _extraMsg = "";
+
         public Confirm(string msg, Action onSuccess)
         {
             Dimensions = new Vector2(250, 100);
@@ -79,6 +69,8 @@ namespace Haumea.Components
             _onSuccess = onSuccess;
             _onFail    = () => {};
             _msg = msg;
+
+            Input.OnTextInput += (c) => _extraMsg += c;
         }
 
         public Confirm(string msg, Action onSuccess, Action onFail)
@@ -110,14 +102,9 @@ namespace Haumea.Components
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)
         {
-            Vector2 screenCenter = spriteBatch.GraphicsDevice.GetScreenDimensions() / 2;
-            Vector2 corner       = screenCenter + Offset - Dimensions / 2;
-            var aabb = new AABB(corner, corner + Dimensions);
-            spriteBatch.Draw(aabb, Color.WhiteSmoke);
-            spriteBatch.Draw(aabb.Borders(1), Color.Black);
-
-            spriteBatch.DrawString(_font, _msg, aabb.TopLeft + new Vector2(10, 10), Color.Black);
+            AABB box = DialogHelpers.CalculateBox(this).Move(spriteBatch.GetScreenDimensions() / 2);
+            spriteBatch.Draw(box, Color.WhiteSmoke, 1, Color.Black);
+            spriteBatch.DrawString(_font, _msg + _extraMsg, box.TopLeft + new Vector2(10, 10), Color.Black);
         }
     }
 }
-

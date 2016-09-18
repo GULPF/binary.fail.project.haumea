@@ -14,6 +14,8 @@
 
 -	Minimap
 
+-	Input is a psuedo-singleton
+
 Guidelines
 --------------------------------
 -	Views should be named [name]View.cs. If the view is the primary representation of a single model,

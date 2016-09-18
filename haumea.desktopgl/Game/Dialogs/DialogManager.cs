@@ -5,8 +5,9 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Haumea.Rendering;
 using Haumea.Geometric;
+using Haumea.Components;
 
-namespace Haumea.Components
+namespace Haumea.Dialogs
 {
     /// <summary>
     /// Handles the dialog life cycle:
@@ -62,7 +63,7 @@ namespace Haumea.Components
                 _dialogs.RemoveLast();
             }
              
-            bool insideFocus = CalculateBox(_focus).IsPointInside(input.MouseRelativeToCenter);
+            bool insideFocus = DialogHelpers.CalculateBox(_focus).IsPointInside(input.MouseRelativeToCenter);
 
             if (input.WentActive(Buttons.LeftButton) && !insideFocus)
             {
@@ -73,7 +74,7 @@ namespace Haumea.Components
                 while (node != null)
                 {
                     var dialog = node.Value;
-                    var aabb = CalculateBox(dialog);
+                    var aabb = DialogHelpers.CalculateBox(dialog);
                     if (aabb.IsPointInside(input.MouseRelativeToCenter))
                     {
                         _dialogs.AddLast(_focus);
@@ -118,15 +119,6 @@ namespace Haumea.Components
             }
                 
             _focus.Draw(spriteBatch, renderer);
-        }
-
-        // Temporary. This doesn't really belong here. In the future, the base-dialog
-        // should have this kind of stuff (but remember no inheriting pls). 
-        public static AABB CalculateBox(IDialog dialog)
-        {
-            Vector2 corner = dialog.Offset - dialog.Dimensions / 2;
-            var aabb = new AABB(corner, corner + dialog.Dimensions);
-            return aabb;
         }
     }
 }

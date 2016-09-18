@@ -16,6 +16,7 @@ namespace Haumea.Game
     public class Engine
     {
         private readonly ContentManager _content;
+        private readonly GameWindow _window;
 
         // There are currently three different classes for rendering,
         // which is a bit ridiculus.
@@ -45,18 +46,19 @@ namespace Haumea.Game
 
         public bool IsRunning { get; private set; }
 
-        public Engine(ContentManager content, GraphicsDeviceManager gdm)
+        public Engine(ContentManager content, GraphicsDeviceManager gdm, GameWindow window)
         {
             _content = content;
             _gdm = gdm;
+            _window = window;
+
+            Input.BindTextInput(_window);
 
             IsRunning = true;
         }
 
         public void Initialize()
         {
-            RenderState renderState = new RenderState(_gdm.GraphicsDevice.GetScreenDimensions());
-            _renderer = new Renderer(_gdm.GraphicsDevice, renderState);
             Network.Packet.Configure();
         }
 
@@ -68,6 +70,8 @@ namespace Haumea.Game
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(_gdm.GraphicsDevice);
+            RenderState renderState = new RenderState(_spriteBatch.GetScreenDimensions());
+            _renderer = new Renderer(_gdm.GraphicsDevice, renderState);
 
             _mouseCursorTexture = _content.Load<Texture2D>("cursor");
             _logFont            = _content.Load<SpriteFont>("LogFont");
@@ -88,7 +92,7 @@ namespace Haumea.Game
         public void Update(GameTime gameTime)
         {
             // Read input.
-            Vector2 screenDim = _gdm.GraphicsDevice.GetScreenDimensions();
+            Vector2 screenDim = _spriteBatch.GetScreenDimensions();
             _input = Input.GetState(screenDim,  _renderer.RenderState.ScreenToWorldCoordinates);
             _renderer.RenderState.UpdateAspectRatio(screenDim);
 
@@ -202,20 +206,16 @@ namespace Haumea.Game
         {
             RawGameData gameData;
 
-            using (var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+            using (var stream = new StreamReader(fs))
             {
                 gameData = GameFile.Parse(stream);    
             }
-                
+
             InitializedRawGameData worldData = IntializeRawData.Initialize(gameData, _content);
 
-            _views  = new IView[worldData.Views.Count];
-            _models = new IModel[worldData.Models.Count];
-
-            // ParsedWorldData has no behavior - it's just data.
-            // We need to copy it over to the engine.
-            worldData.Views.CopyTo(_views, 0);
-            worldData.Models.CopyTo(_models, 0);
+            _views  = worldData.Views.ToArray();
+            _models = worldData.Models.ToArray();
 
             _worldDate = worldData.WorldDate;;
         }

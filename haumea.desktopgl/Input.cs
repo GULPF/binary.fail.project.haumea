@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -18,6 +18,20 @@ namespace Haumea
         private static MouseState _oldMouseState;
         private static KeyboardState _oldKbState;
 
+        public static event Action<char> OnTextInput;
+
+        public static void BindTextInput(GameWindow window)
+        {
+            window.TextInput += (sender, e) =>
+            {
+                var handle = OnTextInput;
+                if (handle != null)
+                {
+                    handle(e.Character);
+                }
+            };
+        }
+
         public static InputState GetState(Vector2 screenDim, Func<Vector2, Vector2> mouseTranslator)
         {
             MouseState newMouseState = Mouse.GetState();
@@ -26,12 +40,12 @@ namespace Haumea
             Vector2 mousePos = newMouseState.Position.ToVector2();
             Vector2 mouseWorldPos = mouseTranslator(mousePos);
               
-            InputState hstate = new InputState(newMouseState, _oldMouseState,
+            var inputState = new InputState(newMouseState, _oldMouseState,
                 newKbState, _oldKbState, mouseWorldPos, screenDim);
             _oldMouseState = newMouseState;
             _oldKbState    = newKbState;
                 
-            return hstate;
+            return inputState;
         }
     }
 
