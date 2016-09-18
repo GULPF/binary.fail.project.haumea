@@ -11,7 +11,6 @@ namespace Haumea.Geometric
     /// </summary>
     public class AABB : IHitable
     {
-        // This is probably to damn many props for this class.
         public Vector2 TopLeft     { get; }
         public Vector2 BottomRight { get; }
 
@@ -46,28 +45,8 @@ namespace Haumea.Geometric
         /// <param name="v2">The mirrored corner point of v1</param>
         public AABB(Vector2 v1, Vector2 v2)
         {
-            float x0, x1, y0, y1;
-
-            if (v1.X <= v2.X)
-            {
-                x0 = v1.X;
-                x1 = v2.X;
-            } else {
-                x0 = v2.X;
-                x1 = v1.X;
-            }
-
-            if (v1.Y <= v2.Y)
-            {
-                y0 = v1.Y;
-                y1 = v2.Y;
-            } else {
-                y0 = v2.Y;
-                y1 = v1.Y;
-            }
-
-            TopLeft = new Vector2(x0, y0);
-            BottomRight = new Vector2(x1, y1);
+            TopLeft     = Vector2.Min(v1, v2);
+            BottomRight = Vector2.Max(v1, v2);
         }
 
         public bool IsPointInside(Vector2 point)

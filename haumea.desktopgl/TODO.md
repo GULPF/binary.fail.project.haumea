@@ -6,6 +6,14 @@
 
 -	The coordinate system is wrong. Fourth quadrant should be positive.
 
+-	Writing to .haumea files
+
+-	Units.cs should not handle selection
+
+-	Maybe DialogManager should be split into view/model
+
+-	Minimap
+
 Guidelines
 --------------------------------
 -	Views should be named [name]View.cs. If the view is the primary representation of a single model,
@@ -17,3 +25,9 @@ Guidelines
 
 	In most cases, the `Try...` pattern can directly replace exceptions, and in the cases where the exception
 	indicates wrong code usage, use Debug.Assert (but note that it is ignored in the release build).
+
+Notes
+--------------------------------
+-	When implenenting text input for dialogs, Game.Window.TextInput should be used.
+
+-	Vector2 has reference based methods to avoid allocation, might be useful in the future.

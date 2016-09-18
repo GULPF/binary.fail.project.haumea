@@ -66,8 +66,8 @@ namespace Haumea.Components
         public Vector2 Dimensions { get; }
         public Vector2 Offset     { get; set; }
 
-        private event Action _onSuccess;
-        private event Action _onFail;
+        private Action _onSuccess;
+        private Action _onFail;
         private readonly string _msg;
 
         private SpriteFont _font;
@@ -76,7 +76,8 @@ namespace Haumea.Components
         {
             Dimensions = new Vector2(250, 100);
 
-            _onSuccess += onSuccess;
+            _onSuccess = onSuccess;
+            _onFail    = () => {};
             _msg = msg;
         }
 
@@ -84,8 +85,8 @@ namespace Haumea.Components
         {
             Dimensions = new Vector2(250, 100);
 
-            _onSuccess += onSuccess;
-            _onFail    += onFail;
+            _onSuccess = onSuccess;
+            _onFail    = onFail;
             _msg = msg;
         }
 

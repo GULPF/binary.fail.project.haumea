@@ -170,9 +170,9 @@ namespace Haumea.Game
                 entity.Update(_worldDate);
             }
 
-            Debug.WriteToScreen("FPS"      , Math.Round(1000 / _tickTime, 2));
-            Debug.WriteToScreen("Mouse"    , _input.ScreenMouse);
+            Debug.WriteToScreen("Slow"     , gameTime.IsRunningSlowly ? "Yes" : "No");
             Debug.WriteToScreen("Zoom"     , _renderer.RenderState.Camera.Zoom);
+            Debug.WriteToScreen("Mouse"    , _input.ScreenMouse);
             Debug.WriteToScreen("Mouse rel", _input.MouseRelativeToCenter);
         }
 
@@ -228,13 +228,16 @@ namespace Haumea.Game
             StringBuilder sb = new StringBuilder();
             foreach (var pair in Debug.ScreenText)
             {
-                sb  .Append(pair.Key.PadRight(maxNameLength - pair.Key.Length))
+                sb  .Append(pair.Key.PadRight(maxNameLength))
                     .Append("  =  ")
                     .Append(pair.Value)
                     .Append("\n");
             }
 
-            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - Debug.ScreenText.Count * 20 - 10);
+            string txt = sb.ToString();
+            float height = _logFont.MeasureString(txt).Y;
+
+            Vector2 pos = new Vector2(10, _renderer.RenderState.ScreenDim.Y - height).Floor();
             _spriteBatch.DrawString(_logFont, sb.ToString(), pos, Color.WhiteSmoke);
 
             Debug.ScreenText.Clear();

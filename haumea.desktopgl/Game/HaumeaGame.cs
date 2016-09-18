@@ -30,10 +30,11 @@ namespace Haumea.Game
         protected override void Initialize()
         {
             Mouse.WindowHandle = Window.Handle;
+            Window.Title = "Project Haumea";
             _engine.Initialize();
             base.Initialize();
         }
-            
+
         protected override void LoadContent()
         {
             _engine.LoadContent();
