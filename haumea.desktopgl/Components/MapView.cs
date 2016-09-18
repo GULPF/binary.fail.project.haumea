@@ -121,12 +121,10 @@ namespace Haumea.Components
                 }
                 _selection.StopHoveringAll();    
             }
-
-            //if (input.WentActive(Keys.G))      _units.MergeSelected();
-
+                
             if (input.WentActive(Keys.G))      _units.MergeSelected();
             if (input.WentActive(Keys.Escape)) _units.ClearSelection();
-            if (input.WentActive(Keys.D))      DeleteUnits();
+            if (input.WentActive(Keys.Delete)) DeleteUnits();
 
             // TODO: This can be improved. Since I need to hit check all provinces
             // ..... anyway, I should only hit test the label which is inside the
@@ -236,7 +234,7 @@ namespace Haumea.Components
             var delete = new HashSet<int>(_units.SelectedArmies);
 
             string plural = count == 1 ? "" : "s"; 
-            string msg = string.Format("Are you sure you want \nto delete {0} unit{1}? \n\n[y/n]",
+            string msg = string.Format("Are you sure you want \nto delete {0} unit{1}?",
                 count, plural);
 
             var dialog = new Confirm(msg, () => _units.Delete(delete));

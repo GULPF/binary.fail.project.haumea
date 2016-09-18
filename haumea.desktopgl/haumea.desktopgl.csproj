@@ -102,6 +102,7 @@
     <Compile Include="Game\Dialogs\Confirm.cs" />
     <Compile Include="Game\Dialogs\Textfield.cs" />
     <Compile Include="Game\Dialogs\IDialog.cs" />
+    <Compile Include="Game\Dialogs\Button.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />

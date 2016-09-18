@@ -10,13 +10,19 @@ namespace Haumea.Dialogs
 {
     public class Confirm : IDialog
     {
-        public bool    Terminate  { get; set; } = false;
+        public bool    Terminate  { get; set; }
         public Vector2 Dimensions { get; }      = new Vector2(250, 100);
         public Vector2 Offset     { get; set; }
 
         private Action _onSuccess;
         private Action _onFail;
         private readonly string _msg;
+
+        private Button _btnYes;
+        private Button _btnNo;
+
+        private static readonly Vector2 _btnYesOffset = new Vector2(10, 65);
+        private static readonly Vector2 _btnNoOffset  = new Vector2(140, 65);
 
         private SpriteFont _font;
 
@@ -37,6 +43,8 @@ namespace Haumea.Dialogs
         public void LoadContent(ContentManager content)
         {
             _font = content.Load<SpriteFont>("LogFont");
+            _btnYes = new Button(_font, "Yes", () => { Terminate = true; _onSuccess(); });
+            _btnNo  = new Button(_font, "No",  () => { Terminate = true; _onFail();    });
         }
 
         public void Update(InputState input)
@@ -50,6 +58,9 @@ namespace Haumea.Dialogs
                 Terminate = true;
                 _onFail();
             }
+
+            _btnYes.Update(input, Offset + _btnYesOffset - Dimensions / 2);
+            _btnNo.Update(input,  Offset + _btnNoOffset  - Dimensions / 2);
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -57,6 +68,8 @@ namespace Haumea.Dialogs
             AABB box = DialogHelpers.CalculateBox(this).Move(spriteBatch.GetScreenDimensions() / 2);
             spriteBatch.Draw(box, Color.WhiteSmoke, 1, Color.Black);
             spriteBatch.DrawString(_font, _msg, box.TopLeft + new Vector2(10, 10), Color.Black);
+            _btnYes.Draw(spriteBatch, box.TopLeft + _btnYesOffset);
+            _btnNo.Draw(spriteBatch, box.TopLeft + _btnNoOffset);
         }
     }
 }

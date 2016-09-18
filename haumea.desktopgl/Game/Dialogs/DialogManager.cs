@@ -100,6 +100,11 @@ namespace Haumea.Dialogs
                 _focus.Offset += input.MouseDelta;
                 input.ConsumeMouse();
             }
+
+            if (_nDialogs > 0)
+            {
+                Debug.WriteToScreen("Dialog", string.Format("Offset: {0}", _focus.Offset));    
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch, Renderer renderer)

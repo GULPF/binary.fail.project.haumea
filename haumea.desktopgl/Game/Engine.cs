@@ -166,6 +166,24 @@ namespace Haumea.Game
             _spriteBatch.Draw(_mouseCursorTexture, _input.ScreenMouse, Color.White);
             PrintDebugInfo();
 
+
+            _spriteBatch.DrawString(_logFont,
+                "\n\n\nHotkeys for testing\n" +
+                "-------------------\n\n" +
+                "Delete unit(s): Delete \n" +
+                "Merge units   : G      \n\n" +
+                "'Yes' (dialog): Y      \n" +
+                "'No'  (dialog): N      \n" +
+                "Prompt dialog : F1     \n" +
+                "Exit prompt   : Enter  \n\n" +
+                "Pan map       : Arrows \n" +
+                "Zoom in/out   : Scroll \n" +
+                "Change speed  : ^Arrows\n" +
+                "Pause         : Space  \n", new Vector2(10, 0), Color.White);
+                
+
+
+
             _spriteBatch.End();
 
             _renderer.DrawToScreen(Debug.DebugInstructions.Values.SelectMany(x => x));

@@ -33,10 +33,8 @@ namespace Haumea.Dialogs
             // FIXME: Temporary - GetClipboard doesn't return anything the first time it's called (wtf)
             GetClipboard();
         }
-            
-        public void LoadContent(ContentManager content) {}
 
-        public void Update(InputState input)
+        public void Update(InputState input, Vector2 v0)
         {
             if (input.IsActive(Modifiers.Control) && input.WentActive(Keys.Back))
             {

@@ -2,9 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Haumea.Rendering;
 using Haumea.Geometric;
-using Haumea.Components;
 
 namespace Haumea.Dialogs
 {
@@ -28,9 +26,20 @@ namespace Haumea.Dialogs
         void Draw(SpriteBatch spriteBatch);
     }
 
+    // There's not really any point in keeping track of the subcomponents positions,
+    // since they will change constantly anyway. Instead, they use a different interface
+    // where the position is passed when needed (i.e to Update() and Draw()).
     public interface IDialogComponent
     {
-        void Update(InputState input);
+        // NOTE: `offset` is the coordinates expressed as an offset from the center,
+        // ..... while `v0` is expressed as an offset from the top left.
+        // ..... This is because the coordinates are stored as an offset from the center,
+        // ..... to make placement good without having to think about resoloution,
+        // ..... when we draw we need to the normal coordinates. 
+        // ..... Hence, `Draw()` takes normal coordinates which can be used as normal,
+        // ..... while `Update()` takes special coordinates that needs to be used with
+        // ..... `input.MouseRelativeToCenter`.
+        void Update(InputState input, Vector2 offset);
         void Draw(SpriteBatch spriteBatch, Vector2 v0);
     }
 

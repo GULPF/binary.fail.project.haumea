@@ -41,7 +41,7 @@ namespace Haumea.Dialogs
                 return;
             }
 
-            _textField.Update(input);
+            _textField.Update(input, Offset);
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -49,7 +49,7 @@ namespace Haumea.Dialogs
             AABB box = DialogHelpers.CalculateBox(this).Move(spriteBatch.GetScreenDimensions() / 2);
 
             string  label      = "Input: ";
-            Vector2 labelPos   = box.TopLeft + new Vector2(10, 10);
+            Vector2 labelPos   = box.TopLeft + new Vector2(10, 40);
             float   labelWidth = _font.MeasureString(label).X;
 
             spriteBatch.Draw(box, Color.WhiteSmoke, 1, Color.Black);
