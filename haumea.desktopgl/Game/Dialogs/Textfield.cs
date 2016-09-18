@@ -6,15 +6,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
-using Haumea.Components;
-using Haumea.Rendering;
 using Haumea.Geometric;
 
 namespace Haumea.Dialogs
 {
     public class Textfield : IDialogComponent, IDisposable
     {
-        private static readonly Regex _lastWordRgx = new Regex(@"^[^ ]+ *$|(?<= )[^ ]+ *$");
+        private static readonly Regex _lastWordRgx = new Regex(@"^[^ ]* *$|(?<= )[^ ]+ *$");
 
         public bool Focus { get; set; }
 
@@ -43,9 +41,12 @@ namespace Haumea.Dialogs
             if (input.IsActive(Modifiers.Control) && input.WentActive(Keys.Back))
             {
                 string str =_userInput.ToString();
-                var match = _lastWordRgx.Match(str);
+                string matchable = str.Substring(0, _caretPos);
+                var match = _lastWordRgx.Match(matchable);
+                _userInput = new StringBuilder(matchable.Substring(0, matchable.Length - match.Length));
+                _userInput.Append(str.Substring(_caretPos));
                 _caretPos -= match.Length;
-                _userInput = new StringBuilder(str.Substring(0, str.Length - match.Length));
+
             }
             else if (input.WentActive(Keys.Back) && _caretPos > 0)
             {
