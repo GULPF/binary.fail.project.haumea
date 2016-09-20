@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -7,6 +8,7 @@ using Haumea.Collections;
 using Haumea.Geometric;
 using Haumea.Rendering;
 using Haumea.Parsing;
+using Haumea.Dialogs;
 
 using TagIdMap = Haumea.Collections.BiDictionary<int, string>;
 
@@ -24,13 +26,7 @@ namespace Haumea.Game
             var provinces = InitializeProvinces(data.RawProvinces, mapGraph);
             var realms    = new Realms();
             var units     = InitializeUnits(data.RawArmies, provincesTagId, realmsTagId, provinces, events);
-
-            // TODO: I have realized these two (provinces & units) are so tangled into each other
-            // ..... they should probably be merged into something like "mapView"
-         
-            //ProvincesView provincesView = InitializeProvincesView(data.RawProvinces, provinces);
-            //UnitsView unitsView = InitializeUnitsView(provinces, units, ui);
-            //DebugTextView debugView = new DebugTextView(provinces, units, realmsTagId, provincesTagId);
+            var worldDate = new WorldDate(new DateTime(1452, 6, 23));;
 
             RenderInstruction[][] standardInstrs = new RenderInstruction[provinces.Boundaries.Length][];
             RenderInstruction[][] idleInstrs     = new RenderInstruction[provinces.Boundaries.Length][];
@@ -51,17 +47,19 @@ namespace Haumea.Game
             }
 
             var dialogManager = new DialogManager();
-            var mapView = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager);
-                
-            IList<IModel> models = new List<IModel> {
+            var mapView       = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager);
+            var worldDateView = new WorldDateView(worldDate);
+
+
+            List<IModel> models = new List<IModel> {
                 events, provinces, realms, units
             };
             
-            IList<IView> views = new List<IView> {
-                mapView, dialogManager
+            List<IView> views = new List<IView> {
+                worldDateView, mapView, dialogManager
             };
 
-            return new InitializedRawGameData(models, views, dialogManager);
+            return new InitializedRawGameData(models, views, worldDate);
         }
 
         private static BiDictionary<int, string> InitializeProvinceTags(IList<RawProvince> rProvinces)
@@ -138,15 +136,15 @@ namespace Haumea.Game
         
     public struct InitializedRawGameData
     {
-        public IList<IModel> Models { get; }
-        public IList<IView> Views { get; }
-        public DialogManager DialogManager { get; }
+        public List<IModel> Models { get; }
+        public List<IView> Views { get; }
+        public WorldDate WorldDate { get; }
 
-        public InitializedRawGameData(IList<IModel> models, IList<IView> views, DialogManager dialogManager)
+        public InitializedRawGameData(List<IModel> models, List<IView> views, WorldDate worldDate)
         {
             Models = models;
             Views = views;
-            DialogManager = dialogManager;
+            WorldDate = worldDate;
         }
     }
 }

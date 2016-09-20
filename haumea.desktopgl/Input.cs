@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -18,7 +18,21 @@ namespace Haumea
         private static MouseState _oldMouseState;
         private static KeyboardState _oldKbState;
 
-        public static InputState GetState(Func<Vector2, Vector2> mouseTranslator)
+        public static event Action<char> OnTextInput;
+
+        public static void BindTextInput(GameWindow window)
+        {
+            window.TextInput += (sender, e) =>
+            {
+                var handle = OnTextInput;
+                if (handle != null)
+                {
+                    handle(e.Character);
+                }
+            };
+        }
+
+        public static InputState GetState(Vector2 screenDim, Func<Vector2, Vector2> mouseTranslator)
         {
             MouseState newMouseState = Mouse.GetState();
             KeyboardState newKbState = Keyboard.GetState();
@@ -26,12 +40,12 @@ namespace Haumea
             Vector2 mousePos = newMouseState.Position.ToVector2();
             Vector2 mouseWorldPos = mouseTranslator(mousePos);
               
-            InputState hstate = new InputState(newMouseState, _oldMouseState,
-                newKbState, _oldKbState, mouseWorldPos);
+            var inputState = new InputState(newMouseState, _oldMouseState,
+                newKbState, _oldKbState, mouseWorldPos, screenDim);
             _oldMouseState = newMouseState;
             _oldKbState    = newKbState;
                 
-            return hstate;
+            return inputState;
         }
     }
 
@@ -48,15 +62,29 @@ namespace Haumea
         public Vector2 MouseDelta  { get; }
         public int     ScrollWheel { get; }
 
+        // This is semi-ridiculous, but it is the cleanest soloution I came up with to enable
+        // dialogs to use coordinates relative to the screen center. Whatever.
+        // This property also means that the screen dimension can be infered from InputState.
+        // This isn't exactly logical (screen dim obv isn't a part of user input), but it
+        // most likely doesn't matter? Update() methods should care about screen dim anyway,
+        // except for the above mentioned use case.
+
+        /// <summary>
+        /// Gets the mouse position relative to the center of the screen.
+        /// </summary>
+        public Vector2 MouseRelativeToCenter { get; }
+
         /// <summary>
         /// Anyone with access to the InputState can "consume" the mouse
         /// by calling <code>#ConsumeMouse()</code>. A consumed mouse should be ignored
         /// by most entities. 
         /// </summary>
         public bool IsMouseConsumed { get; private set; }
+        public bool IsKeyboardConsumed { get; private set; }
 
         public InputState(MouseState mouseState, MouseState oldMouseState,
-            KeyboardState kbState, KeyboardState oldKbState, Vector2 mouseWorldPos)
+            KeyboardState kbState, KeyboardState oldKbState,
+            Vector2 mouseWorldPos, Vector2 screenDim)
         {            
             _mouseState    = mouseState;
             _oldMouseState = oldMouseState;
@@ -65,6 +93,7 @@ namespace Haumea
 
             Vector2 nextScreenMouse = _mouseState.Position.ToVector2();
             Vector2 nextMouse       = mouseWorldPos;
+            Vector2 center          = screenDim / 2;
 
             MouseDelta       = nextScreenMouse - _oldMouseState.Position.ToVector2();
             Mouse            = nextMouse;
@@ -72,6 +101,7 @@ namespace Haumea
             Mouse            = mouseWorldPos;
             IsMouseConsumed  = false;
             ScrollWheel      = _mouseState.ScrollWheelValue - _oldMouseState.ScrollWheelValue; 
+            MouseRelativeToCenter = nextScreenMouse - center;
         }
 
         public void ConsumeMouse()
@@ -79,20 +109,28 @@ namespace Haumea
             IsMouseConsumed = true;
         }
 
+        public void ConsumeKeyboard()
+        {
+            IsKeyboardConsumed = true;
+        }
+
         #region keys
 
         public bool IsActive(Keys key, bool allowMods = true)
         {
+            if (IsKeyboardConsumed) return false;
             return _kbState.IsKeyDown(key) && (allowMods || NoMods());
         }
 
         public bool WentActive(Keys key, bool allowMods = true)
         {
+            if (IsKeyboardConsumed) return false;
             return _kbState.IsKeyDown(key) && !_oldKbState.IsKeyDown(key) && (allowMods || NoMods());
         }
 
         public bool WentInactive(Keys key, bool allowMods = true)
         {
+            if (IsKeyboardConsumed) return false;
             return !_kbState.IsKeyDown(key) && _oldKbState.IsKeyDown(key) && (allowMods || NoMods());
         }
 
@@ -102,6 +140,8 @@ namespace Haumea
 
         public bool IsActive(Modifiers mod)
         {
+            if (IsKeyboardConsumed) return false;
+
             switch (mod)
             {
             case Modifiers.Alt:
@@ -119,6 +159,8 @@ namespace Haumea
 
         public bool WentActive(Modifiers mod)
         {
+            if (IsKeyboardConsumed) return false;
+
             switch (mod)
             {
             case Modifiers.Alt:
@@ -136,6 +178,8 @@ namespace Haumea
 
         public bool WentInactive(Modifiers mod)
         {
+            if (IsKeyboardConsumed) return false;
+            
             switch (mod)
             {
             case Modifiers.Alt:

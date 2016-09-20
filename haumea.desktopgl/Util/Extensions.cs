@@ -92,10 +92,10 @@ namespace Haumea
                 (int)(dim.X), (int)(dim.Y));
         }
 
-        public static Vector2 GetScreenDimensions(this GraphicsDevice device)
+        public static Vector2 GetScreenDimensions(this SpriteBatch spriteBatch)
         {
-            return new Vector2(device.PresentationParameters.BackBufferWidth,
-                device.PresentationParameters.BackBufferHeight);
+            return new Vector2(spriteBatch.GraphicsDevice.PresentationParameters.BackBufferWidth,
+                spriteBatch.GraphicsDevice.PresentationParameters.BackBufferHeight);
         }
 
         public static string[] Split(this string str, char khar)
@@ -143,6 +143,13 @@ namespace Haumea
             }
 
             spriteBatch.Draw(_pixel, aabb.ToRectangle(), color);
+        }
+
+        public static void Draw(this SpriteBatch spritebatch, AABB abbb, Color color,
+            int borderWidth, Color borderColor)
+        {
+            spritebatch.Draw(abbb, color);
+            spritebatch.Draw(abbb.Borders(borderWidth), borderColor);
         }
 
         public static void Draw(this SpriteBatch spriteBatch, AABB[] aabbs, Color color)

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Haumea.Rendering;
 using Haumea.Geometric;
+using Haumea.Dialogs;
 
 namespace Haumea.Components
 {
@@ -66,11 +67,16 @@ namespace Haumea.Components
 
         public void Update(InputState input)
         {
+            if (input.WentActive(Keys.F1))
+            {
+                _dialogMgr.Add(new Prompt((str) => Console.WriteLine(str)));
+            }
+
             AABB selectionBox = new AABB(_selectionBoxP1, _selectionBoxP2);
             Vector2 position = input.Mouse;
             bool isHovering = false;
 
-            for (int id = 0; id < _provinces.Boundaries.Length
+            for (int id = 0; !input.IsMouseConsumed && id < _provinces.Boundaries.Length
                 // Provinces can't overlap so we exit immediately if/when we find a hit.
                 && !isHovering; id++)
             {
@@ -115,12 +121,10 @@ namespace Haumea.Components
                 }
                 _selection.StopHoveringAll();    
             }
-
-            //if (input.WentActive(Keys.G))      _units.MergeSelected();
-
+                
             if (input.WentActive(Keys.G))      _units.MergeSelected();
             if (input.WentActive(Keys.Escape)) _units.ClearSelection();
-            if (input.WentActive(Keys.D))      DeleteUnits();
+            if (input.WentActive(Keys.Delete)) DeleteUnits();
 
             // TODO: This can be improved. Since I need to hit check all provinces
             // ..... anyway, I should only hit test the label which is inside the
@@ -149,13 +153,17 @@ namespace Haumea.Components
 
             if (_units.SelectedArmies.Count > 0)
             {
-                Debug.PrintScreenInfo("Armies", _units.SelectedArmies.Join(", "));    
+                Debug.WriteToScreen("Armies", _units.SelectedArmies.Join(", "));    
             }
         }
 
         public void UpdateSelectionBox(InputState input)
         {
-            if (input.WentActive(Buttons.LeftButton))
+            if (input.WentInactive(Buttons.LeftButton))
+            {
+                _selectionBoxP1 = Vector2.Zero;
+                _selectionBoxP2 = Vector2.Zero;
+            } else if (input.WentActive(Buttons.LeftButton))
             {
                 _selectionBoxP1 = input.ScreenMouse;
                 _selectionBoxP2 = input.ScreenMouse;
@@ -163,11 +171,6 @@ namespace Haumea.Components
             else if (input.IsActive(Buttons.LeftButton))
             {
                 _selectionBoxP2 = input.ScreenMouse;
-            }
-            else if (input.WentInactive(Buttons.LeftButton))
-            {
-                _selectionBoxP1 = Vector2.Zero;
-                _selectionBoxP2 = Vector2.Zero;
             }
         }
 
@@ -228,14 +231,21 @@ namespace Haumea.Components
             int count = _units.SelectedArmies.Count;
             if (count == 0) return;
 
+            var delete = new HashSet<int>(_units.SelectedArmies);
+
             string plural = count == 1 ? "" : "s"; 
-            string msg = string.Format("Are you sure you want \nto delete {0} unit{1}? \n\n[y/n]",
+            string msg = string.Format("Are you sure you want \nto delete {0} unit{1}?",
                 count, plural);
 
-            _dialogMgr.Add(new Confirm(
-                msg: msg,
-                onSuccess: _units.DeleteSelected,
-                onFail:    _units.ClearSelection));
+            var dialog = new Confirm(msg, () => _units.Delete(delete));
+            _dialogMgr.Add(dialog);
+
+            int nAlreadyDeleted = 0;
+            _units.OnDelete += (sender, armyID) => 
+            {
+                if (delete.Contains(armyID)) nAlreadyDeleted++;
+                if (nAlreadyDeleted == delete.Count) dialog.Terminate = true;
+            };
         }
 
         private void SwapInstrs(int id)

@@ -15,6 +15,8 @@ namespace Haumea.Components
 
         private readonly IDictionary<int, ISet<int>> _loadableNavies;
 
+        public event EventHandler<int> OnDelete;
+
         /// <summary>
         /// Keeps track of which armies are located in which province.
         /// </summary>
@@ -76,6 +78,21 @@ namespace Haumea.Components
             }
 
             ClearSelection();
+        }
+
+        public void Delete(IEnumerable<int> armyIDs)
+        {
+            foreach (int armyID in armyIDs)
+            {
+                Army army;
+                if (Armies.TryGetValue(armyID, out army))
+                {
+                    Armies.Remove(armyID);
+                    RemoveArmyFromProvince(army.Location, armyID);    
+                    SelectedArmies.Remove(armyID);
+                    if (OnDelete != null) OnDelete(this, armyID);
+                }
+            }
         }
            
         /// <summary>

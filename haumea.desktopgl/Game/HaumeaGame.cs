@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Haumea.Game
@@ -24,16 +25,17 @@ namespace Haumea.Game
             gdm.PreferredBackBufferWidth = 600;
             gdm.PreferredBackBufferHeight = 600;
             gdm.IsFullScreen = true;
-            _engine = new Engine(Content, gdm);
+            _engine = new Engine(Content, gdm, Window);
         }
 
         protected override void Initialize()
         {
             Mouse.WindowHandle = Window.Handle;
+            Window.Title = "Project Haumea";
             _engine.Initialize();
             base.Initialize();
         }
-            
+
         protected override void LoadContent()
         {
             _engine.LoadContent();
