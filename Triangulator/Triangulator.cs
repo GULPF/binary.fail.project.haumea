@@ -346,9 +346,11 @@ namespace Triangulator
 				Vector2 e1 = p1 - p2;
 				Vector2 e2 = p3 - p2;
 
-				if (e1.X * e2.Y - e1.Y * e2.X >= 0)
+				float val = e1.X * e2.Y - e1.Y * e2.X;
+
+				if (val > 0)
 					clockWiseCount++;
-				else
+				else if (val < 0)
 					counterClockWiseCount++;
 
 				p1 = p2;
