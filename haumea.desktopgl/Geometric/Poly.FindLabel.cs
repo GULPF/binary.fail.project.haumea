@@ -230,7 +230,9 @@ namespace Haumea.Geometric
                 s = seg.StripIndex; 
                 b = s + 1;
 
-                while (w[b].Left > 0) {
+				int tries = 0;
+                while (w[b].Left > 0)
+				{
                     // I don't know how or why this is happening, but nonetheless.
                     if (w[b].Bottom == b - 1) break;
                     b = w[b].Bottom + 1;
@@ -238,7 +240,12 @@ namespace Haumea.Geometric
 
                 b = b - 1;
                 t = s - 1;
-                while (w[t].Left > 0) t = w[t].Top - 1;
+				while (w [t].Left > 0)
+				{
+					if (w [t].Top == t + 1) break;
+					t = w [t].Top - 1;
+				}
+
                 t = t + 1;
 
                 if (w[s].Left == 0)
