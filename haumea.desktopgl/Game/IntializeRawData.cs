@@ -38,12 +38,13 @@ namespace Haumea.Game
                 Color c = data.RawProvinces[id].Color;
                 if (data.RawProvinces[id].IsWater) c = Color.Blue;
 
-                RenderInstruction[] mpolyInstrs = RenderInstruction.MultiPolygon(
-                    mpoly, c, Color.Blue);
+				standardInstrs[id] = RenderInstruction.MultiPolygon(mpoly, c, Color.Blue);
+				idleInstrs[id]     = new RenderInstruction[standardInstrs[id].Length];
 
-                standardInstrs[id] = mpolyInstrs;
-
-                idleInstrs[id] = RenderInstruction.MultiPolygon(mpoly, c.Darken(), Color.Black);
+				for (int n = 0; n < standardInstrs[id].Length; n++)
+				{
+					idleInstrs[id][n] = new RenderInstruction(standardInstrs[id][n], c.Darken());
+				}
             }
 
             var dialogManager = new DialogManager();
