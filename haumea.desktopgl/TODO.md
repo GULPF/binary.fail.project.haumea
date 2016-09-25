@@ -20,6 +20,15 @@
 
 -	Handle focus of Textfield independently from focus of dialog.
 
+-	Shaderprogramming: Replace basic effect with a custom one. Needs noise masking for province,
+	and color masking to indicate realm.
+
+-	Triangulation: Triangulator got an annoying licens, it might be good to reimplement it.
+	It's based on https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf,
+	which seems to be easy to understand.
+
+-	Triangulation should be done at compile time. Should have a binary format for triangulated data.
+
 Guidelines
 --------------------------------
 -	Views should be named [name]View.cs. If the view is the primary representation of a single model,
@@ -34,6 +43,8 @@ Guidelines
 
 Notes
 --------------------------------
--	When implenenting text input for dialogs, Game.Window.TextInput should be used.
+-	VertexBuffer and IndexBuffer should be used in the future
 
 -	Vector2 has reference based methods to avoid allocation, might be useful in the future.
+
+-	I shouldn't really use int for primitive indices, but then I have to change Triangulator as well.
