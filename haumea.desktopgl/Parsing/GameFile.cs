@@ -10,8 +10,15 @@ namespace Haumea.Parsing
     // TODO: error handling
     public static partial class GameFile
     {
-        private static Regex _groupNameRgx = new Regex(@"^\[(.*?)\]\s*?$"); // ignores trailing spaces
+		/// <summary>
+		/// Finds group names, eg "provinces" in the line "[provinces]".
+		/// Ignores trailing but not leading spaces.
+		/// </summary>
+        private static Regex _groupNameRgx = new Regex(@"^\[(.*?)\]\s*?$");
 
+		/// <summary>
+		/// Parses a .haumea file into an organised data structure.
+		/// </summary>
         public static RawGameData Parse(TextReader stream)
         {
             IDictionary<string, string> groups = SplitToGroups(stream);
@@ -24,6 +31,10 @@ namespace Haumea.Parsing
             return new RawGameData(rProvinces.Concat(rWater).ToList(), rRealms, rConnectors, rArmies);
         }
 
+		/// <summary>
+		/// Applies a subparser `parser` to the string `groups[groupName]`.
+		/// </summary>
+		/// <returns>A list of parsed data</returns>
         private static IList<O> ApplyParser<O>(IDictionary<string, string> groups,
                 string groupName, Func<string, IList<O>> parser)
         {
@@ -38,7 +49,11 @@ namespace Haumea.Parsing
                 return new List<O>();
             }
         }
-            
+         
+		/// <summary>
+		/// Split input stream into group texts.
+		/// </summary>
+		/// <returns>A dictionary with the format {groupName: groupText}</returns>
         private static IDictionary<string, string> SplitToGroups(TextReader stream)
         {
             string groupName = "";
