@@ -92,7 +92,6 @@
     <Compile Include="Parsing\Parser\Parser.Realms.cs" />
     <Compile Include="Game\HaumeaGame.cs" />
     <Compile Include="Parsing\Parser\Parser.Waters.cs" />
-    <Compile Include="Game\GameAction.cs" />
     <Compile Include="Components\MapView.cs" />
     <Compile Include="Components\SelectionManager.cs" />
     <Compile Include="Geometric\MultiPoly.cs" />
