@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
 
+using Haumea.Game;
 
 namespace Haumea.Rendering
 {
@@ -49,13 +50,12 @@ namespace Haumea.Rendering
             _bufferedInstructions.Clear();
         }
 
-        // TODO: Argument can't be enum if basiceffect is complex, since it needs multipass
+		// TODO: Argument can't be IEnumerable if basiceffect is complex, since it would need multiple iterations
         public void DrawToScreen(IEnumerable<RenderInstruction> instructions)
         {
-            foreach (RenderInstruction renderInstruction in instructions) {
-                foreach (EffectPass effectPass in Effect.CurrentTechnique.Passes) {
-                    effectPass.Apply();
-
+			foreach (EffectPass effectPass in Effect.CurrentTechnique.Passes) {
+				effectPass.Apply();
+            	foreach (RenderInstruction renderInstruction in instructions) {
                     int nPrimitives;
 
                     switch (renderInstruction.Type) {
@@ -68,7 +68,7 @@ namespace Haumea.Rendering
                     default:
                         throw new NotSupportedException();
                     }
-
+						
                     Device.DrawUserIndexedPrimitives(
                         renderInstruction.Type,
                         renderInstruction.Vertices, 
