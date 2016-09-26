@@ -13,7 +13,7 @@ namespace Haumea.Rendering
     /// It is intended to be used with Renderer#Render(RenderInstruction),
     /// which draws the instruction to the screen.
     /// </summary>
-    public struct RenderInstruction
+	public struct RenderInstruction
     {
         /// <summary>
         /// Indicates what kind of primitives this RenderInstruction is representing.
@@ -42,6 +42,19 @@ namespace Haumea.Rendering
             Indices  = indices;
             Type     = type;
         }
+
+		public RenderInstruction(RenderInstruction instr, Color color)
+		{
+			Type = instr.Type;
+			Vertices = (VertexPositionColor[]) instr.Vertices.Clone();
+			Indices = instr.Indices;
+
+			//MemberwiseClone
+			for (int n = 0; n < Vertices.Length; n++)
+			{
+				Vertices[n].Color = color;
+			}
+		}
 
         #region Creator-methods
         /// <summary>
@@ -274,7 +287,7 @@ namespace Haumea.Rendering
 
         public static RenderInstruction[] MultiPolygon(MultiPoly multiPoly, Color color, Color holeColor)
         {
-            List<RenderInstruction> instructions = new List<RenderInstruction>();
+			List<RenderInstruction> instructions = new List<RenderInstruction>(multiPoly.Polys.Length);
 
             foreach (IPoly poly in multiPoly.Polys)
             {

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 
+// Some small functions that are used by multiple subparsers.
+
 namespace Haumea.Parsing
 {
     internal static partial class Parser

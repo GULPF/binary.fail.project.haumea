@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework;
 
 using Haumea.Geometric;
 
+// This file consist of the data types returned from the sub parsers.
+// The main data type (that is returned from `GameFile.Parse()`) is `RawGameData`.
+
 namespace Haumea.Parsing
 {
     public struct RawGameData
@@ -38,6 +41,10 @@ namespace Haumea.Parsing
         }
     }
 
+	/// <summary>
+	/// Symbolises a connection between the provinces with tags `Tag1` and `Tag2`,
+	/// with a distance of `Cost`.
+	/// </summary>
     public struct RawConnector
     {
         public string Tag1 { get; }
@@ -69,6 +76,9 @@ namespace Haumea.Parsing
         public IList<IPoly> Polys { get; }
         public string Tag { get; }
         public Color Color { get; }
+		/// <summary>
+		/// Indicates if this province is land or water.
+		/// </summary>
         public bool IsWater { get; }
 
         public RawProvince(IList<IPoly> polys, string tag, Color color, bool isWater)
