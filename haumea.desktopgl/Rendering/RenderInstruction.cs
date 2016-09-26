@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Triangulator;
 using Haumea.Geometric;
-
 
 namespace Haumea.Rendering
 {
@@ -53,9 +51,6 @@ namespace Haumea.Rendering
         /// <param name="color">The color of the polygon</param>
         public static RenderInstruction Polygon(IPoly poly, Color color)
         {
-            int[] ind;
-            Vector2[] vectors;
-
             Vector2[] pointsToSend = poly.Points;
 
             /*foreach (IPoly hole in poly.Holes)
@@ -63,17 +58,17 @@ namespace Haumea.Rendering
                 pointsToSend = Triangulator.Triangulator.CutHoleInShape(pointsToSend, hole.Points);
             }*/
 
-            Triangulator.Triangulator.Triangulate(pointsToSend, WindingOrder.Clockwise, out vectors, out ind);
+            Triangulation triangulation = Triangulator.Triangulate(pointsToSend);
 
-            VertexPositionColor[] vertices = new VertexPositionColor[vectors.Length];
+            VertexPositionColor[] vertices = new VertexPositionColor[triangulation.Vertices.Length];
 
-            for (int n = 0; n < vectors.Length; n++)
+            for (int n = 0; n < triangulation.Vertices.Length; n++)
             {
-                vertices[n].Position = vectors[n].ToVector3();
+                vertices[n].Position = triangulation.Vertices[n].ToVector3();
                 vertices[n].Color = color;
             }
 
-            return new RenderInstruction(vertices, ind, PrimitiveType.TriangleList);
+            return new RenderInstruction(vertices, triangulation.Indices, PrimitiveType.TriangleList);
         }
 
         /// <summary>

@@ -102,6 +102,9 @@
     <Compile Include="Game\Dialogs\Textfield.cs" />
     <Compile Include="Game\Dialogs\IDialog.cs" />
     <Compile Include="Game\Dialogs\Button.cs" />
+    <Compile Include="Geometric\Triangle.cs" />
+    <Compile Include="Geometric\Vertex.cs" />
+    <Compile Include="Geometric\Triangulator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
@@ -118,10 +121,4 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />
   <ItemGroup />
-  <ItemGroup>
-    <ProjectReference Include="..\Triangulator\Triangulator.csproj">
-      <Project>{C6EDD4AE-30A0-411A-A909-59F9A99F2CF5}</Project>
-      <Name>Triangulator</Name>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

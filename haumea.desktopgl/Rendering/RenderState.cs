@@ -47,7 +47,7 @@ namespace Haumea.Rendering
                 MathHelper.ToRadians(45), AspectRatio,
                 // These two are the maximum and minimum distance from the camera objects can be.
                 // If an object is further away than the maximum or closer than the minimum, it's not rendered.
-                0.1f, 10000f);
+                0.1f, 100000f);
             //Projection = Matrix.CreateOrthographic(ScreenDim.X, ScreenDim.Y, 0.1f, 10000f);
         }
 
