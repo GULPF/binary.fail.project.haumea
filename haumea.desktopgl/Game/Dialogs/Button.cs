@@ -23,10 +23,10 @@ namespace Haumea.Dialogs
             _padding = (Dim - labelDim) / 2;
         }
             
-        public void Update(InputState input, Vector2 v0)
+        public void Update(InputState input, Vector2 offset)
         {
             if (input.WentActive(Buttons.LeftButton)
-                && new AABB(v0, v0 + Dim).IsPointInside(input.MouseRelativeToCenter))
+                && new AABB(offset, offset + Dim).IsPointInside(input.MouseRelativeToCenter))
             {
                 _onClick();
             }

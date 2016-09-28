@@ -7,43 +7,37 @@ namespace Haumea.Components
 {
     public class Realms : IModel
     {
-        // Maps province => realm
-        private readonly IDictionary<int, string> _ownerships;
-
         /// <summary>
         /// Indicate which realm ID belongs to the player.
         /// </summary>
-        public int PlayerID { get; }
+        public static int PlayerID { get; private set; } = 0;
 
-        public Realms()
+        // Maps province => realm
+        public BiDictionary<int, string> TagIdMapping { get; }
+
+        private readonly Provinces _provinces;
+        private readonly Units _units;
+
+        public Realms(BiDictionary<int, string> tagIdMapping, Provinces provinces, Units units)
         {
-            _ownerships = new Dictionary<int, string>();
-            PlayerID = 0;
+            TagIdMapping = tagIdMapping;
+
+            _provinces = provinces;
+            _units = units;
         }
 
         public void Update(WorldDate date) {}
 
-        public void AssignOwnership(int province, string realmTag)
+        // These seem a little out of place, since they are just updating other objects properties.
+
+        public void Annex(int province, int realm)
         {
-            _ownerships.Add(province, realmTag);
+            _provinces.Ownership.Add(province, realm);
         }
 
-        public string GetOwnerTag(int province)
+        public void Recruit(int army, int realm)
         {
-            return _ownerships[province];
-        }
-
-        public struct Realm
-        {
-            private IList<int> _provinces;
-            private string _tag;
-            private int _id;
-
-            public static void TransferOwnership(Realm source, Realm dest, int province)
-            {
-                source._provinces.Remove(province);
-                dest._provinces.Add(province);
-            }
+            _units.Ownership.Add(army, realm);
         }
     }    
 }

@@ -13,8 +13,7 @@ namespace Haumea.Components
         private readonly IDGenerator _guid;
         private readonly EventController _events;
 
-        private readonly IDictionary<int, ISet<int>> _loadableNavies;
-
+        // Called when a unit is deleted.
         public event EventHandler<int> OnDelete;
 
         /// <summary>
@@ -27,8 +26,13 @@ namespace Haumea.Components
         /// </summary>
         public IDictionary<int, Army> Armies { get; }
 
+        /// <summary>
+        /// Indicates the owner (realm id) of every army.
+        /// </summary>
+        public IDictionary<int, int> Ownership { get; }
+
         public IDictionary<int, ISet<Battle>> Battles { get; }
-    
+
         /// <summary>
         /// Contains the selected armies.
         /// </summary>
@@ -42,6 +46,7 @@ namespace Haumea.Components
 
             ProvinceArmies = new Dictionary<int, ISet<int>>();
             SelectedArmies = new HashSet<int>();
+            Ownership = new Dictionary<int, int>();
             Armies =  new Dictionary<int, Army>();
         }
 
@@ -67,19 +72,7 @@ namespace Haumea.Components
         {
             SelectedArmies.Clear();
         }
-
-        public void DeleteSelected()
-        {
-            foreach (int armyID in SelectedArmies)
-            {
-                Army army = Armies[armyID];
-                Armies.Remove(armyID);
-                RemoveArmyFromProvince(army.Location, armyID);    
-            }
-
-            ClearSelection();
-        }
-
+            
         public void Delete(IEnumerable<int> armyIDs)
         {
             foreach (int armyID in armyIDs)
@@ -165,6 +158,11 @@ namespace Haumea.Components
             AddArmyToProvince(army.Location, armyID);
         }
             
+        public bool IsPlayerArmy(int armyID)
+        {
+            return Ownership[armyID] == Realms.PlayerID;
+        }
+
         private bool IsValidMerge()
         {
             using (var itr = SelectedArmies.GetEnumerator())
@@ -185,15 +183,19 @@ namespace Haumea.Components
             return true;
         }
 
-        private void RemoveArmyFromProvince(int province, int armyID)
+        private void RemoveArmyFromProvince(int provinceID, int armyID)
         {
-            if (ProvinceArmies[province].Count == 1)
+            if (!ProvinceArmies.ContainsKey(provinceID))
             {
-                ProvinceArmies.Remove(province);
+                return;
+            }
+            else if (ProvinceArmies[provinceID].Count == 1)
+            {
+                ProvinceArmies.Remove(provinceID);
             }
             else
             {
-                ProvinceArmies[province].Remove(armyID);    
+                ProvinceArmies[provinceID].Remove(armyID);    
             }
         }
 

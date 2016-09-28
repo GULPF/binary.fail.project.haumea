@@ -23,9 +23,9 @@ namespace Haumea.Game
 
             var events    = new EventController();
             var mapGraph  = InitializeMapGraph(data.RawConnectors, provincesTagId);
-            var provinces = InitializeProvinces(data.RawProvinces, mapGraph);
-            var realms    = new Realms();
+            var provinces = InitializeProvinces(data.RawProvinces, mapGraph, provincesTagId);
             var units     = InitializeUnits(data.RawArmies, provincesTagId, realmsTagId, provinces, events);
+            var realms    = InitializeRealms(data.RawRealms, data.RawArmies, realmsTagId, provinces, units);
             var worldDate = new WorldDate(new DateTime(1452, 6, 23));;
 
             RenderInstruction[][] standardInstrs = new RenderInstruction[provinces.Boundaries.Length][];
@@ -50,7 +50,6 @@ namespace Haumea.Game
             var dialogManager = new DialogManager();
             var mapView       = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager);
             var worldDateView = new WorldDateView(worldDate);
-
 
             List<IModel> models = new List<IModel> {
                 events, provinces, realms, units
@@ -86,7 +85,31 @@ namespace Haumea.Game
             return tagIdMapping;
         }
 
-        private static Provinces InitializeProvinces(IList<RawProvince> rProvinces, NodeGraph<int> graph)
+        private static Realms InitializeRealms(IList<RawRealm> rRealms, IList<RawArmy> rArmies, TagIdMap realmTagId,
+            Provinces provinces, Units units)
+        {
+            var realms = new Realms(realmTagId, provinces, units);
+
+            // Assign ownership of provinces
+            foreach (var rRealm in rRealms)
+            {
+                foreach (string provinceTag in rRealm.ProvincesOwned)
+                {
+                    realms.Annex(provinces.TagIdMapping[provinceTag], realms.TagIdMapping[rRealm.Tag]);
+                }
+            }
+
+            // Assign ownership of armies
+            for (int n = 0; n < rArmies.Count; n++)
+            {
+                realms.Recruit(n, realmTagId[rArmies[n].Owner]);
+            }
+
+            return realms;
+        }
+
+        private static Provinces InitializeProvinces(IList<RawProvince> rProvinces, NodeGraph<int> graph,
+            TagIdMap provinceTagId)
         {
             MultiPoly[] boundaries = new MultiPoly[rProvinces.Count];
             ISet<int> waterProvinces = new HashSet<int>();
@@ -101,7 +124,7 @@ namespace Haumea.Game
                 }
             }
 
-            return new Provinces(boundaries, waterProvinces, graph);
+            return new Provinces(boundaries, waterProvinces, graph, provinceTagId);
         }
 
         private static NodeGraph<int> InitializeMapGraph(IList<RawConnector> rConns, TagIdMap provinceTagId)

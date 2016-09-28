@@ -41,19 +41,10 @@ namespace Haumea.Components
             _provinces = provinces;
             _units = units;
             _dialogMgr = dialogMgr;
-
             _selection = new SelectionManager<int>();
-
             _standardInstrs = standardInstrs;
-            _idleInstrs     = idleInstrs;
-
-            _labelBoxes = new AABB[provinces.Boundaries.Length];
-
-            for (int id = 0; id < _labelBoxes.Length; id++)
-            {
-                // FIXME: temporary... how to find label for multipoly?
-                _labelBoxes[id] = provinces.Boundaries[id].Polys[0].FindBestLabelBox();
-            }
+            _idleInstrs = idleInstrs;
+            _labelBoxes = provinces.Boundaries.Select(mpoly => mpoly.Polys[0].FindBestLabelBox()).ToArray();
 
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
@@ -69,59 +60,50 @@ namespace Haumea.Components
         {
             if (input.WentActive(Keys.F1))
             {
-                _dialogMgr.Add(new Prompt((str) => Console.WriteLine(str)));
+                _dialogMgr.Add(new Prompt(Console.WriteLine));
             }
 
             AABB selectionBox = new AABB(_selectionBoxP1, _selectionBoxP2);
             Vector2 position = input.Mouse;
-            bool isHovering = false;
 
-            for (int id = 0; !input.IsMouseConsumed && id < _provinces.Boundaries.Length
-                // Provinces can't overlap so we exit immediately if/when we find a hit.
-                && !isHovering; id++)
+            int id;
+            if (_provinces.TryGetProvinceFromPoint(position, out id))
             {
-                if (_provinces.Boundaries[id].IsPointInside(position)) {
-
-                    /*if (input.WentActive(Buttons.LeftButton)
+                /*if (input.WentActive(Buttons.LeftButton)
                         && _labelClickableBoundaries[id].IsPointInside(position))
                     {
                         
                     }*/
 
-                    // Only handle new selections.
-                    if (input.WentActive(Buttons.LeftButton))
-                    {
-                        _selection.Select(id);
-                    }
-                    else if (input.WentInactive(Buttons.LeftButton)
-                        && selectionBox.Area < _minimumSelectionSize
-                        && _units.SelectedArmies.Count > 0)
-                    {
-                        _units.AddOrder(_units.SelectedArmies, id);
-                    }
-
-                    foreach (int oldId in _selection.Hovering)
-                    {
-                        SwapInstrs(oldId);
-                    }
-
-                    _selection.Hover(id);
-                    SwapInstrs(id);
-
-                    isHovering = true;
-                }
-            }    
-
-            // Not hit - clear mouse over.
-            if (!isHovering)
-            {
-                foreach (int id in _selection.Hovering)
+                // Only handle new selections.
+                if (input.WentActive(Buttons.LeftButton))
                 {
-                    SwapInstrs(id);
+                    _selection.Select(id);
+                }
+                else if (input.WentInactive(Buttons.LeftButton)
+                    && selectionBox.Area < _minimumSelectionSize
+                    && _units.SelectedArmies.Count > 0)
+                {
+                    _units.AddOrder(_units.SelectedArmies, id);
+                }
+
+                foreach (int oldId in _selection.Hovering)
+                {
+                    SwapInstrs(oldId);
+                }
+
+                _selection.Hover(id);
+                SwapInstrs(id);
+            }
+            else
+            {
+                foreach (int hoverID in _selection.Hovering)
+                {
+                    SwapInstrs(hoverID);
                 }
                 _selection.StopHoveringAll();    
             }
-                
+
             if (input.WentActive(Keys.G))      _units.MergeSelected();
             if (input.WentActive(Keys.Escape)) _units.ClearSelection();
             if (input.WentActive(Keys.Delete)) DeleteUnits();
@@ -136,7 +118,10 @@ namespace Haumea.Components
                 if (_labelClickableBoundaries.TryFind(out selectedBox,
                     label => label.Value.IsPointInside(input.ScreenMouse)))
                 {
-                    _units.SelectArmy(selectedBox.Key, input.IsActive(Keys.LeftControl));
+                    if (_units.IsPlayerArmy(selectedBox.Key))
+                    {
+                        _units.SelectArmy(selectedBox.Key, input.IsActive(Keys.LeftControl));    
+                    }
                 }
             }
             else if (input.WentInactive(Buttons.LeftButton) && selectionBox.Area > _minimumSelectionSize)
@@ -145,7 +130,7 @@ namespace Haumea.Components
 
                 // Find all units within the area and select them.
                 _labelClickableBoundaries
-                    .FindAll(p => p.Value.Intersects(selectionBox))
+                    .FindAll(p => _units.IsPlayerArmy(p.Key) && p.Value.Intersects(selectionBox))
                     .ForEach(p => _units.SelectArmy(p.Key, true));
             }
 
@@ -179,16 +164,16 @@ namespace Haumea.Components
             // Renders provinces
             renderer.DrawToScreen(_standardInstrs.SelectMany(x => x));
 
-            if (renderer.RenderState.Camera.Zoom < 1.4f)
-            {
+//            if (renderer.RenderState.Camera.Zoom < 1.4f)
+//            {
                 DrawUnits(spriteBatch, renderer);
-            }
+//            }
 
             // Selection box
             AABB selectionRect = new AABB(_selectionBoxP1, _selectionBoxP2);
             AABB[] borders = selectionRect.Borders(1);
             spriteBatch.Draw(selectionRect, new Color(Color.Black, 0.4f));
-            spriteBatch.Draw(borders, Color.Black);       
+            spriteBatch.Draw(borders, Color.CadetBlue);       
         }
 
         private void DrawUnits(SpriteBatch spriteBatch, Renderer renderer)
@@ -197,8 +182,6 @@ namespace Haumea.Components
             // we clear it so we don't have any label boxes belonging to deleted armies.
             _labelClickableBoundaries.Clear();
 
-            // Currently, this is really messy. Min/Max should __not__
-            // have to switch places. Something is clearly wrong somewhere.
             foreach (var pair in _units.Armies)
             {
                 AABB box = _labelBoxes[pair.Value.Location];
