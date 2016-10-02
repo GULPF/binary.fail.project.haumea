@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Haumea.Components;
 
-namespace haumea.desktopgl
+namespace Haumea.Components
 {
     // Use cases: 
     // - List all relations containing country X
@@ -15,16 +15,26 @@ namespace haumea.desktopgl
         private IDictionary<int, IRelation> Relations { get; }
         public IDictionary<int, ISet<int>> RealmRelations { get; }
 
-        public Diplomacy()
+        public Diplomacy(Realms realms)
         {
+            Relations = new Dictionary<int, IRelation>();
+            RealmRelations = new Dictionary<int, ISet<int>>();
+
+            foreach (var mapping in realms.TagIdMapping)
+            {
+                RealmRelations.Add(mapping.Key, new HashSet<int>());
+            }
         }
 
         public void Update(WorldDate date)
         {
-            // is this even needed? maybe Diplomacy doesn't have to be a model
+            foreach (var rel in Relations)
+            {
+                rel.Value.Update(date);
+            }
         }
 
-        public T GetRelation<T>(int r1, int r2) where T : IRelation
+        public T GetRelation<T>(int r1, int r2) where T : class, IRelation
         {
             foreach (int relID in SharedRelations(r1, r2))
             {
@@ -39,7 +49,7 @@ namespace haumea.desktopgl
             return null;
         }
 
-        public IList<T> GetRelations<T>(int r1) where T : IRelation
+        public IList<T> GetRelations<T>(int r1) where T : class, IRelation
         {
             IList<T> rels = new List<T>();
 
@@ -56,7 +66,7 @@ namespace haumea.desktopgl
             return rels;
         }
 
-        public bool HaveRelation<T>(int r1, int r2) where T : IRelation
+        public bool HaveRelation<T>(int r1, int r2) where T : class, IRelation
         {
             foreach (int relID in SharedRelations(r1, r2))
             {
@@ -69,7 +79,7 @@ namespace haumea.desktopgl
             return false;
         }
 
-        public void EndRelation<T>(int r1, int r2) where T : IRelation
+        public void EndRelation<T>(int r1, int r2) where T : class, IRelation
         {
             foreach (int relID in SharedRelations(r1, r2))
             {
@@ -81,8 +91,25 @@ namespace haumea.desktopgl
                 }
             }
         }
+            
+        public void EndAllRelations(int r1) 
+        {
+            foreach (int relID in RealmRelations[r1])
+            {
+                IRelation rel = Relations[relID];
 
-        public void StartRelation<T>(int r1, int r2, T rel) where T : IRelation
+                if (rel.Participants.Count == 2)
+                {
+                    Relations.Remove(relID);
+                }
+                else
+                {
+                    rel.Participants.Remove(r1);
+                }
+            }
+        }
+
+        public void StartRelation<T>(int r1, int r2, T rel) where T : class, IRelation
         {
             Relations.Add(_nextID, rel);
             RealmRelations[r1].Add(_nextID);
@@ -91,8 +118,7 @@ namespace haumea.desktopgl
         }
 
         /// <summary>
-        /// Slightly better than Set.IntersectWith(), since we only need one iteration
-        /// instead of two.
+        /// Slightly better than Set.IntersectWith(), since we only need one iteration instead of two.
         /// </summary>
         private IEnumerable<int> SharedRelations(int r1, int r2)
         {
@@ -108,45 +134,12 @@ namespace haumea.desktopgl
             }
         }
 
-        public class IRelation
-        {
-            ISet<int> Participants { get; }
-        }
-
-        public class War
-        {
-            public ISet<int> Participants { get; }
-            public ISet<int> Attackers { get; }
-            public ISet<int> Defenders { get; }
-            public int AttackingWarleader { get; set; }
-            public int DefendingWarleader { get; set; }
-            public CasusBellis CasusBelli { get; }
-            public DateTime Start { get; }
-
-            public float Warscore { get; }
-
-            public War(ISet<int> attackers, ISet<int> defenders,
-                int attackingWarleader, int defendingWarleader, CasusBellis casusBeli)
-            {
-                Participants = new HashSet<int>(attackers);
-                Participants.UnionWith(defenders);
-                Attackers = attackers;
-                Defenders = defenders;
-                AttackingWarleader = attackingWarleader;
-                DefendingWarleader = defendingWarleader;
-                CasusBelli = casusBeli;
-
-                Start = DateTime.Now; // obv temporary
-                Warscore = 0f;
-            }
-        }
-
-        public enum CasusBellis
-        {
-            Conquest
-        }
-
         private static int _nextID = 0;
+    }
+
+    public interface IRelation : IModel
+    {
+        ISet<int> Participants { get; }
     }
 }
 
