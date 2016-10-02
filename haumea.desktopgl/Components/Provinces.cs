@@ -58,5 +58,10 @@ namespace Haumea.Components
             foundID = -1;
             return false;
         }
+
+        public void Annex(int province, int realm)
+        {
+            Ownership.Add(province, realm);
+        }
     }
 }

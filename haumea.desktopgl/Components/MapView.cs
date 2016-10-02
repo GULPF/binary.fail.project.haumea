@@ -17,6 +17,7 @@ namespace Haumea.Components
 
         private readonly Provinces _provinces;
         private readonly Units _units;
+        private readonly Diplomacy _diplomacy;
 
         private SpriteFont _unitsFont;
 
@@ -36,10 +37,11 @@ namespace Haumea.Components
         public MapView(Provinces provinces, Units units,
             RenderInstruction[][] standardInstrs,
             RenderInstruction[][] idleInstrs,
-            DialogManager dialogMgr)
+            DialogManager dialogMgr, Diplomacy diplomacy)
         {
             _provinces = provinces;
             _units = units;
+            _diplomacy = diplomacy;
             _dialogMgr = dialogMgr;
             _selection = new SelectionManager<int>();
             _standardInstrs = standardInstrs;
@@ -182,6 +184,9 @@ namespace Haumea.Components
             // we clear it so we don't have any label boxes belonging to deleted armies.
             _labelClickableBoundaries.Clear();
 
+            // All realm id's the player is at war with.
+            var playerEnemies = _diplomacy.AllEnemies(Realms.PlayerID);
+
             foreach (var pair in _units.Armies)
             {
                 AABB box = _labelBoxes[pair.Value.Location];
@@ -196,11 +201,21 @@ namespace Haumea.Components
                 Vector2 p1     = (center - 5 * Vector2.UnitX);
                 AABB snugBox   = new AABB(p1, p1 + (dim + 10 * Vector2.UnitX));
 
-                Color borderColor = (_units.SelectedArmies.Contains(pair.Key))
-                    ? Color.Red
-                    : Color.Black;
+                Color borderColor;
 
-
+                if (_units.SelectedArmies.Contains(pair.Key))
+                {
+                    borderColor = Color.AliceBlue;
+                }
+                else if (playerEnemies.Contains(pair.Value.Owner))
+                {
+                    borderColor = Color.Red;
+                }
+                else
+                {
+                    borderColor = Color.Black;   
+                }
+                    
                 spriteBatch.Draw(snugBox.Borders(1), borderColor);
                 spriteBatch.Draw(snugBox, Color.Black);
                 spriteBatch.DrawString(_unitsFont, text, center.Floor(), Color.White);

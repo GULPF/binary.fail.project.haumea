@@ -21,12 +21,18 @@ namespace Haumea.Game
             var realmsTagId    = InitializeRealmTags(data.RawRealms);
             var provincesTagId = InitializeProvinceTags(data.RawProvinces);
 
+
             var events    = new EventController();
             var mapGraph  = InitializeMapGraph(data.RawConnectors, provincesTagId);
+            var realms    = new Realms(realmsTagId);
+            var diplomacy = new Diplomacy(realms);
             var provinces = InitializeProvinces(data.RawProvinces, mapGraph, provincesTagId);
-            var units     = InitializeUnits(data.RawArmies, provincesTagId, realmsTagId, provinces, events);
-            var realms    = InitializeRealms(data.RawRealms, data.RawArmies, realmsTagId, provinces, units);
+            var units     = InitializeUnits(data.RawArmies, provincesTagId, realmsTagId, provinces, diplomacy, events);
             var worldDate = new WorldDate(new DateTime(1452, 6, 23));;
+            ProcessRawRealms(data.RawRealms, data.RawArmies, realmsTagId, provinces, units);
+
+            var war = new War(new HashSet<int> { 0 }, new HashSet<int> { 1 }, 0, 1, CasusBellis.Conquest);
+            diplomacy.StartRelation(0, 1, war);
 
             RenderInstruction[][] standardInstrs = new RenderInstruction[provinces.Boundaries.Length][];
             RenderInstruction[][] idleInstrs     = new RenderInstruction[provinces.Boundaries.Length][];
@@ -46,9 +52,9 @@ namespace Haumea.Game
 					idleInstrs[id][n] = new RenderInstruction(standardInstrs[id][n], c.Darken());
 				}
             }
-
+                
             var dialogManager = new DialogManager();
-            var mapView       = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager);
+            var mapView       = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager, diplomacy);
             var worldDateView = new WorldDateView(worldDate);
 
             List<IModel> models = new List<IModel> {
@@ -85,24 +91,24 @@ namespace Haumea.Game
             return tagIdMapping;
         }
 
-        private static Realms InitializeRealms(IList<RawRealm> rRealms, IList<RawArmy> rArmies, TagIdMap realmTagId,
+        private static Realms ProcessRawRealms(IList<RawRealm> rRealms, IList<RawArmy> rArmies, TagIdMap realmTagId,
             Provinces provinces, Units units)
         {
-            var realms = new Realms(realmTagId, provinces, units);
+            var realms = new Realms(realmTagId);
 
             // Assign ownership of provinces
             foreach (var rRealm in rRealms)
             {
                 foreach (string provinceTag in rRealm.ProvincesOwned)
                 {
-                    realms.Annex(provinces.TagIdMapping[provinceTag], realms.TagIdMapping[rRealm.Tag]);
+                    provinces.Annex(provinces.TagIdMapping[provinceTag], realms.TagIdMapping[rRealm.Tag]);
                 }
             }
 
             // Assign ownership of armies
             for (int n = 0; n < rArmies.Count; n++)
             {
-                realms.Recruit(n, realmTagId[rArmies[n].Owner]);
+                units.Recruit(n, realmTagId[rArmies[n].Owner]);
             }
 
             return realms;
@@ -142,9 +148,9 @@ namespace Haumea.Game
         }
 
         private static Units InitializeUnits(IList<RawArmy> rawArmies, TagIdMap provinceTagId, TagIdMap realmsTagId,
-            Provinces provinces, EventController events)
+            Provinces provinces, Diplomacy diplomacy, EventController events)
         {
-            Units units = new Units(provinces, events);
+            Units units = new Units(provinces, diplomacy, events);
 
             foreach (RawArmy rawArmy in rawArmies)
             {

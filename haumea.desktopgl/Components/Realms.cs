@@ -15,29 +15,14 @@ namespace Haumea.Components
         // Maps province => realm
         public BiDictionary<int, string> TagIdMapping { get; }
 
-        private readonly Provinces _provinces;
-        private readonly Units _units;
-
-        public Realms(BiDictionary<int, string> tagIdMapping, Provinces provinces, Units units)
+        public Realms(BiDictionary<int, string> tagIdMapping)
         {
             TagIdMapping = tagIdMapping;
-
-            _provinces = provinces;
-            _units = units;
         }
 
-        public void Update(WorldDate date) {}
-
-        // These seem a little out of place, since they are just updating other objects properties.
-
-        public void Annex(int province, int realm)
+        public void Update(WorldDate date)
         {
-            _provinces.Ownership.Add(province, realm);
-        }
-
-        public void Recruit(int army, int realm)
-        {
-            _units.Ownership.Add(army, realm);
+            // will contain income updates etc
         }
     }    
 }

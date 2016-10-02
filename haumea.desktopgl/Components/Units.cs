@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using Haumea.Collections;
@@ -10,6 +11,7 @@ namespace Haumea.Components
         // A lot of things in this class might seem weird and clunky, but it's not that bad.
 
         private readonly Provinces _provinces;
+        private readonly Diplomacy _diplomacy;
         private readonly IDGenerator _guid;
         private readonly EventController _events;
 
@@ -31,16 +33,15 @@ namespace Haumea.Components
         /// </summary>
         public IDictionary<int, int> Ownership { get; }
 
-        public IDictionary<int, ISet<Battle>> Battles { get; }
-
         /// <summary>
         /// Contains the selected armies.
         /// </summary>
         public ISet<int> SelectedArmies { get; }
 
-        public Units(Provinces provinces, EventController events)
+        public Units(Provinces provinces, Diplomacy diplomacy, EventController events)
         {
             _provinces = provinces;
+            _diplomacy = diplomacy;
             _guid = new IDGenerator(0);
             _events = events;
 
@@ -131,7 +132,9 @@ namespace Haumea.Components
             moveUnit = () => {
                 RemoveArmyFromProvince(order.CurrentNode, order.ArmyID);
                 AddArmyToProvince(order.NextNode, order.ArmyID);
-                Armies[order.ArmyID].Location = order.NextNode;
+
+                // Since battles might start as a result of moving into a province, we need to check if the army has been defeated.
+                if (!Armies.ContainsKey(order.ArmyID)) return;
 
                 if (order.MoveForward())
                 {
@@ -161,6 +164,11 @@ namespace Haumea.Components
         public bool IsPlayerArmy(int armyID)
         {
             return Ownership[armyID] == Realms.PlayerID;
+        }
+            
+        public void Recruit(int army, int realm)
+        {
+            Ownership.Add(army, realm);
         }
 
         private bool IsValidMerge()
@@ -201,21 +209,71 @@ namespace Haumea.Components
 
         private void AddArmyToProvince(int province, int armyID)
         {
-            ISet<int> armies;
-            if (ProvinceArmies.TryGetValue(province, out armies))
+            ISet<int> provinceArmies;
+            if (ProvinceArmies.TryGetValue(province, out provinceArmies))
             {
-                armies.Add(armyID);
+                var army = Armies[armyID];
+                provinceArmies.Add(armyID);
+                army.Location = province;
+
+                // Check if a battle should start.
+                int attacker = army.Owner;
+                IList<War> wars = _diplomacy.GetRelations<War>(attacker);
+
+                foreach (var war in wars)
+                {
+                    ISet<int> enemies = war.Enemies(attacker);
+                    var enemyArmiesInProvince = provinceArmies.Where(aID => enemies.Contains(Armies[aID].Owner)).ToHashSet();
+                    if (enemyArmiesInProvince.Count > 0)
+                    {
+                        Battle(armyID, enemyArmiesInProvince);
+                        break;
+                    }
+                }
             }
             else
             {
                 ProvinceArmies[province] = new HashSet<int> { armyID };
+                Armies[armyID].Location = province;
             }
         }
     
-        public class Battle
+        /// <summary>
+        /// Start a battle.
+        /// </summary>
+        /// <param name="province">Battleground</param>
+        /// <param name="attackingArmyID">Attacking army</param>
+        /// <param name="defendingArmyIDs">Defending armys</param>
+        /// <returns>true if attacking army won, false otherwise</returns>
+        private void Battle(int attackingArmyID, ISet<int> defendingArmyIDs)
         {
-            public int Army1 { get; }
-            public int Army2 { get; }
+            var army = Armies[attackingArmyID];
+
+            foreach (var enemyArmyID in defendingArmyIDs)
+            {
+                var enemyArmy = Armies[enemyArmyID];
+
+                if (enemyArmy.NUnits > army.NUnits)
+                {
+                    enemyArmy.NUnits -= army.NUnits;
+                    DeleteArmy(army.NUnits);
+                    break;
+                }
+                else
+                {
+                    army.NUnits -= enemyArmy.NUnits;
+                    enemyArmy.NUnits = 0;
+                    DeleteArmy(enemyArmyID);
+                }
+            }  
+        }
+
+        private void DeleteArmy(int armyID)
+        {
+            int province = Armies[armyID].Location;
+            RemoveArmyFromProvince(province, armyID);
+            Armies.Remove(armyID);
+            SelectedArmies.Remove(armyID);
         }
 
         // TODO: It's really bad that this class is exposed & mutable.
