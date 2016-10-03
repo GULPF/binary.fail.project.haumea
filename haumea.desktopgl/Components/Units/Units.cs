@@ -255,53 +255,6 @@ namespace Haumea.Components
                 NUnits = nUnits;
             }
         }
-
-        private class ArmyOrder
-        {
-            public int ArmyID { get; }
-            public GraphPath<int> Path { get; }
-            public int PathIndex { get; private set; }
-
-            public int CurrentNode
-            {
-                get { return Path.Nodes[PathIndex]; }
-            }
-
-            public int NextNode
-            {
-                get { return Path.Nodes[PathIndex + 1]; }
-            }
-
-            public bool MoveForward()
-            {
-                PathIndex++;
-                return PathIndex < Path.NJumps;
-            }
-
-            public ArmyOrder(int armyID, GraphPath<int> path)
-            {
-                ArmyID = armyID;
-                Path = path;
-                PathIndex = 0;
-            }
-        }
-
-        public class BattleResult
-        {
-            public int Attacker { get; }
-            public int Defender { get; }
-            public int Winner { get; }
-            public int AttackerLoses { get; }
-            public int DefenderLoses { get; }
-
-            public BattleResult(int attacker, int defender, int winner, int attackerLoses, int defenderLoses)
-            {
-                Attacker = attacker;
-                Defender = defender;
-                AttackerLoses = attackerLoses;
-                DefenderLoses = defenderLoses;
-            }
-        }
     }
 }
 
