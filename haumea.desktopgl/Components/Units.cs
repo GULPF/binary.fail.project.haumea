@@ -139,7 +139,7 @@ namespace Haumea.Components
 
         private bool IsValidMerge(ICollection<int> ids)
         {
-            int location = ids.First();
+            int location = Armies[ids.First()].Location;
 
             // We are only allowed to merge if all armies are in the same province.
             foreach (int armyID in ids)

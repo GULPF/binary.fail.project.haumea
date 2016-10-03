@@ -274,9 +274,11 @@ namespace Haumea.Components
         private void MergeSelectedArmies()
         {
             int mergedID =_selectedArmies.First();
-            _units.Merge(_selectedArmies);
-            _selectedArmies.Clear();
-            _selectedArmies.Add(mergedID);
+            if (_units.Merge(_selectedArmies))
+            {
+                _selectedArmies.Clear();
+                _selectedArmies.Add(mergedID);                
+            }
         }
     }
 }
