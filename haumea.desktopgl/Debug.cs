@@ -28,9 +28,10 @@ namespace Haumea
         }
 
         [Diagnostics.ConditionalAttribute("DEBUG")]
-        public static void Assert(bool fail, string msg = "")
+        public static void Assert(bool test, string msg = "")
         {
-            Diagnostics.Debug.Assert(fail, msg);
+            Diagnostics.Debug.Assert(test, msg);
+            if (!test) Diagnostics.Debugger.Break();
         }
 
         [Diagnostics.ConditionalAttribute("DEBUG")]

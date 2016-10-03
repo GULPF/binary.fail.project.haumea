@@ -10,7 +10,7 @@ namespace Haumea.Components
         /// <summary>
         /// Indicate which realm ID belongs to the player.
         /// </summary>
-        public static int PlayerID { get; private set; } = 0;
+        public static int PlayerID { get; } = 0;
 
         // Maps province => realm
         public BiDictionary<int, string> TagIdMapping { get; }

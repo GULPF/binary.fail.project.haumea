@@ -107,6 +107,7 @@
     <Compile Include="Geometric\Triangulator.cs" />
     <Compile Include="Components\Diplomacy\Diplomacy.cs" />
     <Compile Include="Components\Diplomacy\War.cs" />
+    <Compile Include="Components\Diplomacy\Wars.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />

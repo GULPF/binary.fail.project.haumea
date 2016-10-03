@@ -21,44 +21,23 @@ namespace Haumea.Game
             var realmsTagId    = InitializeRealmTags(data.RawRealms);
             var provincesTagId = InitializeProvinceTags(data.RawProvinces);
 
-
             var events    = new EventController();
             var mapGraph  = InitializeMapGraph(data.RawConnectors, provincesTagId);
             var realms    = new Realms(realmsTagId);
-            var diplomacy = new Diplomacy(realms);
+            var wars      = new Wars(realmsTagId);
             var provinces = InitializeProvinces(data.RawProvinces, mapGraph, provincesTagId);
-            var units     = InitializeUnits(data.RawArmies, provincesTagId, realmsTagId, provinces, diplomacy, events);
+            var units     = InitializeUnits(data.RawArmies, realmsTagId, provinces, wars, events);
             var worldDate = new WorldDate(new DateTime(1452, 6, 23));;
-            ProcessRawRealms(data.RawRealms, data.RawArmies, realmsTagId, provinces, units);
+            ProcessRawRealms(data.RawRealms, realmsTagId, provinces);
 
-            var war = new War(new HashSet<int> { 0 }, new HashSet<int> { 1 }, 0, 1, CasusBellis.Conquest);
-            diplomacy.StartRelation(0, 1, war);
-
-            RenderInstruction[][] standardInstrs = new RenderInstruction[provinces.Boundaries.Length][];
-            RenderInstruction[][] idleInstrs     = new RenderInstruction[provinces.Boundaries.Length][];
-
-            for (int id = 0; id < provinces.Boundaries.Length; id++)
-            {
-                MultiPoly mpoly = provinces.Boundaries[id];
-
-                Color c = data.RawProvinces[id].Color;
-                if (data.RawProvinces[id].IsWater) c = Color.Blue;
-
-				standardInstrs[id] = RenderInstruction.MultiPolygon(mpoly, c, Color.Blue);
-				idleInstrs[id]     = new RenderInstruction[standardInstrs[id].Length];
-
-				for (int n = 0; n < standardInstrs[id].Length; n++)
-				{
-					idleInstrs[id][n] = new RenderInstruction(standardInstrs[id][n], c.Darken());
-				}
-            }
+            wars.DeclareWar(0, 1, CasusBellis.Conquest, worldDate.Date);
                 
             var dialogManager = new DialogManager();
-            var mapView       = new MapView(provinces, units, standardInstrs, idleInstrs, dialogManager, diplomacy);
+            var mapView       = InitializeMapView(provinces, units, data.RawProvinces, dialogManager, wars);
             var worldDateView = new WorldDateView(worldDate);
 
             List<IModel> models = new List<IModel> {
-                events, provinces, realms, units
+                events, provinces, realms, units, wars
             };
             
             List<IView> views = new List<IView> {
@@ -91,8 +70,8 @@ namespace Haumea.Game
             return tagIdMapping;
         }
 
-        private static Realms ProcessRawRealms(IList<RawRealm> rRealms, IList<RawArmy> rArmies, TagIdMap realmTagId,
-            Provinces provinces, Units units)
+        // TODO:Remove
+        private static Realms ProcessRawRealms(IList<RawRealm> rRealms, TagIdMap realmTagId, Provinces provinces)
         {
             var realms = new Realms(realmTagId);
 
@@ -105,13 +84,32 @@ namespace Haumea.Game
                 }
             }
 
-            // Assign ownership of armies
-            for (int n = 0; n < rArmies.Count; n++)
+            return realms;
+        }
+
+        private static MapView InitializeMapView(Provinces provinces, Units units, IList<RawProvince> rProvinces,
+            DialogManager dialogMgr, Wars wars)
+        {
+            RenderInstruction[][] standardInstrs = new RenderInstruction[provinces.Boundaries.Length][];
+            RenderInstruction[][] idleInstrs     = new RenderInstruction[provinces.Boundaries.Length][];
+
+            for (int id = 0; id < provinces.Boundaries.Length; id++)
             {
-                units.Recruit(n, realmTagId[rArmies[n].Owner]);
+                MultiPoly mpoly = provinces.Boundaries[id];
+
+                Color c = rProvinces[id].Color;
+                if (rProvinces[id].IsWater) c = Color.Blue;
+
+                standardInstrs[id] = RenderInstruction.MultiPolygon(mpoly, c, Color.Blue);
+                idleInstrs[id]     = new RenderInstruction[standardInstrs[id].Length];
+
+                for (int n = 0; n < standardInstrs[id].Length; n++)
+                {
+                    idleInstrs[id][n] = new RenderInstruction(standardInstrs[id][n], c.Darken());
+                }
             }
 
-            return realms;
+            return new MapView(provinces, units, standardInstrs, idleInstrs, dialogMgr, wars);
         }
 
         private static Provinces InitializeProvinces(IList<RawProvince> rProvinces, NodeGraph<int> graph,
@@ -147,15 +145,15 @@ namespace Haumea.Game
             return new NodeGraph<int>(conns, true);
         }
 
-        private static Units InitializeUnits(IList<RawArmy> rawArmies, TagIdMap provinceTagId, TagIdMap realmsTagId,
-            Provinces provinces, Diplomacy diplomacy, EventController events)
+        private static Units InitializeUnits(IList<RawArmy> rawArmies, TagIdMap realmsTagId,
+            Provinces provinces, Wars wars, EventController events)
         {
-            Units units = new Units(provinces, diplomacy, events);
+            Units units = new Units(provinces, wars, events);
 
             foreach (RawArmy rawArmy in rawArmies)
             {
                 int ownerID    = realmsTagId[rawArmy.Owner];
-                int locationID = provinceTagId[rawArmy.Location];
+                int locationID = provinces.TagIdMapping[rawArmy.Location];
                 Units.Army army = new Units.Army(ownerID, locationID, rawArmy.NUnits);
                 units.AddArmy(army);
             }

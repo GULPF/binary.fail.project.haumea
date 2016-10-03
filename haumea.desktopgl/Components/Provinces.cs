@@ -5,8 +5,6 @@ using Haumea.Collections;
 
 namespace Haumea.Components
 { 
-    // This is implemented using Data Oriented Design (DOD, see http://www.dataorienteddesign.com/dodmain/).
-
     public class Provinces : IModel
     {
         public NodeGraph<int> Graph { get; }

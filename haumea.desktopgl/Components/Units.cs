@@ -8,15 +8,16 @@ namespace Haumea.Components
 {
     public class Units : IModel
     {
-        // A lot of things in this class might seem weird and clunky, but it's not that bad.
+        private int _nextID;
 
         private readonly Provinces _provinces;
-        private readonly Diplomacy _diplomacy;
-        private readonly IDGenerator _guid;
+        private readonly Wars _wars;
         private readonly EventController _events;
 
         // Called when a unit is deleted.
-        public event EventHandler<int> OnDelete;
+        public event Action<int> OnDelete;
+        // Called when a battle have ended.
+        public event Action OnBattle;
 
         /// <summary>
         /// Keeps track of which armies are located in which province.
@@ -28,26 +29,13 @@ namespace Haumea.Components
         /// </summary>
         public IDictionary<int, Army> Armies { get; }
 
-        /// <summary>
-        /// Indicates the owner (realm id) of every army.
-        /// </summary>
-        public IDictionary<int, int> Ownership { get; }
-
-        /// <summary>
-        /// Contains the selected armies.
-        /// </summary>
-        public ISet<int> SelectedArmies { get; }
-
-        public Units(Provinces provinces, Diplomacy diplomacy, EventController events)
+        public Units(Provinces provinces, Wars wars, EventController events)
         {
             _provinces = provinces;
-            _diplomacy = diplomacy;
-            _guid = new IDGenerator(0);
+            _wars = wars;
             _events = events;
 
             ProvinceArmies = new Dictionary<int, ISet<int>>();
-            SelectedArmies = new HashSet<int>();
-            Ownership = new Dictionary<int, int>();
             Armies =  new Dictionary<int, Army>();
         }
 
@@ -55,49 +43,35 @@ namespace Haumea.Components
         {
 
         }
-
-        public void SelectArmy(int armyID, bool keepOldSelection)
-        {
-            if (keepOldSelection)
-            {
-                SelectedArmies.Add(armyID);
-            }
-            else
-            {
-                SelectedArmies.Clear();
-                SelectedArmies.Add(armyID);
-            }
-        }
-
-        public void ClearSelection()
-        {
-            SelectedArmies.Clear();
-        }
             
         public void Delete(IEnumerable<int> armyIDs)
         {
             foreach (int armyID in armyIDs)
             {
-                Army army;
-                if (Armies.TryGetValue(armyID, out army))
-                {
-                    Armies.Remove(armyID);
-                    RemoveArmyFromProvince(army.Location, armyID);    
-                    SelectedArmies.Remove(armyID);
-                    if (OnDelete != null) OnDelete(this, armyID);
-                }
+                Delete(armyID);
             }
         }
-           
+
+        public void Delete(int armyID)
+        {
+            Army army;
+            if (Armies.TryGetValue(armyID, out army))
+            {
+                Armies.Remove(armyID);
+                RemoveArmyFromProvince(army.Location, armyID);    
+                if (OnDelete != null) OnDelete(armyID);
+            }
+        }
+            
         /// <summary>
         /// Merge the selected armies into a single army.
         /// </summary>
         /// <returns><c>true</c>, if merge was succesfull, <c>false</c> otherwise.</returns>
-        public bool MergeSelected()
+        public bool Merge(ICollection<int> ids)
         {
-            if (SelectedArmies.Count < 2 || !IsValidMerge()) return false;
+            if (ids.Count < 2 || !IsValidMerge(ids)) return false;
 
-            using (var enumer = SelectedArmies.GetEnumerator())
+            using (var enumer = ids.GetEnumerator())
             {
                 enumer.MoveNext();
                 int mergedArmyID = enumer.Current;
@@ -109,9 +83,6 @@ namespace Haumea.Components
                     RemoveArmyFromProvince(Armies[enumer.Current].Location, enumer.Current);
                     Armies.Remove(enumer.Current);
                 }
-
-                SelectedArmies.Clear();
-                SelectedArmies.Add(mergedArmyID);
             }
 
             return true;
@@ -156,35 +127,26 @@ namespace Haumea.Components
            
         public void AddArmy(Army army)
         {
-            int armyID = _guid.Generate();
+            int armyID = _nextID++;
             Armies.Add(Armies.Count, army);
             AddArmyToProvince(army.Location, armyID);
         }
             
         public bool IsPlayerArmy(int armyID)
         {
-            return Ownership[armyID] == Realms.PlayerID;
-        }
-            
-        public void Recruit(int army, int realm)
-        {
-            Ownership.Add(army, realm);
+            return Armies[armyID].Owner == Realms.PlayerID;
         }
 
-        private bool IsValidMerge()
+        private bool IsValidMerge(ICollection<int> ids)
         {
-            using (var itr = SelectedArmies.GetEnumerator())
+            int location = ids.First();
+
+            // We are only allowed to merge if all armies are in the same province.
+            foreach (int armyID in ids)
             {
-                itr.MoveNext();
-                int location = Armies[itr.Current].Location;
-
-                // We are only allowed to merge if all armies are in the same province.
-                foreach (int armyID in SelectedArmies)
+                if (location != Armies[armyID].Location)
                 {
-                    if (location != Armies[armyID].Location)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -218,12 +180,14 @@ namespace Haumea.Components
 
                 // Check if a battle should start.
                 int attacker = army.Owner;
-                IList<War> wars = _diplomacy.GetRelations<War>(attacker);
+                ISet<int> warIDs = _wars.RealmWars[attacker];
 
-                foreach (var war in wars)
+                foreach (var warID in warIDs)
                 {
-                    ISet<int> enemies = war.Enemies(attacker);
-                    var enemyArmiesInProvince = provinceArmies.Where(aID => enemies.Contains(Armies[aID].Owner)).ToHashSet();
+                    ISet<int> enemies = _wars.WarBelligerents[warID].Enemies(attacker);
+                    var enemyArmiesInProvince = provinceArmies
+                        .Where(aID => enemies.Contains(Armies[aID].Owner))
+                        .ToHashSet();
                     if (enemyArmiesInProvince.Count > 0)
                     {
                         Battle(armyID, enemyArmiesInProvince);
@@ -249,31 +213,30 @@ namespace Haumea.Components
         {
             var army = Armies[attackingArmyID];
 
-            foreach (var enemyArmyID in defendingArmyIDs)
+            foreach (var defendingArmyID in defendingArmyIDs)
             {
-                var enemyArmy = Armies[enemyArmyID];
+                var defendingArmy = Armies[defendingArmyID];
 
-                if (enemyArmy.NUnits > army.NUnits)
+                if (defendingArmy.NUnits > army.NUnits)
                 {
-                    enemyArmy.NUnits -= army.NUnits;
-                    DeleteArmy(army.NUnits);
+                    defendingArmy.NUnits -= army.NUnits;
+                    Delete(attackingArmyID);
                     break;
+                }
+                else if (defendingArmy.NUnits < army.NUnits)
+                {
+                    army.NUnits -= defendingArmy.NUnits;
+                    defendingArmy.NUnits = 0;
+                    Delete(defendingArmyID);
                 }
                 else
                 {
-                    army.NUnits -= enemyArmy.NUnits;
-                    enemyArmy.NUnits = 0;
-                    DeleteArmy(enemyArmyID);
+                    Delete(attackingArmyID);
+                    Delete(defendingArmyID);
                 }
-            }  
-        }
 
-        private void DeleteArmy(int armyID)
-        {
-            int province = Armies[armyID].Location;
-            RemoveArmyFromProvince(province, armyID);
-            Armies.Remove(armyID);
-            SelectedArmies.Remove(armyID);
+                _wars.HandleBattleResult();
+            }  
         }
 
         // TODO: It's really bad that this class is exposed & mutable.
@@ -323,18 +286,20 @@ namespace Haumea.Components
             }
         }
 
-        private class IDGenerator
+        public class BattleResult
         {
-            private int _nextID;
+            public int Attacker { get; }
+            public int Defender { get; }
+            public int Winner { get; }
+            public int AttackerLoses { get; }
+            public int DefenderLoses { get; }
 
-            public IDGenerator(int nextID)
+            public BattleResult(int attacker, int defender, int winner, int attackerLoses, int defenderLoses)
             {
-                _nextID = nextID;
-            }
-
-            public int Generate()
-            {
-                return _nextID++;
+                Attacker = attacker;
+                Defender = defender;
+                AttackerLoses = attackerLoses;
+                DefenderLoses = defenderLoses;
             }
         }
     }
