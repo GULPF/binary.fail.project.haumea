@@ -28,6 +28,7 @@ namespace Haumea.Game
             var provinces = InitializeProvinces(data.RawProvinces, mapGraph, provincesTagId);
             var units     = InitializeUnits(data.RawArmies, realmsTagId, provinces, wars, events);
             var worldDate = new WorldDate(new DateTime(1452, 6, 23));;
+            var resources = new Resources(provinces, units, realmsTagId);
             ProcessRawRealms(data.RawRealms, realmsTagId, provinces);
 
             wars.DeclareWar(0, 1, CasusBellis.Conquest, worldDate.Date);
@@ -37,7 +38,7 @@ namespace Haumea.Game
             var worldDateView = new WorldDateView(worldDate);
 
             List<IModel> models = new List<IModel> {
-                events, provinces, realms, units, wars
+                events, provinces, realms, units, wars, resources
             };
             
             List<IView> views = new List<IView> {
