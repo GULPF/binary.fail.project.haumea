@@ -17,7 +17,7 @@ namespace Haumea.Components
         // Called when a unit is deleted.
         public event Action<int> OnDelete;
         // Called when a battle have ended.
-        public event Action OnBattle;
+        public event Action<BattleResult> OnBattle;
 
         /// <summary>
         /// Keeps track of which armies are located in which province.
@@ -57,6 +57,8 @@ namespace Haumea.Components
             Army army;
             if (Armies.TryGetValue(armyID, out army))
             {
+                // we update nunits so anybody who has a reference to the army can see that it's gone
+                army.NUnits = 0;
                 Armies.Remove(armyID);
                 RemoveArmyFromProvince(army.Location, armyID);    
                 if (OnDelete != null) OnDelete(armyID);
@@ -188,10 +190,12 @@ namespace Haumea.Components
                     var enemyArmiesInProvince = provinceArmies
                         .Where(aID => enemies.Contains(Armies[aID].Owner))
                         .ToHashSet();
+
                     if (enemyArmiesInProvince.Count > 0)
                     {
-                        Battle(armyID, enemyArmiesInProvince);
-                        break;
+                        Battle(armyID, enemyArmiesInProvince, warID);
+
+                        if (army.NUnits <= 0) break;
                     }
                 }
             }
@@ -209,34 +213,46 @@ namespace Haumea.Components
         /// <param name="attackingArmyID">Attacking army</param>
         /// <param name="defendingArmyIDs">Defending armys</param>
         /// <returns>true if attacking army won, false otherwise</returns>
-        private void Battle(int attackingArmyID, ISet<int> defendingArmyIDs)
+        private void Battle(int attackingArmyID, ISet<int> defendingArmyIDs, int warID)
         {
-            var army = Armies[attackingArmyID];
+            var attackingArmy = Armies[attackingArmyID];
+            int losses = 0;
+            int winner = int.MinValue; // will allways be set
 
             foreach (var defendingArmyID in defendingArmyIDs)
             {
                 var defendingArmy = Armies[defendingArmyID];
 
-                if (defendingArmy.NUnits > army.NUnits)
+                if (defendingArmy.NUnits > attackingArmy.NUnits)
                 {
-                    defendingArmy.NUnits -= army.NUnits;
+                    losses += attackingArmy.NUnits;
+                    winner = _wars.WarBelligerents[warID].EnemyLeader(attackingArmy.Owner);
+                    defendingArmy.NUnits -= attackingArmy.NUnits;
                     Delete(attackingArmyID);
                     break;
                 }
-                else if (defendingArmy.NUnits < army.NUnits)
+                else if (defendingArmy.NUnits < attackingArmy.NUnits)
                 {
-                    army.NUnits -= defendingArmy.NUnits;
+                    losses += defendingArmy.NUnits;
+                    attackingArmy.NUnits -= defendingArmy.NUnits;
                     defendingArmy.NUnits = 0;
                     Delete(defendingArmyID);
                 }
                 else
                 {
+                    losses += attackingArmy.NUnits;
+                    winner = -1;
                     Delete(attackingArmyID);
                     Delete(defendingArmyID);
                 }
+            }
 
-                _wars.HandleBattleResult();
-            }  
+            if (attackingArmy.NUnits > 0)
+            {
+                winner = _wars.WarBelligerents[warID].AllyLeader(attackingArmy.Owner);
+            }
+
+            _wars.HandleBattleResult(new BattleResult(winner, losses, warID));
         }
 
         // TODO: It's really bad that this class is exposed & mutable.

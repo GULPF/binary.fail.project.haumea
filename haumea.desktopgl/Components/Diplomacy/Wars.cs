@@ -78,9 +78,22 @@ namespace Haumea.Components
                 .ToHashSet();
         }
 
-        public void HandleBattleResult()
+        public void HandleBattleResult(BattleResult result)
         {
-            
+            var belligs = WarBelligerents[result.WarID];
+
+            if (belligs.AttackingLeader == result.Winner)
+            {
+                Warscores[result.WarID] += result.Losses * 2;
+            }
+            else if (belligs.DefendingLeader == result.Winner)
+            {
+                Warscores[result.WarID] -= result.Losses * 2;
+            } 
+            else
+            {
+                Debug.Assert(result.Winner == -1);
+            }
         }
 
         private void UpdateTickingWarscores(DateTime now)

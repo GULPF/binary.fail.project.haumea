@@ -20,8 +20,25 @@ namespace Haumea.Components
 
         public ISet<int> Enemies(int realmID)
         {
-            Debug.Assert(Attackers.Contains(realmID) || Defenders.Contains(realmID));
+            AssertExists(realmID);
             return Attackers.Contains(realmID) ? Defenders : Attackers;
+        }
+
+        public int EnemyLeader(int realmID)
+        {
+            AssertExists(realmID);
+            return Attackers.Contains(realmID) ? DefendingLeader : AttackingLeader;
+        }
+
+        public int AllyLeader(int realmID)
+        {
+            AssertExists(realmID);
+            return Attackers.Contains(realmID) ? AttackingLeader : DefendingLeader;
+        }
+
+        private void AssertExists(int realmID)
+        {
+            Debug.Assert(Attackers.Contains(realmID) || Defenders.Contains(realmID));
         }
     }
 }
