@@ -13,7 +13,8 @@ namespace Haumea.Components
 {
     public class MapView : IView
     {
-        private SelectionManager<int> _selection;
+        private ProvinceSelection<int> _provinceSelection;
+        private UnitsSelection _unitsSelection;
 
         private readonly Provinces _provinces;
         private readonly Units _units;
@@ -34,7 +35,6 @@ namespace Haumea.Components
 
         private readonly DialogManager _dialogMgr;
 
-        private readonly ISet<int> _selectedArmies;
 
         public MapView(Provinces provinces, Units units,
             RenderInstruction[][] standardInstrs,
@@ -45,17 +45,18 @@ namespace Haumea.Components
             _units = units;
             _wars = wars;
             _dialogMgr = dialogMgr;
-            _selection = new SelectionManager<int>();
+            _provinceSelection = new ProvinceSelection<int>();
+            _unitsSelection = new UnitsSelection();
             _standardInstrs = standardInstrs;
             _idleInstrs = idleInstrs;
             _labelBoxes = provinces.Boundaries.Select(mpoly => mpoly.Polys[0].FindBestLabelBox()).ToArray();
-            _selectedArmies = new HashSet<int>();
+
 
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
             _labelClickableBoundaries = new Dictionary<int, AABB>();
 
-            _units.OnDelete += (armyID) => _selectedArmies.Remove(armyID);
+            _units.OnDelete += _unitsSelection.Deselect;
         }
             
         public void LoadContent(ContentManager content)
@@ -85,34 +86,34 @@ namespace Haumea.Components
                 // Only handle new selections.
                 if (input.WentActive(Buttons.LeftButton))
                 {
-                    _selection.Select(id);
+                    _provinceSelection.Select(id);
                 }
                 else if (input.WentInactive(Buttons.LeftButton)
                     && selectionBox.Area < _minimumSelectionSize
-                    && _selectedArmies.Count > 0)
+                    && _unitsSelection.Count > 0)
                 {
-                    _units.AddOrder(_selectedArmies, id);
+                    _units.AddOrder(_unitsSelection.Set, id);
                 }
 
-                foreach (int oldId in _selection.Hovering)
+                foreach (int oldId in _provinceSelection.Hovering)
                 {
                     SwapInstrs(oldId);
                 }
 
-                _selection.Hover(id);
+                _provinceSelection.Hover(id);
                 SwapInstrs(id);
             }
             else
             {
-                foreach (int hoverID in _selection.Hovering)
+                foreach (int hoverID in _provinceSelection.Hovering)
                 {
                     SwapInstrs(hoverID);
                 }
-                _selection.StopHoveringAll();    
+                _provinceSelection.StopHoveringAll();    
             }
 
             if (input.WentActive(Keys.G))      MergeSelectedArmies();
-            if (input.WentActive(Keys.Escape)) _selectedArmies.Clear();
+            if (input.WentActive(Keys.Escape)) _unitsSelection.DeselectAll();
             if (input.WentActive(Keys.Delete)) DeleteSelectedArmies();
 
             // TODO: This can be improved. Since I need to hit check all provinces
@@ -127,25 +128,25 @@ namespace Haumea.Components
                 {
                     if (_units.IsPlayerArmy(selectedBox.Key))
                     {
-                        SelectArmy(selectedBox.Key, input.IsActive(Keys.LeftControl));    
+                        _unitsSelection.Select(selectedBox.Key, input.IsActive(Keys.LeftControl));    
                     }
                 }
             }
             else if (input.WentInactive(Buttons.LeftButton) && selectionBox.Area > _minimumSelectionSize)
             {
-                _selectedArmies.Clear();
+                _unitsSelection.DeselectAll();
 
                 // Find all units within the area and select them.
                 _labelClickableBoundaries
                     .FindAll(p => _units.IsPlayerArmy(p.Key) && p.Value.Intersects(selectionBox))
-                    .ForEach(p => SelectArmy(p.Key, true));
+                    .ForEach(p => _unitsSelection.Select(p.Key, true));
             }
 
             UpdateSelectionBox(input);
 
-            if (_selectedArmies.Count > 0)
+            if (_unitsSelection.Count > 0)
             {
-                Debug.WriteToScreen("Armies", _selectedArmies.Join(", "));    
+                Debug.WriteToScreen("Armies", _unitsSelection.Set.Join(", "));    
             }
         }
 
@@ -208,7 +209,7 @@ namespace Haumea.Components
 
                 Color borderColor;
 
-                if (_selectedArmies.Contains(pair.Key))
+                if (_unitsSelection.Set.Contains(pair.Key))
                 {
                     borderColor = Color.AliceBlue;
                 }
@@ -231,10 +232,10 @@ namespace Haumea.Components
 
         private void DeleteSelectedArmies()
         {
-            int count = _selectedArmies.Count;
+            int count = _unitsSelection.Count;
             if (count == 0) return;
 
-            var delete = new HashSet<int>(_selectedArmies);
+            var delete = new HashSet<int>(_unitsSelection.Set);
 
             string plural = count == 1 ? "" : "s"; 
             string msg = string.Format("Are you sure you want \nto delete {0} unit{1}?",
@@ -258,26 +259,13 @@ namespace Haumea.Components
             _idleInstrs[id] = tmp;   
         }
 
-        private void SelectArmy(int armyID, bool keepOldSelection)
-        {
-            if (keepOldSelection)
-            {
-                _selectedArmies.Add(armyID);
-            }
-            else
-            {
-                _selectedArmies.Clear();
-                _selectedArmies.Add(armyID);
-            }
-        }
-
         private void MergeSelectedArmies()
         {
-            int mergedID =_selectedArmies.First();
-            if (_units.Merge(_selectedArmies))
+            int mergedID =_unitsSelection.Set.First();
+            if (_units.Merge(_unitsSelection.Set))
             {
-                _selectedArmies.Clear();
-                _selectedArmies.Add(mergedID);                
+                _unitsSelection.DeselectAll();
+                _unitsSelection.Select(mergedID, false);                
             }
         }
     }

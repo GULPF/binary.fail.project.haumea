@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Haumea.Components
 {
-    public class SelectionManager<T> {
+    public class ProvinceSelection<T> {
 
         public bool IsEmpty
         {
@@ -16,7 +16,7 @@ namespace Haumea.Components
         public ISet<T> Selected { get; }
         public ISet<T> Hovering { get; }
 
-        public SelectionManager()
+        public ProvinceSelection()
         {
             Selected = new HashSet<T>();
             Hovering = new HashSet<T>();

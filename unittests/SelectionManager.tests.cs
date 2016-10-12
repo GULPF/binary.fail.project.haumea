@@ -11,7 +11,7 @@ namespace unittests
         [Test]
         public void EmptySelection()
         {
-            SelectionManager<int> selection = new SelectionManager<int>();
+            ProvinceSelection<int> selection = new ProvinceSelection<int>();
             Assert.True(selection.IsEmpty);
             Assert.AreEqual(0, selection.Selected.Count);
         }
@@ -19,7 +19,7 @@ namespace unittests
         [Test]
         public void MakeSelection()
         {
-            var selection  = new SelectionManager<int>();
+            var selection  = new ProvinceSelection<int>();
 
             Assert.True(true);
         }
