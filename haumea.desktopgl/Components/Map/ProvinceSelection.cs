@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Haumea.Components
 {
-    public class ProvinceSelection<T> {
+    public class ProvinceSelection {
 
         public bool IsEmpty
         {
@@ -13,13 +13,13 @@ namespace Haumea.Components
             }
         }
 
-        public ISet<T> Selected { get; }
-        public ISet<T> Hovering { get; }
+        public ISet<int> Selected { get; }
+        public int Hovering { get; private set; }
 
         public ProvinceSelection()
         {
-            Selected = new HashSet<T>();
-            Hovering = new HashSet<T>();
+            Selected = new HashSet<int>();
+            Hovering = -1;
         }
 
         public void DeselectAll()
@@ -27,12 +27,12 @@ namespace Haumea.Components
             Selected.Clear();
         }
 
-        public void StopHoveringAll()
+        public void StopHovering()
         {
-            Hovering.Clear();
+            Hovering = -1;
         }
 
-        public bool Select(T id, bool keepSelected = false)
+        public bool Select(int id, bool keepSelected = false)
         {
             if (Selected.Contains(id)) return false;
             if (!keepSelected) DeselectAll();
@@ -40,22 +40,19 @@ namespace Haumea.Components
             return true;
         }
 
-        public bool Hover(T id, bool keepHovered = false)
+        public void Hover(int id)
         {
-            if (Hovering.Contains(id)) return false;
-            if (!keepHovered) StopHoveringAll();
-            Hovering.Add(id);
-            return true;
+            Hovering = id;
         }
 
-        public bool IsSelected(T id)
+        public bool IsSelected(int id)
         {
             return Selected.Contains(id);
         }
 
-        public bool IsHovered(T id)
+        public bool IsHovered(int id)
         {
-            return Hovering.Contains(id);
+            return Hovering == id;
         }
     }
 }

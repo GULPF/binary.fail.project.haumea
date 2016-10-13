@@ -20,7 +20,7 @@ namespace Haumea.Components
             return Set.Contains(armyID);
         }
 
-        public void Select(int armyID, bool keepOldSelection)
+        public void Select(int armyID, bool keepOldSelection = false)
         {
             if (keepOldSelection)
             {

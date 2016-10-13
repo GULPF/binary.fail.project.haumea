@@ -13,8 +13,8 @@ namespace Haumea.Components
 {
     public class MapView : IView
     {
-        private ProvinceSelection<int> _provinceSelection;
-        private UnitsSelection _unitsSelection;
+        private readonly ProvinceSelection _provinceSelection;
+        private readonly UnitsSelection _unitsSelection;
 
         private readonly Provinces _provinces;
         private readonly Units _units;
@@ -35,7 +35,6 @@ namespace Haumea.Components
 
         private readonly DialogManager _dialogMgr;
 
-
         public MapView(Provinces provinces, Units units,
             RenderInstruction[][] standardInstrs,
             RenderInstruction[][] idleInstrs,
@@ -45,12 +44,11 @@ namespace Haumea.Components
             _units = units;
             _wars = wars;
             _dialogMgr = dialogMgr;
-            _provinceSelection = new ProvinceSelection<int>();
+            _provinceSelection = new ProvinceSelection();
             _unitsSelection = new UnitsSelection();
             _standardInstrs = standardInstrs;
             _idleInstrs = idleInstrs;
             _labelBoxes = provinces.Boundaries.Select(mpoly => mpoly.Polys[0].FindBestLabelBox()).ToArray();
-
 
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
@@ -72,19 +70,18 @@ namespace Haumea.Components
             }
 
             AABB selectionBox = new AABB(_selectionBoxP1, _selectionBoxP2);
-            Vector2 position = input.Mouse;
 
             int id;
-            if (_provinces.TryGetProvinceFromPoint(position, out id))
+            if (_provinces.TryGetProvinceFromPoint(input.Mouse, out id))
             {
-                /*if (input.WentActive(Buttons.LeftButton)
-                        && _labelClickableBoundaries[id].IsPointInside(position))
-                    {
-                        
-                    }*/
-
+                if (input.WentActive(Buttons.LeftButton) && 
+                    _labelClickableBoundaries[id].IsPointInside(input.ScreenMouse) &&
+                    _units.IsPlayerArmy(id))
+                {
+                    _unitsSelection.Select(id, input.IsActive(Keys.LeftControl));    
+                }
                 // Only handle new selections.
-                if (input.WentActive(Buttons.LeftButton))
+                else if (input.WentActive(Buttons.LeftButton))
                 {
                     _provinceSelection.Select(id);
                 }
@@ -94,45 +91,22 @@ namespace Haumea.Components
                 {
                     _units.AddOrder(_unitsSelection.Set, id);
                 }
-
-                foreach (int oldId in _provinceSelection.Hovering)
-                {
-                    SwapInstrs(oldId);
-                }
-
+                    
+                SwapInstrs(_provinceSelection.Hovering);
                 _provinceSelection.Hover(id);
                 SwapInstrs(id);
             }
             else
             {
-                foreach (int hoverID in _provinceSelection.Hovering)
-                {
-                    SwapInstrs(hoverID);
-                }
-                _provinceSelection.StopHoveringAll();    
+                SwapInstrs(_provinceSelection.Hovering);
+                _provinceSelection.StopHovering();    
             }
 
             if (input.WentActive(Keys.G))      MergeSelectedArmies();
             if (input.WentActive(Keys.Escape)) _unitsSelection.DeselectAll();
             if (input.WentActive(Keys.Delete)) DeleteSelectedArmies();
 
-            // TODO: This can be improved. Since I need to hit check all provinces
-            // ..... anyway, I should only hit test the label which is inside the
-            // ..... province which the mouse is inside.
-            if (input.WentActive(Buttons.LeftButton))
-            {
-                KeyValuePair<int, AABB> selectedBox;
-
-                if (_labelClickableBoundaries.TryFind(out selectedBox,
-                    label => label.Value.IsPointInside(input.ScreenMouse)))
-                {
-                    if (_units.IsPlayerArmy(selectedBox.Key))
-                    {
-                        _unitsSelection.Select(selectedBox.Key, input.IsActive(Keys.LeftControl));    
-                    }
-                }
-            }
-            else if (input.WentInactive(Buttons.LeftButton) && selectionBox.Area > _minimumSelectionSize)
+            if (input.WentInactive(Buttons.LeftButton) && selectionBox.Area > _minimumSelectionSize)
             {
                 _unitsSelection.DeselectAll();
 
@@ -235,25 +209,26 @@ namespace Haumea.Components
             int count = _unitsSelection.Count;
             if (count == 0) return;
 
-            var delete = new HashSet<int>(_unitsSelection.Set);
+            var unitsToDelete = new HashSet<int>(_unitsSelection.Set);
 
             string plural = count == 1 ? "" : "s"; 
             string msg = string.Format("Are you sure you want \nto delete {0} unit{1}?",
                 count, plural);
 
-            var dialog = new Confirm(msg, () => _units.Delete(delete));
+            var dialog = new Confirm(msg, () => _units.Delete(unitsToDelete));
             _dialogMgr.Add(dialog);
 
             int nAlreadyDeleted = 0;
             _units.OnDelete += (armyID) => 
             {
-                if (delete.Contains(armyID)) nAlreadyDeleted++;
-                if (nAlreadyDeleted == delete.Count) dialog.Terminate = true;
+                if (unitsToDelete.Contains(armyID)) nAlreadyDeleted++;
+                if (nAlreadyDeleted == unitsToDelete.Count) dialog.Terminate = true;
             };
         }
 
         private void SwapInstrs(int id)
         {
+            if (id < 0) return;
             var tmp = _standardInstrs[id];
             _standardInstrs[id] = _idleInstrs[id];
             _idleInstrs[id] = tmp;   
@@ -264,8 +239,7 @@ namespace Haumea.Components
             int mergedID =_unitsSelection.Set.First();
             if (_units.Merge(_unitsSelection.Set))
             {
-                _unitsSelection.DeselectAll();
-                _unitsSelection.Select(mergedID, false);                
+                _unitsSelection.Select(mergedID);
             }
         }
     }
