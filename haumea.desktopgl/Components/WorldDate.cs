@@ -6,9 +6,6 @@ using Microsoft.Xna.Framework;
 namespace Haumea.Components
 {
     /// <summary>
-    /// Fills two purposes (SRP? split it when/if the events gets more sophisticated):
-    /// - Keeps track of the current date
-    /// - Triggers events based on date
     /// WorldDate is conceptually a model,
     /// but it can't implement IModel since WorldDate is the the input to IModel's update.
     /// </summary>
@@ -57,7 +54,6 @@ namespace Haumea.Components
 
         /// <summary>
         /// Number of days that have passed since the game started.
-        /// Useful when entities implement their own event-system.
         /// </summary>
         public long DaysPassed { get; private set; }
 

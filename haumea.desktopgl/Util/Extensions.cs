@@ -236,6 +236,11 @@ namespace Haumea
             //return foundList.ToArray();
         }
 
+        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> enumer)
+        {
+            return new HashSet<T>(enumer);
+        }
+
         // Non-extenion methods
 
         private static readonly Random rnd = new Random();

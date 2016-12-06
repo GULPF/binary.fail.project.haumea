@@ -13,10 +13,12 @@ namespace Haumea.Components
 {
     public class MapView : IView
     {
-        private SelectionManager<int> _selection;
+        private readonly ProvinceSelection _provinceSelection;
+        private readonly UnitsSelection _unitsSelection;
 
         private readonly Provinces _provinces;
         private readonly Units _units;
+        private readonly Wars _wars;
 
         private SpriteFont _unitsFont;
 
@@ -36,12 +38,14 @@ namespace Haumea.Components
         public MapView(Provinces provinces, Units units,
             RenderInstruction[][] standardInstrs,
             RenderInstruction[][] idleInstrs,
-            DialogManager dialogMgr)
+            DialogManager dialogMgr, Wars wars)
         {
             _provinces = provinces;
             _units = units;
+            _wars = wars;
             _dialogMgr = dialogMgr;
-            _selection = new SelectionManager<int>();
+            _provinceSelection = new ProvinceSelection();
+            _unitsSelection = new UnitsSelection();
             _standardInstrs = standardInstrs;
             _idleInstrs = idleInstrs;
             _labelBoxes = provinces.Boundaries.Select(mpoly => mpoly.Polys[0].FindBestLabelBox()).ToArray();
@@ -49,6 +53,8 @@ namespace Haumea.Components
             // The boundary depends on the size of the army text,
             // so the actual boxes are written in the draw method.
             _labelClickableBoundaries = new Dictionary<int, AABB>();
+
+            _units.OnDelete += _unitsSelection.Deselect;
         }
             
         public void LoadContent(ContentManager content)
@@ -64,81 +70,57 @@ namespace Haumea.Components
             }
 
             AABB selectionBox = new AABB(_selectionBoxP1, _selectionBoxP2);
-            Vector2 position = input.Mouse;
 
             int id;
-            if (_provinces.TryGetProvinceFromPoint(position, out id))
+            if (_provinces.TryGetProvinceFromPoint(input.Mouse, out id))
             {
-                /*if (input.WentActive(Buttons.LeftButton)
-                        && _labelClickableBoundaries[id].IsPointInside(position))
-                    {
-                        
-                    }*/
-
-                // Only handle new selections.
-                if (input.WentActive(Buttons.LeftButton))
+                if (input.WentActive(Buttons.LeftButton) && 
+                    _labelClickableBoundaries[id].IsPointInside(input.ScreenMouse) &&
+                    _units.IsPlayerArmy(id))
                 {
-                    _selection.Select(id);
+                    _unitsSelection.Select(id, input.IsActive(Keys.LeftControl));    
+                }
+                // Only handle new selections.
+                else if (input.WentActive(Buttons.LeftButton))
+                {
+                    _provinceSelection.Select(id);
                 }
                 else if (input.WentInactive(Buttons.LeftButton)
                     && selectionBox.Area < _minimumSelectionSize
-                    && _units.SelectedArmies.Count > 0)
+                    && _unitsSelection.Count > 0)
                 {
-                    _units.AddOrder(_units.SelectedArmies, id);
+                    _units.AddOrder(_unitsSelection.Set, id);
                 }
-
-                foreach (int oldId in _selection.Hovering)
-                {
-                    SwapInstrs(oldId);
-                }
-
-                _selection.Hover(id);
+                    
+                SwapInstrs(_provinceSelection.Hovering);
+                _provinceSelection.Hover(id);
                 SwapInstrs(id);
             }
             else
             {
-                foreach (int hoverID in _selection.Hovering)
-                {
-                    SwapInstrs(hoverID);
-                }
-                _selection.StopHoveringAll();    
+                SwapInstrs(_provinceSelection.Hovering);
+                _provinceSelection.StopHovering();    
             }
 
-            if (input.WentActive(Keys.G))      _units.MergeSelected();
-            if (input.WentActive(Keys.Escape)) _units.ClearSelection();
-            if (input.WentActive(Keys.Delete)) DeleteUnits();
+            if (input.WentActive(Keys.G))      MergeSelectedArmies();
+            if (input.WentActive(Keys.Escape)) _unitsSelection.DeselectAll();
+            if (input.WentActive(Keys.Delete)) DeleteSelectedArmies();
 
-            // TODO: This can be improved. Since I need to hit check all provinces
-            // ..... anyway, I should only hit test the label which is inside the
-            // ..... province which the mouse is inside.
-            if (input.WentActive(Buttons.LeftButton))
+            if (input.WentInactive(Buttons.LeftButton) && selectionBox.Area > _minimumSelectionSize)
             {
-                KeyValuePair<int, AABB> selectedBox;
-
-                if (_labelClickableBoundaries.TryFind(out selectedBox,
-                    label => label.Value.IsPointInside(input.ScreenMouse)))
-                {
-                    if (_units.IsPlayerArmy(selectedBox.Key))
-                    {
-                        _units.SelectArmy(selectedBox.Key, input.IsActive(Keys.LeftControl));    
-                    }
-                }
-            }
-            else if (input.WentInactive(Buttons.LeftButton) && selectionBox.Area > _minimumSelectionSize)
-            {
-                _units.ClearSelection();
+                _unitsSelection.DeselectAll();
 
                 // Find all units within the area and select them.
                 _labelClickableBoundaries
                     .FindAll(p => _units.IsPlayerArmy(p.Key) && p.Value.Intersects(selectionBox))
-                    .ForEach(p => _units.SelectArmy(p.Key, true));
+                    .ForEach(p => _unitsSelection.Select(p.Key, true));
             }
 
             UpdateSelectionBox(input);
 
-            if (_units.SelectedArmies.Count > 0)
+            if (_unitsSelection.Count > 0)
             {
-                Debug.WriteToScreen("Armies", _units.SelectedArmies.Join(", "));    
+                Debug.WriteToScreen("Armies", _unitsSelection.Set.Join(", "));    
             }
         }
 
@@ -182,6 +164,9 @@ namespace Haumea.Components
             // we clear it so we don't have any label boxes belonging to deleted armies.
             _labelClickableBoundaries.Clear();
 
+            // All realm id's the player is at war with.
+            var playerEnemies = _wars.GetAllEnemies(Realms.PlayerID);
+
             foreach (var pair in _units.Armies)
             {
                 AABB box = _labelBoxes[pair.Value.Location];
@@ -196,11 +181,21 @@ namespace Haumea.Components
                 Vector2 p1     = (center - 5 * Vector2.UnitX);
                 AABB snugBox   = new AABB(p1, p1 + (dim + 10 * Vector2.UnitX));
 
-                Color borderColor = (_units.SelectedArmies.Contains(pair.Key))
-                    ? Color.Red
-                    : Color.Black;
+                Color borderColor;
 
-
+                if (_unitsSelection.Set.Contains(pair.Key))
+                {
+                    borderColor = Color.AliceBlue;
+                }
+                else if (playerEnemies.Contains(pair.Value.Owner))
+                {
+                    borderColor = Color.Red;
+                }
+                else
+                {
+                    borderColor = Color.Black;   
+                }
+                    
                 spriteBatch.Draw(snugBox.Borders(1), borderColor);
                 spriteBatch.Draw(snugBox, Color.Black);
                 spriteBatch.DrawString(_unitsFont, text, center.Floor(), Color.White);
@@ -209,33 +204,43 @@ namespace Haumea.Components
             }     
         }
 
-        private void DeleteUnits()
+        private void DeleteSelectedArmies()
         {
-            int count = _units.SelectedArmies.Count;
+            int count = _unitsSelection.Count;
             if (count == 0) return;
 
-            var delete = new HashSet<int>(_units.SelectedArmies);
+            var unitsToDelete = new HashSet<int>(_unitsSelection.Set);
 
             string plural = count == 1 ? "" : "s"; 
             string msg = string.Format("Are you sure you want \nto delete {0} unit{1}?",
                 count, plural);
 
-            var dialog = new Confirm(msg, () => _units.Delete(delete));
+            var dialog = new Confirm(msg, () => _units.Delete(unitsToDelete));
             _dialogMgr.Add(dialog);
 
             int nAlreadyDeleted = 0;
-            _units.OnDelete += (sender, armyID) => 
+            _units.OnDelete += (armyID) => 
             {
-                if (delete.Contains(armyID)) nAlreadyDeleted++;
-                if (nAlreadyDeleted == delete.Count) dialog.Terminate = true;
+                if (unitsToDelete.Contains(armyID)) nAlreadyDeleted++;
+                if (nAlreadyDeleted == unitsToDelete.Count) dialog.Terminate = true;
             };
         }
 
         private void SwapInstrs(int id)
         {
+            if (id < 0) return;
             var tmp = _standardInstrs[id];
             _standardInstrs[id] = _idleInstrs[id];
             _idleInstrs[id] = tmp;   
+        }
+
+        private void MergeSelectedArmies()
+        {
+            int mergedID =_unitsSelection.Set.First();
+            if (_units.Merge(_unitsSelection.Set))
+            {
+                _unitsSelection.Select(mergedID);
+            }
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿-	Inherit ObsoleteAttribute
 
--	Load the bftg polygons to test performance.
-
 -	Lots of duplicated code between DoMerge/DoInverseMerge
 
 -	The coordinate system is wrong. Fourth quadrant should be positive.
@@ -22,10 +20,6 @@
 
 -	Shaderprogramming: Replace basic effect with a custom one. Needs noise masking for province,
 	and color masking to indicate realm.
-
--	Triangulation: Triangulator got an annoying licens, it might be good to reimplement it.
-	It's based on https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf,
-	which seems to be easy to understand.
 
 -	Triangulation should be done at compile time. Should have a binary format for triangulated data.
 
@@ -48,3 +42,5 @@ Notes
 -	Vector2 has reference based methods to avoid allocation, might be useful in the future.
 
 -	I shouldn't really use int for primitive indices, but then I have to change Triangulator as well.
+
+-	Is it silly to use DateTime when I don't case about time?

@@ -5,8 +5,6 @@ using Haumea.Collections;
 
 namespace Haumea.Components
 { 
-    // This is implemented using Data Oriented Design (DOD, see http://www.dataorienteddesign.com/dodmain/).
-
     public class Provinces : IModel
     {
         public NodeGraph<int> Graph { get; }
@@ -57,6 +55,11 @@ namespace Haumea.Components
 
             foundID = -1;
             return false;
+        }
+
+        public void Annex(int province, int realm)
+        {
+            Ownership.Add(province, realm);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Haumea.Collections
     /// For simplicity, it doesn't implement any interfaces,
     /// but the methods are named so they match the ones in IDictionary.
     /// </summary>
-    public class BiDictionary<T1, T2>
+    public class BiDictionary<T1, T2> : IEnumerable<KeyValuePair<T1, T2>>
     {
         private readonly IDictionary<T1, T2> _forward;
         private readonly IDictionary<T2, T1> _backward;
@@ -97,6 +97,19 @@ namespace Haumea.Collections
         {
             _forward.Clear();
             _backward.Clear();
+        }
+            
+        public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator()
+        {
+            foreach (var pair in _forward)
+            {
+                yield return pair;
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
