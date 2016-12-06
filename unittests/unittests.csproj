@@ -52,7 +52,6 @@
     <Compile Include="Geometric\Poly.tests.cs" />
     <Compile Include="Parsing\GameFile.tests.cs" />
     <Compile Include="Parsing\Parser.Provinces.tests.cs" />
-    <Compile Include="SelectionManager.tests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

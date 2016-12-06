@@ -13,7 +13,7 @@ namespace unittests
         [Test]
         public void PathExists() 
         {                
-            NodeGraph<int> graph = CreateGraph(false);
+			NodeGraph<int> graph = CreateGraph(twoway: false);
 
             Assert.True(graph.PathExists(1, 4), "One way graph");
             Assert.False(graph.PathExists(2, 3), "One way graph");
@@ -22,6 +22,9 @@ namespace unittests
 
             Assert.True(graph.PathExists(1, 4), "Two way graph");
             Assert.False(graph.PathExists(2, 3), "Two way graph");
+
+			Assert.False(graph.PathExists(0, 1), "Non-existing source");
+			Assert.False(graph.PathExists(1, 0), "Non-existing dest");
         }
 
         [Test]
@@ -30,6 +33,8 @@ namespace unittests
             NodeGraph<int> graph = CreateGraph(false);
             Assert.AreEqual(-1, graph.NeighborDistance(1, 4), "Non-neighbour");
             Assert.AreEqual( 4, graph.NeighborDistance(3, 6), "One jump");
+			Assert.AreEqual(-1, graph.NeighborDistance(0, 1), "Non-existing source");
+			Assert.AreEqual(-1, graph.NeighborDistance(1, 0), "Non-existing dest");
         }
 
         [Test]
@@ -45,6 +50,8 @@ namespace unittests
             Assert.AreEqual(4, path.Nodes[2]);
 
             Assert.Null(graph.Dijkstra(2, 6), "Failed dijkstra");
+			Assert.Null(graph.Dijkstra(0, 1), "Failed dijkstra - non-existing source");
+			Assert.Null(graph.Dijkstra(1, 0), "Failed dijkstra - non-existing dest");
 
             graph = CreateGraph(true);
             path = graph.Dijkstra(4, 1);

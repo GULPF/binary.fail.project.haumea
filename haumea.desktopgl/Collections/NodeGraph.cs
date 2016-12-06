@@ -43,6 +43,9 @@ namespace Haumea.Collections
         // Breadth-first search.
         public bool PathExists(N from, N to)
         {
+			if (!Nodes.ContainsKey(from)) return false;
+			if (!Nodes.ContainsKey(to))   return false;
+
             ISet<N> visited = new HashSet<N>();
             Queue<N> nextLevel = new Queue<N>();
 
@@ -68,6 +71,9 @@ namespace Haumea.Collections
 
         public int NeighborDistance(N from, N to)
         {
+			if (!Nodes.ContainsKey(from)) return -1;
+			if (!Nodes.ContainsKey(to))   return -1;
+
             foreach (Connector<N> conn in Nodes[from])
             {
                 if (conn.To.Equals(to))
@@ -82,6 +88,9 @@ namespace Haumea.Collections
         // Find shortest path between from and to.
         public GraphPath<N> Dijkstra(N from, N to)
         {
+			if (!Nodes.ContainsKey(from)) return null;
+			if (!Nodes.ContainsKey(to))   return null;
+
             IDictionary<N, int> accumulatedCosts = new Dictionary<N, int>(Nodes.Count);
             IDictionary<N, N>   previusInPath    = new Dictionary<N, N>(Nodes.Count);
             ISet<N> done = new HashSet<N>();
