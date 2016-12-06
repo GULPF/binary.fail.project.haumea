@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace Haumea.Geometric
 {
-    struct Triangle
+    class Triangle
     {
         public Vertex V1 { get; }
         public Vertex V2 { get; }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Diagnostics = System.Diagnostics;
 
 using Haumea.Rendering;
+using System.Runtime.CompilerServices; 
 
 namespace Haumea
 {
@@ -38,6 +39,27 @@ namespace Haumea
         {
             ScreenText[infoName] = data.ToString();
         }
+
+		[Diagnostics.ConditionalAttribute("DEBUG")]
+		public static void Break()
+		{
+			Diagnostics.Debugger.Break();
+		}
+
+		private static DateTime _stopwatchStart;
+		private static string _stopwatchName;
+
+		public static void Stopwatch(string name)
+		{
+			_stopwatchStart = DateTime.Now;
+			_stopwatchName = name;
+		}
+			
+		public static void EndStopwatch()
+		{
+			var diff = DateTime.Now - _stopwatchStart;
+			Console.WriteLine("{0}: {1}s", _stopwatchName.PadRight(15), diff);
+		}
     }
 }
 

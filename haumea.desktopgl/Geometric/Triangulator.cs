@@ -62,7 +62,7 @@ namespace Haumea.Geometric
             }
 
             // After ear clipping, three points will remain (unless the polyon is messed up).
-            //Debug.Assert(polygonVertices.Count == 3);
+            Debug.Assert(polygonVertices.Count == 3);
             var a = polygonVertices.First;
             var b = a.Next;
             var c = b.Next;
