@@ -112,6 +112,7 @@
     <Compile Include="Components\Map\MapView.cs" />
     <Compile Include="Components\Map\ProvinceSelection.cs" />
     <Compile Include="Components\Map\UnitsSelection.cs" />
+    <Compile Include="Components\MiniMap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />

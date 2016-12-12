@@ -48,13 +48,13 @@ namespace Haumea.Rendering
 
         private void UpdateProjection()
         {
+            // FIXME: This zoom system means that it's non-trivial to know the size of the viewed map.
+            // ...... That's stupid.
             float baseZDistance = (float)((_screenDim.Y / 2f) / Math.Tan(MathHelper.ToRadians(45 / 2f)));
-
-            Vector3 target = Offset.ToVector3();
 
             View = Matrix.CreateLookAt(
                 Offset.ToVector3(Zoom * baseZDistance),
-                target,
+                Offset.ToVector3(),
                 Vector3.UnitY);
         }
     }
