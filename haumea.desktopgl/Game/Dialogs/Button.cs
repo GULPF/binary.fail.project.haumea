@@ -7,26 +7,26 @@ namespace Haumea.Dialogs
 {
     public class Button : IDialogComponent
     {
-        private static readonly Vector2 Dim = new Vector2(100, 20);
-
+        private readonly Vector2 _dim;
         private readonly string _label;
         private readonly SpriteFont _font;
         private readonly Vector2 _padding;
         private readonly Action _onClick;
 
-        public Button(SpriteFont font, string label, Action onClick)
+        public Button(SpriteFont font, string label, Action onClick, Vector2 dim)
         {
+            _dim = dim;
             _label = label;
             _font  = font;
             _onClick = onClick;
             Vector2 labelDim = _font.MeasureString(_label);
-            _padding = (Dim - labelDim) / 2;
+            _padding = (_dim - labelDim) / 2;
         }
             
-        public void Update(InputState input, Vector2 offset)
+        public void Update(InputState input, Vector2 offsetFromCenter)
         {
-            if (input.WentActive(Buttons.LeftButton)
-                && new AABB(offset, offset + Dim).IsPointInside(input.MouseRelativeToCenter))
+            var aabb = new AABB(offsetFromCenter, offsetFromCenter + _dim);
+            if (input.WentActive(Buttons.LeftButton) && aabb.IsPointInside(input.MouseRelativeToCenter))
             {
                 _onClick();
             }
@@ -34,7 +34,7 @@ namespace Haumea.Dialogs
 
         public void Draw(SpriteBatch spriteBatch, Vector2 v0)
         {
-            spriteBatch.Draw(new AABB(v0, v0 + Dim), Color.Beige, 2, Color.Black);
+            spriteBatch.Draw(new AABB(v0, v0 + _dim), Color.Beige, 2, Color.Black);
             spriteBatch.DrawString(_font, _label, (v0 + _padding).Floor(), Color.Black);
         }
     }

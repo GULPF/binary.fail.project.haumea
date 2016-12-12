@@ -25,6 +25,11 @@ namespace Haumea.Components
         private readonly RenderInstruction[][] _standardInstrs;
         private readonly RenderInstruction[][] _idleInstrs;
 
+        public RenderInstruction[][] RenderInstructons
+        {
+            get { return _standardInstrs; }
+        }
+
         // Label boxes are used to place the unit indicator.
         private readonly AABB[] _labelBoxes;
         private readonly IDictionary<int, AABB> _labelClickableBoundaries;
@@ -74,8 +79,8 @@ namespace Haumea.Components
             int id;
             if (_provinces.TryGetProvinceFromPoint(input.Mouse, out id))
             {
-				Debug.WriteToScreen("Province", _provinces.TagIdMapping[id]);
-				if (input.WentActive(Buttons.LeftButton) && _labelClickableBoundaries.ContainsKey(id) &&
+                if (input.WentActive(Buttons.LeftButton) && 
+                    _labelClickableBoundaries.ContainsKey(id) &&
                     _labelClickableBoundaries[id].IsPointInside(input.ScreenMouse) &&
                     _units.IsPlayerArmy(id))
                 {
@@ -237,6 +242,7 @@ namespace Haumea.Components
 
         private void MergeSelectedArmies()
         {
+            if (_unitsSelection.Count == 0) return;
             int mergedID =_unitsSelection.Set.First();
             if (_units.Merge(_unitsSelection.Set))
             {

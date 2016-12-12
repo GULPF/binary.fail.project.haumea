@@ -43,8 +43,8 @@ namespace Haumea.Dialogs
         public void LoadContent(ContentManager content)
         {
             _font = content.Load<SpriteFont>("LogFont");
-            _btnYes = new Button(_font, "Yes", () => { Terminate = true; _onSuccess(); });
-            _btnNo  = new Button(_font, "No",  () => { Terminate = true; _onFail();    });
+            _btnYes = new Button(_font, "Yes", () => { Terminate = true; _onSuccess(); }, new Vector2(100, 20));
+            _btnNo  = new Button(_font, "No",  () => { Terminate = true; _onFail();    }, new Vector2(100, 20));
         }
 
         public void Update(InputState input)
