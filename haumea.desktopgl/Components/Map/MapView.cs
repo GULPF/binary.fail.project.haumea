@@ -74,7 +74,8 @@ namespace Haumea.Components
             int id;
             if (_provinces.TryGetProvinceFromPoint(input.Mouse, out id))
             {
-                if (input.WentActive(Buttons.LeftButton) && 
+				Debug.WriteToScreen("Province", _provinces.TagIdMapping[id]);
+				if (input.WentActive(Buttons.LeftButton) && _labelClickableBoundaries.ContainsKey(id) &&
                     _labelClickableBoundaries[id].IsPointInside(input.ScreenMouse) &&
                     _units.IsPlayerArmy(id))
                 {
